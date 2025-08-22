@@ -182,7 +182,7 @@ src/
 
 ## 👨‍💻 Автор
 
-**Ваше Имя** – [Telegram]([https://t.me/your_telegram](https://t.me/Zolomon1997)) – [Email](hopsintoxin@mail.ru)
+**PavelHopson** – [Telegram]([https://t.me/your_telegram](https://t.me/Zolomon1997)) – [Email](hopsintoxin@mail.ru)
 
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2?logo=linkedin)](https://www.linkedin.com/in/your-profile/)
 [![GitHub](https://img.shields.io/badge/GitHub-181717?logo=github)](https://github.com/your-username)
