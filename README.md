@@ -97,26 +97,121 @@ CryptoPulse — это единый хаб для мониторинга фин�
 
 ### Структура проекта
 ```
-src/
-├── components/ # Переиспользуемые Vue-компоненты
-│ ├── ui/ # Базовые компоненты (кнопки, модалки)
-│ ├── charts/ # Компоненты графиков (CandleStickChart.vue)
-│ ├── crypto/ # Специфичные для крипты компоненты
-│ └── layout/ # Компоненты макета (Header, Footer)
-├── views/ # Страницы приложения
-│ ├── Dashboard.vue # Главная
-│ ├── CoinDetail.vue # Детальная страница монеты
-│ └── Compare.vue # Страница сравнения
-├── stores/ # Хранилища Pinia
-│ ├── crypto.store.ts # Состояние криптовалют
-│ └── theme.store.ts # Состояние темы
-├── composables/ # Vue composables
-│ ├── useApi.ts # Логика работы с API
-│ └── useWebSocket.ts # Логика WebSocket
-├── types/ # TypeScript типы
-├── router/ # Конфигурация маршрутизатора
-├── styles/ # Глобальные стили и SCSS-переменные
-└── main.ts # Точка входа
+📁 CRYPTOPULSE - СТРУКТУРА ПРОЕКТА
+
+📂 public/
+├── 📂 assets/
+│   └── 📂 images/
+│       └── 🖼️ no_image.png
+├── 🔀 _redirects
+├── 🌐 favicon.ico
+├── 📄 manifest.json
+└── 🤖 robots.txt
+
+📂 src/
+├── 📂 components/
+│   ├── 📂 auth/
+│   │   ├── 🔐 AuthForm.jsx
+│   │   └── 🛡️ ProtectedRoute.jsx
+│   ├── 📂 ui/
+│   │   ├── 📱 BottomTabNavigation.jsx
+│   │   ├── 🎛️ Button.jsx
+│   │   ├── ☑️ Checkbox.jsx
+│   │   ├── 🏗️ Header.jsx
+│   │   ├── ⌨️ Input.jsx
+│   │   ├── 🔍 SearchOverlay.jsx
+│   │   ├── 📋 Select.jsx
+│   │   ├── 💬 Toast.jsx
+│   │   ├── 🖼️ AppIcon.jsx
+│   │   ├── 🎑 AppImage.jsx
+│   │   ├── ⚠️ ErrorBoundary.jsx
+│   │   └── 🔝 ScrollToTop.jsx
+├── 📂 contexts/
+│   └── 🔐 AuthContext.jsx
+├── 📂 hooks/
+│   └── 🎣 useSupabase.js
+├── 📂 lib/
+│   └── 🗄️ supabase.js
+├── 📂 pages/
+│   ├── 📂 auth/
+│   │   └── 📄 index.jsx
+│   ├── 📂 coin-detail-page/
+│   │   ├── 📂 components/
+│   │   │   ├── 🎛️ ActionButtons.jsx
+│   │   │   ├── 🏷️ CoinHeader.jsx
+│   │   │   ├── 💀 LoadingSkeleton.jsx
+│   │   │   ├── 📊 MetricsGrid.jsx
+│   │   │   ├── 📈 PriceChart.jsx
+│   │   │   └── 📊 StatisticsSection.jsx
+│   │   └── 📄 index.jsx
+│   ├── 📂 dashboard-overview/
+│   │   ├── 📂 components/
+│   │   │   ├── 📊 CryptoTable.jsx
+│   │   │   ├── 📋 MarketSummaryCard.jsx
+│   │   │   ├── 🔄 RefreshIndicator.jsx
+│   │   │   └── 📈 TrendingCoins.jsx
+│   │   └── 📄 index.jsx
+│   ├── 📂 favorites-management/
+│   │   ├── 📂 components/
+│   │   │   ├── 🗑️ EmptyFavoritesState.jsx
+│   │   │   ├── 💳 FavoriteCard.jsx
+│   │   │   ├── 🖼️ FavoritesGrid.jsx
+│   │   │   ├── 🏷️ FavoritesHeader.jsx
+│   │   │   └── 📊 FavoritesTable.jsx
+│   │   └── 📄 index.jsx
+│   ├── 📂 multi-coin-comparison/
+│   │   ├── 📂 components/
+│   │   │   ├── 🎯 CoinSelector.jsx
+│   │   │   ├── 🎛️ ComparisonActions.jsx
+│   │   │   ├── 📊 ComparisonChart.jsx
+│   │   │   ├── 📈 ComparisonMetrics.jsx
+│   │   │   └── 🎴 SelectedCoinChips.jsx
+│   │   └── 📄 index.jsx
+│   ├── 📂 search-discovery/
+│   │   ├── 📂 components/
+│   │   │   ├── 💳 CoinCard.jsx
+│   │   │   ├── 🗑️ EmptyState.jsx
+│   │   │   ├── 🏷️ FilterChips.jsx
+│   │   │   ├── 🎛️ FilterPanel.jsx
+│   │   │   ├── ⚡ QuickFilters.jsx
+│   │   │   ├── 🔍 SearchBar.jsx
+│   │   │   └── 🔄 SortControls.jsx
+│   │   └── 📄 index.jsx
+│   ├── 📂 settings-preferences/
+│   │   ├── 📂 components/
+│   │   │   ├── 💾 BackupRestore.jsx
+│   │   │   ├── 💰 CurrencySelector.jsx
+│   │   │   ├── 📊 DataSettings.jsx
+│   │   │   ├── 🌐 LanguageSelector.jsx
+│   │   │   ├── 🔒 PrivacySettings.jsx
+│   │   │   └── 🎨 ThemeSelector.jsx
+│   │   └── 📄 index.jsx
+│   └── ❓ NotFound.jsx
+├── 📂 services/
+│   └── 📡 cryptoService.js
+├── 📂 styles/
+│   ├── 🎨 index.css
+│   └── 🎨 tailwind.css
+├── 📂 utils/
+│   └── 🛠️ cn.js
+├── ⚛️ App.jsx
+├── 📄 index.jsx
+└── 🛣️ Routes.jsx
+
+📂 supabase/
+└── 📂 migrations/
+    └── 📋 20250901155358_cryptopulse_with_auth.sql
+
+📄 .env
+📄 .gitignore
+🌐 favicon.ico
+📄 index.html
+📄 jsconfig.json
+📄 package-lock.json
+📄 package.json
+📄 postcss.config.js
+📄 README.md
+📄 tailwind.config.js
 ```
 
 ### Взаимодействие с API
