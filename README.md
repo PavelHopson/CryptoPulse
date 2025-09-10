@@ -1,288 +1,81 @@
-# 🚀 CryptoPulse — Финансовый дашборд для трейдинга
+# CryptoPulse: Крипто-дашборд нового поколения
 
-![CryptoPulse Banner](./docs/assets/banner.png)
+(https://img.shields.io/github/workflow/status/PavelHopson/CryptoPulse/deploy-to-vercel?style=for-the-badge)](https://github.com/PavelHopson/CryptoPulse/actions)
+(https://img.shields.io/github/stars/PavelHopson/CryptoPulse?style=for-the-badge)](https://github.com/PavelHopson/CryptoPulse/stargazers)
+[![License](https://img.shields.io/github/license/PavelHopson/CryptoPulse?style=for-the-badge)](https://github.com/PavelHopson/CryptoPulse/blob/main/LICENSE)
+[![GitHub last commit](https://img.shields.io/github/last-commit/PavelHopson/CryptoPulse?style=for-the-badge)](https://github.com/PavelHopson/CryptoPulse/commits/main)
 
-**CryptoPulse** — это современное, адаптивное веб-приложение для отслеживания криптовалют, forex-пар и котировок драгоценных металлов. Проект демонстрирует полный цикл разработки production-ready SPA на современном стеке.
+!(https://i.imgur.com/placeholder-banner.png)
 
-[![Vue 3](https://img.shields.io/badge/Vue.js-3.x-4FC08D?logo=vue.js)](https://vuejs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript)](https://www.typescriptlang.org/)
-[![Pinia](https://img.shields.io/badge/Pinia-2.x-FFD859?logo=vue.js)](https://pinia.vuejs.org/)
-[![Vite](https://img.shields.io/badge/Vite-5.x-646CFF?logo=vite)](https://vitejs.dev/)
-[![Chart.js](https://img.shields.io/badge/Chart.js-4.x-FF6384?logo=chart.js)](https://www.chartjs.org/)
-[![SCSS](https://img.shields.io/badge/SASS/SCSS-1.69-CC6699?logo=sass)](https://sass-lang.com/)
-[![Netlify](https://img.shields.io/badge/Deploy-Netlify-00C7B7?logo=netlify)](https://www.netlify.com/)
+## О проекте
 
-**🌐 Живая демо-версия:** [cryptopulse-dashboard.netlify.app](https://cryptopulse-dashboard.netlify.app)
+**CryptoPulse** — это современный, высокопроизводительный крипто-дашборд, созданный для предоставления актуальной информации о рынке криптовалют. Проект реализован с использованием передовых технологий, обеспечивает плавный пользовательский опыт и готов к масштабированию.
 
----
+### Основные функциональные возможности
 
-## 📋 Оглавление
+*   **Главная страница:** Таблица с топ-20 криптовалютами, автообновление данных каждые 60 секунд.
+*   **Динамические графики:** Детальный график цен для каждой монеты с различными временными интервалами.
+*   **Сравнение монет:** Возможность добавлять несколько монет на один график для визуального сравнения.
+*   **Избранное:** Сохранение любимых монет в персональном списке, с поддержкой `localStorage` и опциональной синхронизацией через бэкенд.
+*   **UI/UX:** Адаптивный дизайн (Mobile-first), переключатель тёмной/светлой темы.
+*   **Улучшенный опыт:** `Skeleton loaders` для индикации загрузки, `Toast` уведомления для обратной связи.
+*   **Продвинутая фильтрация:** Система поиска и сортировки по различным параметрам.
+*   **Локализация:** Поддержка нескольких языков и форматов валют (USD, EUR, RUB).
 
-- [Обзор](#-обзор)
-- [Ключевые функции](#-ключевые-функции)
-- [Технологический стек](#-технологический-стек)
-- [Скриншоты и демо](#-скриншоты-и-демо)
-- [Архитектура и API](#-архитектура-и-api)
-- [Установка и запуск](#-установка-и-запуск)
-- [Планы по развитию](#-планы-по-развитию)
-- [Лицензия](#-лицензия)
-- [Автор](#-автор)
+### Стек технологий
 
----
+**Frontend:**
+*   **Фреймворк:** Vue 3 (Composition API + `<script setup>`)
+*   **Сборщик:** Vite
+*   **Управление состоянием:** Pinia
+*   **Типизация:** TypeScript
+*   **Маршрутизация:** Vue Router
+*   **Графики:** Chart.js, Vue-Chartjs
+*   **HTTP-клиент:** Axios
+*   **Уведомления:** Vue Toastification
+*   **Стили:** SCSS (Mobile-first)
 
-## 🎯 Обзор
+**Backend (опционально):**
+*   **Сервер:** Node.js, Express.js
+*   **ORM:** Prisma
+*   **База данных:** PostgreSQL
+*   **Аутентификация:** JWT
 
-CryptoPulse — это единый хаб для мониторинга финансовых рынков, который я разработал для демонстрации современных навыков фронтенд-разработки. Приложение в реальном времени отображает:
+### Установка и запуск
 
--   **Криптовалюты:** Топ-100 по рыночной капитализации с детальной аналитикой по каждой монете.
--   **Forex:** Основные валютные пары (USD/RUB, EUR/USD, GBP/USD и другие).
--   **Металлы:** Котировки золота, серебра, платины и палладия.
+Для запуска проекта на локальной машине, выполните следующие шаги:
 
-Проект реализован как SPA (Single Page Application) с клиентской маршрутизацией, состоянием и адаптивным интерфейсом.
-
----
-
-## ✨ Ключевые функции
-
-### 📊 Дашборд и данные
--   **Главный дашборд** с таблицей активов и агрегированной статистикой
--   **Детальные страницы** для каждого актива с графиками цен за разные периоды (24ч, 7д, 30д, 1г)
--   **Мощные графики** с использованием Chart.js (свечные, линейные)
--   **Автообновление** данных каждые 60 секунд (с настройкой интервала)
-
-### ⭐ Пользовательский опыт
--   **Система избранного** с сохранением в `localStorage`
--   **Сравнение активов** — до 3-х графиков на одном холсте
--   **Умный поиск** по названию и символу актива
--   **Адаптивный дизайн** — от 320px до 4K
--   **Тёмная/светлая тема** (синхронизируется с системными настройками)
--   **Skeleton-загрузчики** и graceful degradation при ошибках API
-
-### 🛠️ Технические особенности
--   Клиентская кэширование запросов для снижения нагрузки на API
--   Обработка ошибок и Toast-уведомления
--   Прогрузка данных по скроллу (pagination / infinite scroll)
--   Оптимизация производительности (динамические импорты, lazy loading)
-
----
-
-## 🛠️ Технологический стек
-
-| Категория       | Технологии                                                                                                                              |
-|-----------------|-----------------------------------------------------------------------------------------------------------------------------------------|
-| **Фронтенд**    | ![Vue 3](https://img.shields.io/badge/-Vue%203-4FC08D?logo=vue.js&logoColor=white) ![TypeScript](https://img.shields.io/badge/-TypeScript-3178C6?logo=typescript&logoColor=white) ![Pinia](https://img.shields.io/badge/-Pinia-FFD859?logo=vue.js&logoColor=black) ![Vue Router](https://img.shields.io/badge/-Vue%20Router-4FC08D?logo=vue.js&logoColor=white) |
-| **Стили**       | ![SCSS](https://img.shields.io/badge/-SCSS-CC6699?logo=sass&logoColor=white) ![CSS Grid](https://img.shields.io/badge/-CSS%20Grid-1572B6?logo=css3&logoColor=white) ![Flexbox](https://img.shields.io/badge/-Flexbox-1572B6?logo=css3&logoColor=white) |
-| **Визуализация**| ![Chart.js](https://img.shields.io/badge/-Chart.js-FF6384?logo=chart.js&logoColor=white)                                               |
-| **Инструменты** | ![Vite](https://img.shields.io/badge/-Vite-646CFF?logo=vite&logoColor=white) ![ESLint](https://img.shields.io/badge/-ESLint-4B32C3?logo=eslint&logoColor=white) ![Prettier](https://img.shields.io/badge/-Prettier-F7B93E?logo=prettier&logoColor=black) |
-| **Деплой**      | ![Netlify](https://img.shields.io/badge/-Netlify-00C7B7?logo=netlify&logoColor=white)                                                  |
-| **API**         | [CoinGecko API](https://www.coingecko.com/ru/api) • [Exchangerate.host](https://exchangerate.host/) • [Metals-API](https://metals-api.com/) |
-
----
-
-## 🖼️ Скриншоты и демо
-
-| Светлая тема (Главная страница) | Тёмная тема (График BTC) |
-| :-----------------------------: | :----------------------: |
-| ![Главная светлая](./docs/screenshots/light-dashboard.png) | ![График тёмный](./docs/screenshots/dark-chart.png) |
-
-| Сравнение активов | Адаптивная версия |
-| :---------------: | :---------------: |
-| ![Сравнение](./docs/screenshots/compare-view.png) | ![Мобильная](./docs/screenshots/mobile-view.png) |
-
-**🎥 Видео-демо работы приложения:** [смотреть на Loom](https://www.loom.com/share/...)
-
----
-
-## 🧩 Архитектура и API
-
-### Структура проекта
-```
-📁 CRYPTOPULSE - СТРУКТУРА ПРОЕКТА
-
-📂 public/
-├── 📂 assets/
-│   └── 📂 images/
-│       └── 🖼️ no_image.png
-├── 🔀 _redirects
-├── 🌐 favicon.ico
-├── 📄 manifest.json
-└── 🤖 robots.txt
-
-📂 src/
-├── 📂 components/
-│   ├── 📂 auth/
-│   │   ├── 🔐 AuthForm.jsx
-│   │   └── 🛡️ ProtectedRoute.jsx
-│   ├── 📂 ui/
-│   │   ├── 📱 BottomTabNavigation.jsx
-│   │   ├── 🎛️ Button.jsx
-│   │   ├── ☑️ Checkbox.jsx
-│   │   ├── 🏗️ Header.jsx
-│   │   ├── ⌨️ Input.jsx
-│   │   ├── 🔍 SearchOverlay.jsx
-│   │   ├── 📋 Select.jsx
-│   │   ├── 💬 Toast.jsx
-│   │   ├── 🖼️ AppIcon.jsx
-│   │   ├── 🎑 AppImage.jsx
-│   │   ├── ⚠️ ErrorBoundary.jsx
-│   │   └── 🔝 ScrollToTop.jsx
-├── 📂 contexts/
-│   └── 🔐 AuthContext.jsx
-├── 📂 hooks/
-│   └── 🎣 useSupabase.js
-├── 📂 lib/
-│   └── 🗄️ supabase.js
-├── 📂 pages/
-│   ├── 📂 auth/
-│   │   └── 📄 index.jsx
-│   ├── 📂 coin-detail-page/
-│   │   ├── 📂 components/
-│   │   │   ├── 🎛️ ActionButtons.jsx
-│   │   │   ├── 🏷️ CoinHeader.jsx
-│   │   │   ├── 💀 LoadingSkeleton.jsx
-│   │   │   ├── 📊 MetricsGrid.jsx
-│   │   │   ├── 📈 PriceChart.jsx
-│   │   │   └── 📊 StatisticsSection.jsx
-│   │   └── 📄 index.jsx
-│   ├── 📂 dashboard-overview/
-│   │   ├── 📂 components/
-│   │   │   ├── 📊 CryptoTable.jsx
-│   │   │   ├── 📋 MarketSummaryCard.jsx
-│   │   │   ├── 🔄 RefreshIndicator.jsx
-│   │   │   └── 📈 TrendingCoins.jsx
-│   │   └── 📄 index.jsx
-│   ├── 📂 favorites-management/
-│   │   ├── 📂 components/
-│   │   │   ├── 🗑️ EmptyFavoritesState.jsx
-│   │   │   ├── 💳 FavoriteCard.jsx
-│   │   │   ├── 🖼️ FavoritesGrid.jsx
-│   │   │   ├── 🏷️ FavoritesHeader.jsx
-│   │   │   └── 📊 FavoritesTable.jsx
-│   │   └── 📄 index.jsx
-│   ├── 📂 multi-coin-comparison/
-│   │   ├── 📂 components/
-│   │   │   ├── 🎯 CoinSelector.jsx
-│   │   │   ├── 🎛️ ComparisonActions.jsx
-│   │   │   ├── 📊 ComparisonChart.jsx
-│   │   │   ├── 📈 ComparisonMetrics.jsx
-│   │   │   └── 🎴 SelectedCoinChips.jsx
-│   │   └── 📄 index.jsx
-│   ├── 📂 search-discovery/
-│   │   ├── 📂 components/
-│   │   │   ├── 💳 CoinCard.jsx
-│   │   │   ├── 🗑️ EmptyState.jsx
-│   │   │   ├── 🏷️ FilterChips.jsx
-│   │   │   ├── 🎛️ FilterPanel.jsx
-│   │   │   ├── ⚡ QuickFilters.jsx
-│   │   │   ├── 🔍 SearchBar.jsx
-│   │   │   └── 🔄 SortControls.jsx
-│   │   └── 📄 index.jsx
-│   ├── 📂 settings-preferences/
-│   │   ├── 📂 components/
-│   │   │   ├── 💾 BackupRestore.jsx
-│   │   │   ├── 💰 CurrencySelector.jsx
-│   │   │   ├── 📊 DataSettings.jsx
-│   │   │   ├── 🌐 LanguageSelector.jsx
-│   │   │   ├── 🔒 PrivacySettings.jsx
-│   │   │   └── 🎨 ThemeSelector.jsx
-│   │   └── 📄 index.jsx
-│   └── ❓ NotFound.jsx
-├── 📂 services/
-│   └── 📡 cryptoService.js
-├── 📂 styles/
-│   ├── 🎨 index.css
-│   └── 🎨 tailwind.css
-├── 📂 utils/
-│   └── 🛠️ cn.js
-├── ⚛️ App.jsx
-├── 📄 index.jsx
-└── 🛣️ Routes.jsx
-
-📂 supabase/
-└── 📂 migrations/
-    └── 📋 20250901155358_cryptopulse_with_auth.sql
-
-📄 .env
-📄 .gitignore
-🌐 favicon.ico
-📄 index.html
-📄 jsconfig.json
-📄 package-lock.json
-📄 package.json
-📄 postcss.config.js
-📄 README.md
-📄 tailwind.config.js
-```
-
-### Взаимодействие с API
-Приложение использует несколько внешних API для получения данных:
-1.  **CoinGecko API** — получение списка криптовалют, цен, исторических данных.
-2.  **Exchangerate.host** — получение актуальных курсов валют.
-3.  **Metals-API** — получение котировок драгоценных металлов.
-
-Реализована абстракция для работы с API (`src/services/api.ts`) с обработкой ошибок, таймаутами и кэшированием.
-
----
-
-## ⚡ Установка и запуск
-
-Для запуска проекта локально потребуется Node.js версии 18 или выше.
-
-1.  **Клонируйте репозиторий:**
+1.  Клонируйте репозиторий:
     ```bash
-    git clone https://github.com/your-username/cryptopulse-dashboard.git
-    cd cryptopulse-dashboard
+    git clone [https://github.com/PavelHopson/CryptoPulse.git](https://github.com/PavelHopson/CryptoPulse.git)
     ```
-
-2.  **Установите зависимости:**
+2.  Перейдите в папку проекта:
+    ```bash
+    cd CryptoPulse
+    ```
+3.  Установите зависимости:
     ```bash
     npm install
     ```
-
-3.  **Запустите сервер для разработки:**
+4.  Запустите сервер для разработки:
     ```bash
     npm run dev
     ```
-    Приложение будет доступно по адресу `http://localhost:5173`.
 
-4.  **Сборка для production:**
-    ```bash
-    npm run build
-    ```
-    Собранные файлы будут помещены в директорию `dist/`.
+Приложение будет доступно по адресу `http://localhost:5173/`.
 
-5.  **Проверка линтером:**
-    ```bash
-    npm run lint
-    ```
+### Развёртывание
 
----
+Проект настроен для автоматического развёртывания на [Netlify](https://www.netlify.com/) или [Vercel](https://vercel.com/) с использованием GitHub Actions.
 
-## 📈 Планы по развитию
+1.  Подключите ваш GitHub-репозиторий к одной из этих платформ.
+2.  Платформа автоматически определит настройки сборки (`npm run build`) и папку для публикации (`dist/`).
+3.  Каждый `push` в основную ветку будет автоматически запускать процесс сборки и развертывания.
 
--   [ ] **Реализация бэкенда** на Node.js + Express для кэширования запросов и снижения нагрузки на внешние API
--   [ ] **Аутентификация пользователей** для синхронизации избранного между устройствами
--   [ ] **WebSocket** для реального времени (без опроса API каждые N секунд)
--   [ ] **Уведомления** о достижении ценой заданного уровня
--   [ ] **Расширенная аналитика** (RSI, Moving Averages) с помощью библиотеки `lightweight-charts`
--   [ ] **PWA** (Progressive Web App) для установки на мобильные устройства
+### Контрибьюция
+
+Мы приветствуем любые предложения по улучшению проекта. Пожалуйста, следуйте нашим [руководствам по контрибьюции](CONTRIBUTING.md).
 
 ---
 
-## 📄 Лицензия
-
-Этот проект распространяется под лицензией MIT. Подробнее см. в файле [LICENSE](LICENSE).
-
----
-
-## 👨‍💻 Автор
-
-**PavelHopson** – [Telegram]([https://t.me/your_telegram](https://t.me/Zolomon1997)) – [Email](hopsintoxin@mail.ru)
-
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2?logo=linkedin)](https://www.linkedin.com/in/your-profile/)
-[![GitHub](https://img.shields.io/badge/GitHub-181717?logo=github)](https://github.com/your-username)
-[![Portfolio](https://img.shields.io/badge/Portfolio-4285F4?logo=google-chrome)](https://your-portfolio-site.com)
-
----
-
-*Если этот проект был полезен, не забудьте поставить звезду ⭐ на GitHub!*
+**v1.0.0**
