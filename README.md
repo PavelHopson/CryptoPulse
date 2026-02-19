@@ -1,77 +1,120 @@
-# 🚀 CryptoPulse — ваш персональный крипто-дашборд
+# 🚀 CryptoPulse 2077
 
-CryptoPulse — это современное web-приложение для мониторинга и анализа криптовалют.  
-Создано с использованием **Vue 3 + TypeScript + Vite + Supabase**.  
+> **Production-ready SaaS platform** for crypto analytics with realtime data, role-based access, and subscription monetization.
 
-## 🌟 Основные возможности
-- 📊 Топ-20 монет с графиками и метриками.
-- ❤️ Избранное и сравнение монет.
-- 🔔 Уведомления о ценах (Pro+).
-- 📈 Премиум-индикаторы: RSI, MACD (Pro+).
-- 🔄 Синхронизация между устройствами через Supabase.
-- 🌙 Тёмная/светлая тема.
-- 🔑 Авторизация (email + OAuth).
-- 📡 Realtime обновления.
-- 🛡️ RLS (Row Level Security) в базе данных.
+CryptoPulse 2077 is designed as a commercial product foundation (not a pet-project): modular architecture, strict TypeScript, Supabase backend, Stripe billing, and scalable observability/security primitives.
 
-## 💎 Тарифы
+---
 
-| Тариф      | Free         | Pro ($9.99/мес) | Enterprise (от $99/мес) |
-|------------|--------------|-----------------|--------------------------|
-| Топ-20 монет | ✅ | ✅ | ✅ |
-| Избранное | до 10 | до 100 | без ограничений |
-| Сравнение | 2 монеты | 5 монет | без ограничений |
-| Индикаторы (RSI, MACD) | ❌ | ✅ | ✅ |
-| Уведомления о ценах | ❌ | ✅ | ✅ |
-| API доступ | ❌ | ❌ | ✅ |
-| Поддержка | сообщество | стандарт | премиум (SLA) |
+## ✨ Product Vision
 
-## 🛠️ Технологии
-- **Фронтенд**: Vue 3, Vite, TypeScript, Pinia, Vue Router, Chart.js
-- **Бэкенд**: Supabase (Auth, Realtime, Database, Edge Functions)
-- **API-провайдеры**: CoinGecko, CoinPaprika
-- **Стили**: SCSS, mobile-first, адаптивный UI
-- **CI/CD**: GitHub Actions + Vercel/Netlify
-- **Тестирование**: Vitest, Playwright
-- **Мониторинг**: Sentry, Lighthouse CI
+CryptoPulse helps users move from **noise** to **decision**:
+- Track market leaders in realtime.
+- Build personal signal workflows (favorites, comparisons, portfolio).
+- Upgrade via subscription tiers (Free / Pro / Enterprise).
+- Operate on a secure, observable, scalable architecture.
 
-## 🔑 Переменные окружения
-Создайте `.env` файл в корне проекта:
-```bash
-VITE_SUPABASE_URL=your_project_url
-VITE_SUPABASE_ANON_KEY=your_anon_key
-VITE_SUPABASE_SERVICE_KEY=your_service_key
-VITE_API_COINGECKO=https://api.coingecko.com/api/v3
-VITE_API_COINPAPRIKA=https://api.coinpaprika.com
+---
+
+## 🧱 Core Stack
+
+- **Frontend:** React 18, Vite, TypeScript (strict), React Router v6, Zustand, TailwindCSS, Recharts, Axios
+- **Backend/BaaS:** Supabase (Auth, Postgres, Realtime, Edge Functions, RLS)
+- **Billing:** Stripe Checkout + Webhook subscription sync
+- **Quality/Infra:** ESLint, Prettier, Vitest, GitHub Actions
+- **Observability:** PostHog + Sentry-ready + structured logs + health-check workflow
+
+---
+
+## 🗂️ Project Structure
+
+```text
+src/
+  app/
+  components/
+  domain/
+    favorites/
+    subscription/
+  features/
+    auth/
+    billing/
+    dashboard/
+    favorites/
+    comparison/
+    portfolio/
+    pricing/
+    alerts/
+  hooks/
+  services/
+  lib/
+  store/
+  types/
+  pages/
+  layouts/
 ```
-🚀 Запуск проекта
-```
-# установка зависимостей
-npm install
 
-# запуск в dev-режиме
-npm run dev
+---
 
-# билд для продакшена
-npm run build
+## ⚡ Key Capabilities
 
-# запуск тестов
-npm run test
-```
-📦 Деплой
-Vercel / Netlify (рекомендуется)
-Подключите Supabase проект и настройте переменные окружения
+- Email/password + Google OAuth authentication
+- Persistent sessions + token refresh
+- Protected routes + role guard (`free`, `pro`, `enterprise`)
+- Dashboard with top-20 market feed and sparkline charts
+- Favorites with plan-aware limits + realtime sync
+- Comparison limits from feature flags
+- Billing center (status, renewal, trial countdown, invoices)
+- Stripe webhook role synchronization + subscription audit trail
+- Background-ready alerts job queue with retries
+- Usage/revenue/churn analytics baseline
 
-🧭 Дорожная карта
- MVP: авторизация, избранное, топ-20
- Realtime синхронизация
- Уведомления о ценах
- Подписки (Stripe + Supabase Functions)
- API для Enterprise
- White-label дашборды
+For full functional walkthrough, see **[`PROJECT_SHOWCASE.md`](./PROJECT_SHOWCASE.md)**.
 
-🤝 Вклад в проект
-PR и Issues приветствуются!
-Планируется развитие до стартапа с подписками.
+---
 
-© 2025 CryptoPulse. Все права защищены.
+## 🔐 Security & Reliability Highlights
+
+- Row Level Security on user-owned tables
+- Structured logging and centralized error handling
+- Webhook rate limiting + retry logic + failure alert hook
+- Health-check edge endpoint + scheduled uptime workflow
+- Anti-abuse client-side budget limiter for sensitive actions
+
+---
+
+## 🛠️ Local Development
+
+1. Install deps:
+   ```bash
+   npm install
+   ```
+2. Copy env file:
+   ```bash
+   cp .env.example .env
+   ```
+3. Run app:
+   ```bash
+   npm run dev
+   ```
+
+---
+
+## ☁️ Supabase / Stripe Notes
+
+- Apply migration: `supabase/migrations/202602190001_init.sql`
+- Deploy edge functions:
+  - `stripe-webhook`
+  - `price-alerts`
+  - `health-check`
+- Configure Stripe webhook to `stripe-webhook` URL
+- Set `ALERT_WEBHOOK_URL` for incident notifications
+
+---
+
+## 🗺️ Roadmap
+
+- **Phase 1:** MVP foundation ✅
+- **Phase 2:** Pro operational depth (portfolio/alerts polish)
+- **Phase 3:** Stripe lifecycle hardening ✅
+- **Phase 4:** Enterprise API layer
+- **Phase 5:** White-label / partner mode
