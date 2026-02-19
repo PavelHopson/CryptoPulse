@@ -11,12 +11,16 @@ const plans = [
     priceId: 'price_pro_monthly',
     subtitle: 'Тариф для частного трейдера',
     features: '100 избранных • 5 сравнений • портфель + алерты',
+    subtitle: 'Solo Operator Tier',
+    features: '100 favorites • 5 comparisons • portfolio + alerts',
   },
   {
     name: 'Enterprise',
     priceId: 'price_enterprise_monthly',
     subtitle: 'Тариф для команды/деска',
     features: 'Безлимит • приоритет API • выделенная поддержка',
+    subtitle: 'Trading Desk Tier',
+    features: 'Unlimited limits • API priority • dedicated success lane',
   },
 ];
 
@@ -36,6 +40,8 @@ export const PricingView = (): JSX.Element => {
       <div className="neon-card p-4">
         <h1 className="text-2xl font-semibold neon-title">Матрица тарифов</h1>
         <p className="text-sm text-fuchsia-200/70">Откройте премиум-функции и расширенные лимиты.</p>
+        <h1 className="text-2xl font-semibold neon-title">Upgrade Matrix</h1>
+        <p className="text-sm text-fuchsia-200/70">Unlock premium modules and execution speed.</p>
       </div>
       <div className="grid gap-4 md:grid-cols-2">
         {plans.map((plan) => (
@@ -52,6 +58,7 @@ export const PricingView = (): JSX.Element => {
               disabled={upgradeMutation.isPending}
             >
               Перейти на {plan.name}
+              Initiate {plan.name} Link
             </button>
           </article>
         ))}

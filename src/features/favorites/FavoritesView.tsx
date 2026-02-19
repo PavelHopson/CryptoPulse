@@ -37,6 +37,11 @@ export const FavoritesView = (): JSX.Element => {
     },
     onError: (error) => {
       const appError = errorHandler.toAppError(error, 'Не удалось добавить монету');
+      toast.success('Signal pinned');
+      await queryClient.invalidateQueries({ queryKey });
+    },
+    onError: (error) => {
+      const appError = errorHandler.toAppError(error, 'Unable to add favorite');
       if (appError.code === 'PLAN_LIMIT_REACHED') {
         analytics.track('upgrade_triggered', { source: 'favorites_limit' });
       }
@@ -51,6 +56,7 @@ export const FavoritesView = (): JSX.Element => {
     },
     onError: (error) => {
       const appError = errorHandler.toAppError(error, 'Не удалось удалить монету');
+      const appError = errorHandler.toAppError(error, 'Unable to remove favorite');
       toast.error(appError.message);
     },
   });
@@ -67,6 +73,8 @@ export const FavoritesView = (): JSX.Element => {
       <section className="space-y-3">
         <button className="rounded-xl border border-cyan-300/60 bg-cyan-400/15 px-3 py-2 text-cyan-100" onClick={add}>Добавить BTC в избранное</button>
         <EmptyState title="Избранное пока пусто" description="Добавляйте монеты и синхронизируйте список между устройствами в realtime." />
+        <button className="rounded-xl border border-cyan-300/60 bg-cyan-400/15 px-3 py-2 text-cyan-100" onClick={add}>Pin BTC Signal</button>
+        <EmptyState title="Signal vault is empty" description="Pin coins to sync your watchlist across devices in realtime." />
       </section>
     );
   }
@@ -74,6 +82,7 @@ export const FavoritesView = (): JSX.Element => {
   return (
     <section className="space-y-3">
       <button className="rounded-xl border border-cyan-300/60 bg-cyan-400/15 px-3 py-2 text-cyan-100" onClick={add} disabled={addMutation.isPending}>Добавить BTC в избранное</button>
+      <button className="rounded-xl border border-cyan-300/60 bg-cyan-400/15 px-3 py-2 text-cyan-100" onClick={add} disabled={addMutation.isPending}>Pin BTC Signal</button>
       {data.map((favorite) => (
         <div key={favorite.id} className="neon-card flex items-center justify-between p-3">
           <span>
@@ -82,6 +91,7 @@ export const FavoritesView = (): JSX.Element => {
           </span>
           <button className="text-rose-300" onClick={() => removeMutation.mutate(favorite.id)}>
             Удалить
+            Unpin
           </button>
         </div>
       ))}

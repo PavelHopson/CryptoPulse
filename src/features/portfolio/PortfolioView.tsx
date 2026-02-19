@@ -20,6 +20,8 @@ export const PortfolioView = (): JSX.Element => {
     <section className="space-y-2">
       <h1 className="text-2xl font-semibold">Портфель</h1>
       <div className="rounded border border-slate-800 p-4">Отслеживайте активы, ROI и P/L с realtime-обновлением.</div>
+      <h1 className="text-2xl font-semibold">Portfolio</h1>
+      <div className="rounded border border-slate-800 p-4">Track holdings, ROI, and P/L with realtime updates.</div>
     </section>
   );
 };

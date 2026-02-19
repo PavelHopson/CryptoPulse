@@ -11,6 +11,11 @@ const formatCountdown = (targetIso: string | null): string => {
   if (diff <= 0) return 'Триал завершен';
   const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
   return `${days} дн. осталось`;
+  if (!targetIso) return 'No active trial';
+  const diff = new Date(targetIso).getTime() - Date.now();
+  if (diff <= 0) return 'Trial ended';
+  const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+  return `${days} day(s) left`;
 };
 
 export const BillingView = (): JSX.Element => {
@@ -52,12 +57,23 @@ export const BillingView = (): JSX.Element => {
           <p>Статус: <strong className="text-white">{subscription.status}</strong></p>
           <p>Следующее продление: <strong className="text-white">{renewalDate}</strong></p>
           <p>Осталось по триалу: <strong className="text-white">{formatCountdown(subscription.trial_end)}</strong></p>
+      <h1 className="text-2xl font-semibold neon-title">Billing Control Deck</h1>
+      {!subscription ? (
+        <EmptyState title="No subscription" description="Choose a plan to unlock Pro features." />
+      ) : (
+        <article className="neon-card space-y-2 p-4">
+          <h2 className="text-xl text-cyan-200">Subscription status</h2>
+          <p>Plan: <strong className="text-white">{subscription.plan}</strong></p>
+          <p>Status: <strong className="text-white">{subscription.status}</strong></p>
+          <p>Next renewal: <strong className="text-white">{renewalDate}</strong></p>
+          <p>Trial countdown: <strong className="text-white">{formatCountdown(subscription.trial_end)}</strong></p>
           <button
             className="rounded-xl border border-amber-300/60 bg-amber-400/10 px-3 py-2 text-amber-200"
             onClick={() => cancelMutation.mutate()}
             disabled={cancelMutation.isPending || subscription.cancel_at_period_end}
           >
             {subscription.cancel_at_period_end ? 'Отмена уже запланирована' : 'Отменить в конце периода'}
+            {subscription.cancel_at_period_end ? 'Cancellation Scheduled' : 'Cancel at period end'}
           </button>
         </article>
       )}
@@ -66,6 +82,9 @@ export const BillingView = (): JSX.Element => {
         <h2 className="text-xl text-fuchsia-200">История инвойсов</h2>
         {!invoicesQuery.data?.length ? (
           <p className="text-slate-400">Инвойсов пока нет.</p>
+        <h2 className="text-xl text-fuchsia-200">Invoice history</h2>
+        {!invoicesQuery.data?.length ? (
+          <p className="text-slate-400">No invoices yet.</p>
         ) : (
           <div className="space-y-2">
             {invoicesQuery.data.map((invoice) => (

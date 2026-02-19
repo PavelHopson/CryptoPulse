@@ -8,6 +8,12 @@ const navItems = [
   { to: '/portfolio', label: 'Портфель' },
   { to: '/pricing', label: 'Тарифы' },
   { to: '/billing', label: 'Биллинг' },
+  { to: '/', label: 'Market Grid' },
+  { to: '/favorites', label: 'Signal Vault' },
+  { to: '/comparison', label: 'Compare Core' },
+  { to: '/portfolio', label: 'Portfolio OS' },
+  { to: '/pricing', label: 'Upgrades' },
+  { to: '/billing', label: 'Billing' },
 ];
 
 export const AppLayout = (): JSX.Element => {
@@ -39,6 +45,7 @@ export const AppLayout = (): JSX.Element => {
               className="rounded-full border border-rose-400/50 bg-rose-500/10 px-3 py-1 text-rose-300 transition hover:bg-rose-500/20"
             >
               Выйти
+              Disconnect
             </button>
           </nav>
         </div>
