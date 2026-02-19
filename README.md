@@ -1,77 +1,87 @@
-# 🚀 CryptoPulse — ваш персональный крипто-дашборд
+# CryptoPulse 2077
 
-CryptoPulse — это современное web-приложение для мониторинга и анализа криптовалют.  
-Создано с использованием **Vue 3 + TypeScript + Vite + Supabase**.  
+Production-oriented SaaS starter for crypto analytics with tiered subscriptions (Free/Pro/Enterprise), Supabase auth/database/realtime, and Stripe billing.
 
-## 🌟 Основные возможности
-- 📊 Топ-20 монет с графиками и метриками.
-- ❤️ Избранное и сравнение монет.
-- 🔔 Уведомления о ценах (Pro+).
-- 📈 Премиум-индикаторы: RSI, MACD (Pro+).
-- 🔄 Синхронизация между устройствами через Supabase.
-- 🌙 Тёмная/светлая тема.
-- 🔑 Авторизация (email + OAuth).
-- 📡 Realtime обновления.
-- 🛡️ RLS (Row Level Security) в базе данных.
+## Stack
+- React 18 + Vite + TypeScript strict mode
+- React Router v6 + Zustand + TailwindCSS + Headless UI ready
+- React Query + Recharts + Axios
+- Supabase Auth/Postgres/Realtime/Edge Functions
+- Stripe checkout + webhook role sync
+- PostHog + Sentry-ready observability
+- Vitest + ESLint + Prettier + GitHub Actions CI
 
-## 💎 Тарифы
+## Architecture
 
-| Тариф      | Free         | Pro ($9.99/мес) | Enterprise (от $99/мес) |
-|------------|--------------|-----------------|--------------------------|
-| Топ-20 монет | ✅ | ✅ | ✅ |
-| Избранное | до 10 | до 100 | без ограничений |
-| Сравнение | 2 монеты | 5 монет | без ограничений |
-| Индикаторы (RSI, MACD) | ❌ | ✅ | ✅ |
-| Уведомления о ценах | ❌ | ✅ | ✅ |
-| API доступ | ❌ | ❌ | ✅ |
-| Поддержка | сообщество | стандарт | премиум (SLA) |
-
-## 🛠️ Технологии
-- **Фронтенд**: Vue 3, Vite, TypeScript, Pinia, Vue Router, Chart.js
-- **Бэкенд**: Supabase (Auth, Realtime, Database, Edge Functions)
-- **API-провайдеры**: CoinGecko, CoinPaprika
-- **Стили**: SCSS, mobile-first, адаптивный UI
-- **CI/CD**: GitHub Actions + Vercel/Netlify
-- **Тестирование**: Vitest, Playwright
-- **Мониторинг**: Sentry, Lighthouse CI
-
-## 🔑 Переменные окружения
-Создайте `.env` файл в корне проекта:
-```bash
-VITE_SUPABASE_URL=your_project_url
-VITE_SUPABASE_ANON_KEY=your_anon_key
-VITE_SUPABASE_SERVICE_KEY=your_service_key
-VITE_API_COINGECKO=https://api.coingecko.com/api/v3
-VITE_API_COINPAPRIKA=https://api.coinpaprika.com
 ```
-🚀 Запуск проекта
+src/
+  app/
+  components/
+  domain/
+    favorites/
+    subscription/
+  features/
+    auth/
+    billing/
+    dashboard/
+    favorites/
+    comparison/
+    portfolio/
+    pricing/
+    alerts/
+  hooks/
+  services/
+  lib/
+  store/
+  types/
+  pages/
+  layouts/
 ```
-# установка зависимостей
-npm install
 
-# запуск в dev-режиме
-npm run dev
+## Production hardening highlights
+- Sentry bootstrap for frontend error monitoring (`src/lib/sentry.ts`)
+- Structured JSON logs (`src/lib/logger.ts`)
+- Subscription event audit trail (`subscription_events`)
+- Webhook failure alerts via `ALERT_WEBHOOK_URL`
+- Health-check edge function and scheduled health workflow
+- Background alert job queue (`alert_jobs`) with retry/backoff
+- Client anti-abuse limiter (`src/lib/rateLimiter.ts`)
+- Usage + revenue/churn analytics foundations (`usage_events`, analytics SQL views)
 
-# билд для продакшена
-npm run build
+## Core capabilities implemented
+- Email/password + Google OAuth auth flows
+- Session persistence + token auto refresh
+- Protected routes and role-based guard (`useRequireRole`)
+- Domain/use-case layer between UI and service layer
+- Centralized error handling (`src/lib/errorHandler.ts`) + shared logger (`src/lib/logger.ts`)
+- Favorites with dynamic plan limits from `feature_flags`
+- Graceful downgrade prep via `handleRoleDowngrade` (overflow favorites become inactive)
+- Billing page with subscription status, renewal date, trial countdown, and invoice history
+- Pricing page with Stripe checkout trigger and analytics conversion events
 
-# запуск тестов
-npm run test
-```
-📦 Деплой
-Vercel / Netlify (рекомендуется)
-Подключите Supabase проект и настройте переменные окружения
+## Local development
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
+2. Copy `.env.example` to `.env` and fill values.
+3. Run app:
+   ```bash
+   npm run dev
+   ```
 
-🧭 Дорожная карта
- MVP: авторизация, избранное, топ-20
- Realtime синхронизация
- Уведомления о ценах
- Подписки (Stripe + Supabase Functions)
- API для Enterprise
- White-label дашборды
+## Supabase notes
+- Apply migration in `supabase/migrations/202602190001_init.sql`.
+- Deploy Edge Functions:
+  - `stripe-webhook`
+  - `price-alerts`
+  - `health-check`
+- Configure Stripe webhook to point to the `stripe-webhook` function URL.
+- Set secret `ALERT_WEBHOOK_URL` for incident alerts.
 
-🤝 Вклад в проект
-PR и Issues приветствуются!
-Планируется развитие до стартапа с подписками.
-
-© 2025 CryptoPulse. Все права защищены.
+## Roadmap phases
+- Phase 1: MVP dashboard/favorites/auth ✅
+- Phase 2: Pro features (portfolio/alerts) scaffolded
+- Phase 3: Stripe integration ✅ (checkout + webhook template)
+- Phase 4: Enterprise API (pending)
+- Phase 5: White-label (pending)
