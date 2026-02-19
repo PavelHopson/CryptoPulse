@@ -1,25 +1,92 @@
 # CryptoPulse 2077
 
-Production-oriented SaaS starter for crypto analytics with tiered subscriptions (Free/Pro/Enterprise), Supabase auth/database/realtime, and Stripe billing.
+Production-grade SaaS platform for cryptocurrency analytics with role-based product tiers, realtime user data sync, and subscription monetization.
 
-## Stack
-- React 18 + Vite + TypeScript strict mode
-- React Router v6 + Zustand + TailwindCSS + Headless UI ready
-- React Query + Recharts + Axios
-- Supabase Auth/Postgres/Realtime/Edge Functions
-- Stripe checkout + webhook role sync
-- PostHog + Sentry-ready observability
-- Vitest + ESLint + Prettier + GitHub Actions CI
+## Executive Summary
 
-## Architecture
+CryptoPulse 2077 is structured as a **commercial-ready foundation** for a crypto analytics business:
 
-```
+- Tiered access model (**Free / Pro / Enterprise**)
+- Supabase-native backend architecture (Auth, Postgres, Realtime, RLS, Edge Functions)
+- Stripe billing lifecycle integration (checkout + webhook-driven role updates)
+- Domain/service separation for maintainable and scalable growth
+- Observability and reliability primitives for production operations
+
+This repository is optimized for teams that need to move from MVP to production without rewriting core architecture.
+
+---
+
+## Product Scope
+
+### Core user-facing modules
+- **Dashboard**: top market assets, key metrics, sparkline charts
+- **Favorites**: role-limited watchlist with realtime synchronization
+- **Comparison**: plan-aware comparison capacity
+- **Portfolio**: Pro+ gated portfolio workspace
+- **Pricing**: conversion-oriented upgrade flow
+- **Billing**: subscription status, renewal/trial visibility, invoice history
+
+### Business-critical capabilities
+- Authentication with session persistence and auto-refresh
+- Role-based access control across product surfaces
+- Subscription-to-role synchronization via Stripe webhook events
+- Feature flag model for plan limits without frontend redeploy
+
+For a complete walkthrough of routes, role matrix, lifecycle flows, and data model, see **[`PROJECT_SHOWCASE.md`](./PROJECT_SHOWCASE.md)**.
+
+---
+
+## Technology Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | React 18, Vite, TypeScript (strict), React Router v6, Zustand |
+| UI | TailwindCSS, Headless UI-ready primitives, Recharts |
+| Data/API | Supabase JS, Axios, React Query |
+| Backend | Supabase Auth, Postgres, Realtime, Edge Functions |
+| Billing | Stripe Checkout + Webhook processing |
+| Quality | ESLint, Prettier, Vitest |
+| CI/CD | GitHub Actions |
+| Observability | Structured logging, Sentry-ready hooks, PostHog-ready tracking |
+
+---
+
+## Architecture Principles
+
+- **Separation of concerns**: UI → domain use-cases → services → infrastructure
+- **Strong typing by default**: strict TypeScript and explicit domain types
+- **Plan-aware product logic**: limits and entitlements controlled by DB feature flags
+- **Scalable operations**: background-job-ready alert pipeline and audit tables
+- **Secure by design**: RLS-first data isolation and secret-bound server responsibilities
+
+---
+
+## Security, Reliability, and Operations
+
+### Security
+- Row Level Security policies on user-owned entities
+- Webhook signature verification for Stripe events
+- Secret-sensitive logic constrained to Edge/server-side contexts
+
+### Reliability
+- Structured logging and centralized error normalization
+- Retry-aware webhook and alert processing flows
+- Subscription event audit trail for billing forensics
+
+### Operations
+- Health-check edge endpoint
+- Scheduled health workflow support
+- Incident hook support (`ALERT_WEBHOOK_URL`)
+
+---
+
+## Repository Structure
+
+```text
 src/
   app/
   components/
   domain/
-    favorites/
-    subscription/
   features/
     auth/
     billing/
@@ -36,52 +103,77 @@ src/
   types/
   pages/
   layouts/
+supabase/
+  migrations/
+  functions/
 ```
 
-## Production hardening highlights
-- Sentry bootstrap for frontend error monitoring (`src/lib/sentry.ts`)
-- Structured JSON logs (`src/lib/logger.ts`)
-- Subscription event audit trail (`subscription_events`)
-- Webhook failure alerts via `ALERT_WEBHOOK_URL`
-- Health-check edge function and scheduled health workflow
-- Background alert job queue (`alert_jobs`) with retry/backoff
-- Client anti-abuse limiter (`src/lib/rateLimiter.ts`)
-- Usage + revenue/churn analytics foundations (`usage_events`, analytics SQL views)
+---
 
-## Core capabilities implemented
-- Email/password + Google OAuth auth flows
-- Session persistence + token auto refresh
-- Protected routes and role-based guard (`useRequireRole`)
-- Domain/use-case layer between UI and service layer
-- Centralized error handling (`src/lib/errorHandler.ts`) + shared logger (`src/lib/logger.ts`)
-- Favorites with dynamic plan limits from `feature_flags`
-- Graceful downgrade prep via `handleRoleDowngrade` (overflow favorites become inactive)
-- Billing page with subscription status, renewal date, trial countdown, and invoice history
-- Pricing page with Stripe checkout trigger and analytics conversion events
+## Local Setup
 
-## Local development
-1. Install dependencies:
-   ```bash
-   npm install
-   ```
-2. Copy `.env.example` to `.env` and fill values.
-3. Run app:
-   ```bash
-   npm run dev
-   ```
+### 1) Install dependencies
+```bash
+npm install
+```
 
-## Supabase notes
-- Apply migration in `supabase/migrations/202602190001_init.sql`.
-- Deploy Edge Functions:
-  - `stripe-webhook`
-  - `price-alerts`
-  - `health-check`
-- Configure Stripe webhook to point to the `stripe-webhook` function URL.
-- Set secret `ALERT_WEBHOOK_URL` for incident alerts.
+### 2) Configure environment
+```bash
+cp .env.example .env
+```
 
-## Roadmap phases
-- Phase 1: MVP dashboard/favorites/auth ✅
-- Phase 2: Pro features (portfolio/alerts) scaffolded
-- Phase 3: Stripe integration ✅ (checkout + webhook template)
-- Phase 4: Enterprise API (pending)
-- Phase 5: White-label (pending)
+Required variables are defined in `.env.example`.
+
+### 3) Run development server
+```bash
+npm run dev
+```
+
+### 4) Quality checks
+```bash
+npm run lint
+npm run test
+npm run build
+```
+
+---
+
+## Supabase / Stripe Deployment Notes
+
+1. Apply SQL migration:
+   - `supabase/migrations/202602190001_init.sql`
+2. Deploy Edge Functions:
+   - `stripe-webhook`
+   - `price-alerts`
+   - `health-check`
+3. Configure Stripe webhook endpoint to `stripe-webhook`
+4. Configure incident notifications via `ALERT_WEBHOOK_URL`
+
+---
+
+## Production Readiness Checklist
+
+- [x] Strict TypeScript + modular architecture
+- [x] Auth + protected routes + role model
+- [x] Stripe subscription lifecycle integration
+- [x] Realtime data sync for user entities
+- [x] RLS data isolation strategy
+- [x] Billing and plan management surfaces
+- [x] Observability foundations (logging, health-check, audit trail)
+- [x] CI workflow baseline
+
+---
+
+## Roadmap
+
+- **Phase 1** — MVP baseline ✅
+- **Phase 2** — Pro feature depth (portfolio/alerts UX and analytics)
+- **Phase 3** — Stripe lifecycle hardening ✅
+- **Phase 4** — Enterprise API surface
+- **Phase 5** — White-label and partner distribution
+
+---
+
+## License
+
+MIT — see [`LICENSE`](./LICENSE).
