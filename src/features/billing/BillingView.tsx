@@ -6,6 +6,11 @@ import { Loader } from '../../components/Loader';
 import { EmptyState } from '../../components/EmptyState';
 
 const formatCountdown = (targetIso: string | null): string => {
+  if (!targetIso) return 'Триал не активен';
+  const diff = new Date(targetIso).getTime() - Date.now();
+  if (diff <= 0) return 'Триал завершен';
+  const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+  return `${days} дн. осталось`;
   if (!targetIso) return 'No active trial';
   const diff = new Date(targetIso).getTime() - Date.now();
   if (diff <= 0) return 'Trial ended';
@@ -42,6 +47,16 @@ export const BillingView = (): JSX.Element => {
 
   return (
     <section className="space-y-4">
+      <h1 className="text-2xl font-semibold neon-title">Центр биллинга</h1>
+      {!subscription ? (
+        <EmptyState title="Подписка отсутствует" description="Выберите тариф, чтобы открыть Pro-возможности." />
+      ) : (
+        <article className="neon-card space-y-2 p-4">
+          <h2 className="text-xl text-cyan-200">Статус подписки</h2>
+          <p>Тариф: <strong className="text-white">{subscription.plan}</strong></p>
+          <p>Статус: <strong className="text-white">{subscription.status}</strong></p>
+          <p>Следующее продление: <strong className="text-white">{renewalDate}</strong></p>
+          <p>Осталось по триалу: <strong className="text-white">{formatCountdown(subscription.trial_end)}</strong></p>
       <h1 className="text-2xl font-semibold neon-title">Billing Control Deck</h1>
       {!subscription ? (
         <EmptyState title="No subscription" description="Choose a plan to unlock Pro features." />
@@ -57,12 +72,16 @@ export const BillingView = (): JSX.Element => {
             onClick={() => cancelMutation.mutate()}
             disabled={cancelMutation.isPending || subscription.cancel_at_period_end}
           >
+            {subscription.cancel_at_period_end ? 'Отмена уже запланирована' : 'Отменить в конце периода'}
             {subscription.cancel_at_period_end ? 'Cancellation Scheduled' : 'Cancel at period end'}
           </button>
         </article>
       )}
 
       <article className="neon-card space-y-3 p-4">
+        <h2 className="text-xl text-fuchsia-200">История инвойсов</h2>
+        {!invoicesQuery.data?.length ? (
+          <p className="text-slate-400">Инвойсов пока нет.</p>
         <h2 className="text-xl text-fuchsia-200">Invoice history</h2>
         {!invoicesQuery.data?.length ? (
           <p className="text-slate-400">No invoices yet.</p>

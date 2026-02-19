@@ -16,6 +16,9 @@ export const ComparisonView = (): JSX.Element => {
 
   return (
     <section className="space-y-2">
+      <h1 className="text-2xl font-semibold neon-title">Сравнение монет</h1>
+      <p className="text-slate-300">Текущий лимит одновременного сравнения: <span className="text-cyan-200">{limit}</span>.</p>
+      <div className="neon-card p-4">Модуль мультиграфиков готов для индикаторов и пресетов стратегий.</div>
       <h1 className="text-2xl font-semibold neon-title">Comparison Core</h1>
       <p className="text-slate-300">Current simultaneous comparison limit: <span className="text-cyan-200">{limit}</span>.</p>
       <div className="neon-card p-4">Multi-graph comparison module ready for overlay indicators and strategy presets.</div>

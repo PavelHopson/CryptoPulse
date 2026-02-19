@@ -12,11 +12,14 @@ export const DashboardView = (): JSX.Element => {
   });
 
   if (isLoading) return <Loader />;
+  if (isError || !data) return <ErrorState message="Не удалось загрузить рыночные данные." />;
   if (isError || !data) return <ErrorState message="Unable to load market data." />;
 
   return (
     <div className="space-y-4">
       <div className="neon-card p-4">
+        <h1 className="text-2xl font-semibold neon-title">Дашборд рынка — Топ 20</h1>
+        <p className="text-sm text-cyan-200/70">Обновление каждые 45 секунд. Цвет показывает волатильность.</p>
         <h1 className="text-2xl font-semibold neon-title">Neural Market Grid — Top 20</h1>
         <p className="text-sm text-cyan-200/70">Live scan every 45s. Signal intensity color-coded by volatility.</p>
       </div>

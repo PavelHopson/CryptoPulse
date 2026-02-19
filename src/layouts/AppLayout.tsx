@@ -2,6 +2,12 @@ import { Link, NavLink, Outlet } from 'react-router-dom';
 import { authService } from '../services/authService';
 
 const navItems = [
+  { to: '/', label: 'Рынок' },
+  { to: '/favorites', label: 'Избранное' },
+  { to: '/comparison', label: 'Сравнение' },
+  { to: '/portfolio', label: 'Портфель' },
+  { to: '/pricing', label: 'Тарифы' },
+  { to: '/billing', label: 'Биллинг' },
   { to: '/', label: 'Market Grid' },
   { to: '/favorites', label: 'Signal Vault' },
   { to: '/comparison', label: 'Compare Core' },
@@ -38,6 +44,7 @@ export const AppLayout = (): JSX.Element => {
               onClick={() => void authService.signOut()}
               className="rounded-full border border-rose-400/50 bg-rose-500/10 px-3 py-1 text-rose-300 transition hover:bg-rose-500/20"
             >
+              Выйти
               Disconnect
             </button>
           </nav>
