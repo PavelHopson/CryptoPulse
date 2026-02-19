@@ -1,0 +1,37 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  font-family: Inter, 'Segoe UI', system-ui, sans-serif;
+  background:
+    radial-gradient(circle at 15% 10%, rgba(56, 189, 248, 0.25), transparent 35%),
+    radial-gradient(circle at 80% 20%, rgba(217, 70, 239, 0.2), transparent 35%),
+    radial-gradient(circle at 60% 80%, rgba(99, 102, 241, 0.25), transparent 45%),
+    #020617;
+  min-height: 100vh;
+}
+
+::selection {
+  background: rgba(56, 189, 248, 0.35);
+  color: #e0f2fe;
+}
+
+.neon-card {
+  @apply rounded-2xl border border-cyan-400/30 bg-slate-900/50 backdrop-blur-xl shadow-[0_0_30px_rgba(34,211,238,0.12)];
+}
+
+.neon-title {
+  @apply bg-gradient-to-r from-cyan-300 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent;
+}
+
+.grid-overlay {
+  background-image:
+    linear-gradient(to right, rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
