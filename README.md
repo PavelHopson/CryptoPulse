@@ -1,195 +1,300 @@
 <div align="center">
 
-![CryptoPulse 2077](https://socialify.git.ci/PavelHopson/CryptoPulse/image?description=1&descriptionEditable=Neural%20Finance%20Terminal%20%E2%80%94%20Cyberpunk%20Trading%20Platform&font=Source%20Code%20Pro&language=1&name=1&pattern=Circuit%20Board&theme=Dark&owner=1)
+![CryptoPulse 2077](https://socialify.git.ci/PavelHopson/CryptoPulse/image?description=1&descriptionEditable=%D0%A4%D0%B8%D0%BD%D0%B0%D0%BD%D1%81%D0%BE%D0%B2%D1%8B%D0%B9%20%D1%82%D0%B5%D1%80%D0%BC%D0%B8%D0%BD%D0%B0%D0%BB%20%D0%BD%D0%BE%D0%B2%D0%BE%D0%B3%D0%BE%20%D0%BF%D0%BE%D0%BA%D0%BE%D0%BB%D0%B5%D0%BD%D0%B8%D1%8F&font=Source%20Code%20Pro&language=1&name=1&pattern=Circuit%20Board&theme=Dark&owner=1)
 
 # CRYPTOPULSE // 2077
 
 ### *Wake up, Samurai. We have a market to burn.*
 
-**Real-time crypto, forex & futures analytics with AI-powered insights.**<br/>
-**Built with Cyberpunk 2077 aesthetic.**
+**Финансовый терминал нового поколения с AI-аналитикой и дизайном в стиле Cyberpunk 2077.**<br/>
+**Криптовалюты, форекс, фьючерсы — всё в одном месте.**
 
-[![Live Demo](https://img.shields.io/badge/LIVE%20DEMO-00f3ff?style=for-the-badge&logo=cloudflarepages&logoColor=black)](https://cryptopulse-1d0.pages.dev)
+[![Демо](https://img.shields.io/badge/%D0%9E%D0%A2%D0%9A%D0%A0%D0%AB%D0%A2%D0%AC%20%D0%94%D0%95%D0%9C%D0%9E-00f3ff?style=for-the-badge&logo=cloudflarepages&logoColor=black)](https://cryptopulse-1d0.pages.dev)
 [![React](https://img.shields.io/badge/React_19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://typescriptlang.org)
 [![Vite](https://img.shields.io/badge/Vite_6-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vite.dev)
 [![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
-[![Gemini AI](https://img.shields.io/badge/Gemini_AI-8E75B2?style=for-the-badge&logo=googlegemini&logoColor=white)](https://ai.google.dev)
+[![Cloudflare](https://img.shields.io/badge/Cloudflare-F38020?style=for-the-badge&logo=cloudflare&logoColor=white)](https://pages.cloudflare.com)
 
 </div>
 
 ---
+
+## Что это за проект?
+
+**CryptoPulse 2077** — это веб-платформа для мониторинга финансовых рынков и симуляции трейдинга с элементами AI-аналитики. Проект объединяет реальные рыночные данные (CoinGecko API), живую ленту новостей (собственный парсер на Cloudflare Workers) и интеграцию с AI-моделями (Gemini, OpenAI, Claude, Ollama) для анализа активов.
+
+Это **не биржа** и не инвестиционный советник — это инструмент для обучения, анализа и отработки торговых стратегий на виртуальном балансе без риска реальных денег.
+
+**Ключевые возможности:**
+- Котировки криптовалют, форекса и фьючерсов в реальном времени
+- AI-аналитик, который генерирует профессиональные инсайты по любому активу
+- Симулятор трейдинга с кредитным плечом до 100x
+- Собственный парсер новостей (CoinTelegraph, CoinDesk, Investing.com)
+- 3 темы оформления — Cyberpunk, Midnight (мягкая тёмная), Light (светлая)
+
+---
+
+## Для кого этот проект?
+
+<table>
+<tr>
+<td width="33%" valign="top">
+
+### Начинающие трейдеры
+Хотите понять, как работает рынок, но боитесь потерять деньги? CryptoPulse даёт виртуальный баланс $100,000, на котором можно тренироваться открывать позиции, ставить плечо и следить за PnL — без какого-либо риска.
+
+</td>
+<td width="33%" valign="top">
+
+### Аналитики и инвесторы
+Нужен быстрый обзор рынка с AI-инсайтами? Подключите свою модель (Gemini, GPT-4o, Claude) и получайте профессиональный анализ по каждому активу: тренд, сигналы, уровни поддержки/сопротивления — одним нажатием.
+
+</td>
+<td width="33%" valign="top">
+
+### Разработчики и студенты
+Ищете пример современного React-приложения? Здесь: React 19, TypeScript, Vite 6, TailwindCSS, CSS-переменные для тем, Cloudflare Workers для парсинга, интеграция с 5 AI-провайдерами. Код открыт, MIT лицензия.
+
+</td>
+</tr>
+</table>
+
+---
+
+## Как проект будет зарабатывать?
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+### Модель монетизации
+
+| Канал | Описание |
+|-------|----------|
+| **Freemium-подписка** | Бесплатный тариф с рекламой. Pro ($9.99/мес) — без рекламы, AI-аналитика, TradingView графики, неограниченное избранное |
+| **Whale Club** | Премиум-тариф ($49.99/мес) — персональный менеджер, API, закрытый чат, альфа-сигналы |
+| **Реклама** | Встроенные баннеры для бесплатных пользователей |
+| **Партнёрские программы** | Реферальные ссылки на реальные биржи (Binance, Bybit, OKX) |
+| **White Label** | Продажа платформы как SaaS-решения для брокеров и финтех-компаний |
+
+</td>
+<td width="50%" valign="top">
+
+### Конкурентные преимущества
+
+- **AI-аналитик** — пользователь подключает СВОЮ модель (не платит нам за AI)
+- **Без бэкенда** — всё работает в браузере + Cloudflare Workers (почти нулевая себестоимость)
+- **Собственный парсер новостей** — не зависим от платных API
+- **3 темы оформления** — удобно для любого пользователя
+- **Открытый код** — можно доработать под любые нужды
+- **Мгновенный деплой** — Cloudflare Pages, 0 серверов, 0 затрат на старте
+
+</td>
+</tr>
+</table>
+
+---
+
+## Возможности платформы
 
 <div align="center">
 
-| <img width="100%" src="https://img.shields.io/badge/CRYPTO-Dashboard-00f3ff?style=flat-square"/> | <img width="100%" src="https://img.shields.io/badge/AI-Analysis-a855f7?style=flat-square"/> | <img width="100%" src="https://img.shields.io/badge/TRADE-Terminal-00ff9d?style=flat-square"/> | <img width="100%" src="https://img.shields.io/badge/ADMIN-Panel-ff00aa?style=flat-square"/> |
+| <img width="100%" src="https://img.shields.io/badge/%D0%A0%D0%AB%D0%9D%D0%9E%D0%9A-Dashboard-00f3ff?style=flat-square"/> | <img width="100%" src="https://img.shields.io/badge/AI-%D0%90%D0%BD%D0%B0%D0%BB%D0%B8%D1%82%D0%B8%D0%BA%D0%B0-a855f7?style=flat-square"/> | <img width="100%" src="https://img.shields.io/badge/%D0%A2%D0%A0%D0%95%D0%99%D0%94%D0%98%D0%9D%D0%93-%D0%A2%D0%B5%D1%80%D0%BC%D0%B8%D0%BD%D0%B0%D0%BB-00ff9d?style=flat-square"/> | <img width="100%" src="https://img.shields.io/badge/%D0%90%D0%94%D0%9C%D0%98%D0%9D-%D0%9F%D0%B0%D0%BD%D0%B5%D0%BB%D1%8C-ff00aa?style=flat-square"/> |
 |:---:|:---:|:---:|:---:|
-| Real-time market data | Gemini 2.5 Flash | LONG / SHORT orders | Full system control |
+| Данные в реальном времени | 5 AI-провайдеров | LONG / SHORT ордера | Полный контроль системы |
 
 </div>
 
+<table>
+<tr>
+<td width="50%">
+
+### Рынки и аналитика
+- Котировки **криптовалют** в реальном времени (CoinGecko API)
+- Рынки **Форекс** и **Фьючерсов** (EUR/USD, Золото, S&P 500)
+- **TradingView** свечные графики (OHLC)
+- **Технический анализ** (RSI, MACD, EMA, SMA, Ichimoku)
+- **Сравнение активов** — относительная доходность (ROI %)
+- **Лента новостей** — парсинг CoinTelegraph, CoinDesk, Investing.com
+
+</td>
+<td width="50%">
+
+### Трейдинг и портфель
+- **Симулятор торговли** — LONG/SHORT с плечом 1x–100x
+- **Управление портфелем** — позиции, PnL, маржа
+- **Пополнение счёта** — RUB/USD/EUR, Карта/СБП/Крипто
+- **Копи-трейдинг** — копирование стратегий топ-трейдеров
+- **История транзакций** — полный аудит с выгрузкой в CSV
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+### AI и интеллект
+- **5 провайдеров** — Gemini, OpenAI, Claude, OpenRouter, Ollama
+- **Пользователь подключает свою модель** в настройках
+- **Торговые сигналы** — BUY/SELL/HOLD рекомендации
+- **Анализ настроения** — бычий/медвежий тренд
+- **Генерация отчётов** — профессиональный анализ по активу
+
+</td>
+<td width="50%">
+
+### Платформа
+- **Админ-панель** — управление пользователями, конфигурация, логи
+- **Геймификация** — XP, уровни, достижения
+- **Web3 кошелёк** — MetaMask / WalletConnect
+- **3 темы** — Cyberpunk / Midnight / Light
+- **Тарифы** — Free / Pro / Whale Club
+- **Мультиязычность** — Русский / English
+- **Адаптивность** — Десктоп + Мобильная версия
+
+</td>
+</tr>
+</table>
+
 ---
 
-## Features
+## Технологии
+
+```
+Фронтенд        React 19 + TypeScript + Vite 6
+Стилизация       TailwindCSS 3 + CSS-переменные (3 темы)
+Графики          Recharts + TradingView Lightweight Charts
+AI               Gemini / OpenAI / Claude / OpenRouter / Ollama
+Новости          Собственный парсер на Cloudflare Workers
+Иконки           Lucide React
+Роутинг          React Router v7
+Состояние        localStorage + сервисный слой
+Деплой           Cloudflare Pages (фронт) + Workers (парсер)
+```
+
+## Дизайн-система
 
 <table>
 <tr>
-<td width="50%">
-
-### Market & Analytics
-- Real-time **Crypto** prices (CoinGecko API)
-- **Forex** & **Futures** markets (EUR/USD, Gold, S&P 500)
-- **TradingView** OHLC candlestick charts
-- **Technical Analysis** (RSI, MACD, EMA, SMA, Ichimoku)
-- **Coin Comparison** — relative performance (ROI %)
-- **News Feed** — live market news via RSS
-
-</td>
-<td width="50%">
-
-### Trading & Portfolio
-- **Simulated Trading** — LONG/SHORT with 1x-100x leverage
-- **Portfolio Management** — positions, PnL, margin tracking
-- **Deposit System** — RUB/USD/EUR, Card/SBP/Crypto
-- **Copy Trading** — replicate top traders' strategies
-- **Transaction History** — full audit trail with reports
-
-</td>
-</tr>
-<tr>
-<td width="50%">
-
-### AI & Intelligence
-- **Gemini AI Analyst** — professional market insights
-- **Trading Signals** — BUY/SELL/HOLD recommendations
-- **Sentiment Analysis** — bullish/bearish trend detection
-- **Technical Reports** — generated analysis per asset
-
-</td>
-<td width="50%">
-
-### Platform
-- **Admin Panel** — user management, system config, logs
-- **Gamification** — XP, levels, achievements
-- **Web3 Wallet** — MetaMask/WalletConnect
-- **Pricing Tiers** — Free / Pro / Whale Club
-- **Multi-language** — Russian / English
-- **Responsive** — Desktop + Mobile
-
-</td>
+<td align="center"><img src="https://img.shields.io/badge/-%2305000a-05000a?style=for-the-badge" width="80"/><br/><code>#05000a</code><br/>Фон</td>
+<td align="center"><img src="https://img.shields.io/badge/-%2300f3ff-00f3ff?style=for-the-badge" width="80"/><br/><code>#00f3ff</code><br/>Циан</td>
+<td align="center"><img src="https://img.shields.io/badge/-%23ff00aa-ff00aa?style=for-the-badge" width="80"/><br/><code>#ff00aa</code><br/>Розовый</td>
+<td align="center"><img src="https://img.shields.io/badge/-%23ff00ff-ff00ff?style=for-the-badge" width="80"/><br/><code>#ff00ff</code><br/>Магента</td>
+<td align="center"><img src="https://img.shields.io/badge/-%23fcee0a-fcee0a?style=for-the-badge" width="80"/><br/><code>#fcee0a</code><br/>Жёлтый</td>
+<td align="center"><img src="https://img.shields.io/badge/-%2300ff9d-00ff9d?style=for-the-badge" width="80"/><br/><code>#00ff9d</code><br/>Зелёный</td>
 </tr>
 </table>
 
-## Tech Stack
+**Шрифты:** Orbitron (заголовки) + Rajdhani (текст) + JetBrains Mono (код)
 
-```
-Frontend      React 19 + TypeScript + Vite 6
-Styling       TailwindCSS 3 + Custom Cyberpunk Design System
-Charts        Recharts + TradingView Lightweight Charts
-AI            Google Gemini 2.5 Flash
-Icons         Lucide React
-Routing       React Router v7
-State         localStorage + Custom Services
-Deployment    Cloudflare Pages
-```
+**Эффекты:** CRT-сканлайны, фрактальный шум, неоновое свечение, кибер-карточки с угловыми акцентами
 
-## Cyberpunk Design System
+**3 темы оформления:**
+| Тема | Описание |
+|------|----------|
+| **Cyberpunk** | Неоновый киберпанк — сканлайны, шум, свечение |
+| **Midnight** | Мягкая тёмная — приглушённые цвета, приятная для глаз |
+| **Light** | Светлая дневная — белый фон, чистый минимализм |
 
-<table>
-<tr>
-<td align="center"><img src="https://img.shields.io/badge/-%2305000a-05000a?style=for-the-badge" width="80"/><br/><code>#05000a</code><br/>Background</td>
-<td align="center"><img src="https://img.shields.io/badge/-%2300f3ff-00f3ff?style=for-the-badge" width="80"/><br/><code>#00f3ff</code><br/>Cyan</td>
-<td align="center"><img src="https://img.shields.io/badge/-%23ff00aa-ff00aa?style=for-the-badge" width="80"/><br/><code>#ff00aa</code><br/>Pink</td>
-<td align="center"><img src="https://img.shields.io/badge/-%23ff00ff-ff00ff?style=for-the-badge" width="80"/><br/><code>#ff00ff</code><br/>Magenta</td>
-<td align="center"><img src="https://img.shields.io/badge/-%23fcee0a-fcee0a?style=for-the-badge" width="80"/><br/><code>#fcee0a</code><br/>Yellow</td>
-<td align="center"><img src="https://img.shields.io/badge/-%2300ff9d-00ff9d?style=for-the-badge" width="80"/><br/><code>#00ff9d</code><br/>Green</td>
-</tr>
-</table>
+---
 
-**Fonts:** Orbitron (headings) + Rajdhani (body) + JetBrains Mono (code)
-
-**Effects:** CRT scanline overlay, fractal noise texture, neon glow shadows, cyber-card corner accents, grid background
-
-## Quick Start
+## Быстрый старт
 
 ```bash
-# Clone
+# Клонировать
 git clone https://github.com/PavelHopson/CryptoPulse.git
 cd CryptoPulse
 
-# Install dependencies
+# Установить зависимости
 npm install
 
-# Start dev server
+# Запустить dev-сервер
 npm run dev
 
-# Build for production
+# Собрать для продакшена
 npm run build
 ```
 
-### Environment Variables (optional)
+### Переменные окружения (необязательно)
 
 ```bash
 cp .env.example .env
 ```
 
-| Variable | Description |
-|----------|-------------|
-| `GEMINI_API_KEY` | Google Gemini API key for AI analysis features |
+| Переменная | Описание |
+|------------|----------|
+| `GEMINI_API_KEY` | Ключ Google Gemini для AI-анализа (или настройте другого провайдера в интерфейсе) |
+| `VITE_NEWS_API` | URL парсера новостей (по умолчанию подключён наш Worker) |
 
-> AI features work without the key — they'll show a fallback message.
+> AI-функции работают без ключа — покажут сообщение с инструкцией. Пользователь может подключить свою модель в Настройки → AI.
 
-## Project Structure
+### Деплой парсера новостей
+
+```bash
+cd workers/news-parser
+npm install
+npx wrangler login
+npx wrangler deploy
+```
+
+---
+
+## Структура проекта
 
 ```
 src/
-  App.tsx                    # Router & app entry
-  main.tsx                   # React DOM render
-  styles.css                 # Cyberpunk design system (CSS)
-  types.ts                   # TypeScript interfaces
+  App.tsx                    # Роутер и точка входа
+  main.tsx                   # Рендер React DOM
+  styles.css                 # Дизайн-система (CSS-переменные, 3 темы)
+  types.ts                   # TypeScript интерфейсы + AI-конфигурация
+  context/
+    ThemeContext.tsx          # Контекст тем (Cyberpunk/Midnight/Light)
   components/
-    Layout.tsx               # Main layout with nav, notifications, wallet
-    AIInsight.tsx             # Gemini AI analysis widget
-    TradingViewChart.tsx      # OHLC candlestick charts
-    TradeModal.tsx            # Trading order form (LONG/SHORT)
-    DepositModal.tsx          # Fund deposit (Card/SBP/Crypto)
-    SettingsModal.tsx         # User settings (profile, security, prefs)
-    TechAnalysisModal.tsx     # Technical analysis (RSI, MACD gauge)
-    PortfolioAnalytics.tsx    # Asset allocation & performance charts
-    WalletModal.tsx           # Web3 wallet connection
-    MockAd.tsx                # Ad banner (free tier)
+    Layout.tsx               # Главный лэйаут с навигацией и уведомлениями
+    AIInsight.tsx             # AI-виджет анализа актива
+    TradingViewChart.tsx      # Свечные графики OHLC
+    TradeModal.tsx            # Форма ордера (LONG/SHORT)
+    DepositModal.tsx          # Пополнение счёта (Карта/СБП/Крипто)
+    SettingsModal.tsx         # Настройки (профиль, AI модель, безопасность)
+    TechAnalysisModal.tsx     # Технический анализ (RSI, MACD, стрелочный индикатор)
+    PortfolioAnalytics.tsx    # Аллокация активов и график производительности
+    WalletModal.tsx           # Подключение Web3 кошелька
   pages/
-    Dashboard.tsx             # Market overview (crypto/forex/futures)
-    CoinDetail.tsx            # Individual asset page + chart + AI
-    Comparison.tsx            # Side-by-side asset comparison
-    Favorites.tsx             # Watchlist
-    Leaderboard.tsx           # Top traders + copy trading
-    Profile.tsx               # User profile + positions + portfolio
-    PricingPage.tsx           # Subscription tiers
-    LoginPage.tsx             # Auth (login/register)
-    AdminPanel.tsx            # System admin (users, config, logs)
+    Dashboard.tsx             # Обзор рынка (крипто/форекс/фьючерсы)
+    CoinDetail.tsx            # Страница актива + график + AI
+    Comparison.tsx            # Сравнение активов бок о бок
+    Favorites.tsx             # Избранное / Watchlist
+    Leaderboard.tsx           # Топ трейдеров + копи-трейдинг
+    Profile.tsx               # Профиль + позиции + портфель
+    PricingPage.tsx           # Тарифные планы
+    LoginPage.tsx             # Авторизация (вход/регистрация)
+    AdminPanel.tsx            # Админ-панель (пользователи, конфиг, логи)
   services/
-    cryptoService.ts          # CoinGecko API + mock data + OHLC gen
-    userService.ts            # Auth, profile, trading, localStorage
-    geminiService.ts          # Google Gemini AI integration
-    adminService.ts           # System config & user management
-    newsService.ts            # RSS news feed (Investing.com)
-    gamificationService.ts    # XP, levels, achievements
-    communityService.ts       # Leaderboard data
-    reportService.ts          # Transaction reports (CSV)
-    web3Service.ts            # MetaMask/WalletConnect
+    aiService.ts              # Универсальный AI-сервис (5 провайдеров)
+    cryptoService.ts          # CoinGecko API + моки + генерация OHLC
+    userService.ts            # Авторизация, профиль, трейдинг
+    newsService.ts            # Парсер новостей (Worker + RSS fallback)
+    adminService.ts           # Конфигурация системы
+    gamificationService.ts    # XP, уровни, достижения
+    communityService.ts       # Данные лидерборда
+    reportService.ts          # Отчёты по транзакциям (CSV)
+    web3Service.ts            # MetaMask / WalletConnect
+workers/
+  news-parser/               # Cloudflare Worker — парсер новостей
+    src/index.ts              # RSS парсер (CoinTelegraph, CoinDesk, Investing.com)
+    wrangler.toml             # Конфигурация Cloudflare Worker
 ```
 
-## License
+## Лицензия
 
-[MIT](LICENSE)
+[MIT](LICENSE) — используйте свободно, коммерческое использование разрешено.
 
 ---
 
 <div align="center">
 
-**Built with React + Cyberpunk 2077 vibes**
+**Создано с React 19 + Cyberpunk 2077 эстетикой**
 
-<sub>CryptoPulse 2077 is a demo/portfolio project. Not financial advice. Trade simulation only.</sub>
+<sub>CryptoPulse 2077 — демонстрационный и образовательный проект. Не является инвестиционной рекомендацией. Торговля виртуальная.</sub>
 
 </div>
