@@ -1,7 +1,7 @@
 import { NewsArticle } from '../types';
 
-// Cloudflare Worker URL — update after deploying
-const NEWS_API = import.meta.env.VITE_NEWS_API || '';
+// Cloudflare Worker — live news parser
+const NEWS_API = import.meta.env.VITE_NEWS_API || 'https://cryptopulse-news.hopsintoxin.workers.dev';
 
 // ====== PRIMARY: Cloudflare Worker parser ======
 
