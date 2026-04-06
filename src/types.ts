@@ -73,6 +73,48 @@ export interface PerformancePoint {
   value: number;
 }
 
+export type AIProvider = 'gemini' | 'openai' | 'anthropic' | 'openrouter' | 'ollama';
+
+export interface AIConfig {
+  provider: AIProvider;
+  apiKey: string;
+  model: string;
+  baseUrl?: string; // For Ollama or custom endpoints
+}
+
+export const AI_MODELS: Record<AIProvider, { name: string; models: string[]; needsKey: boolean; placeholder: string }> = {
+  gemini: {
+    name: 'Google Gemini',
+    models: ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.0-flash'],
+    needsKey: true,
+    placeholder: 'AIza...',
+  },
+  openai: {
+    name: 'OpenAI',
+    models: ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'o3-mini'],
+    needsKey: true,
+    placeholder: 'sk-...',
+  },
+  anthropic: {
+    name: 'Anthropic Claude',
+    models: ['claude-sonnet-4-6', 'claude-haiku-4-5', 'claude-opus-4-6'],
+    needsKey: true,
+    placeholder: 'sk-ant-...',
+  },
+  openrouter: {
+    name: 'OpenRouter',
+    models: ['google/gemini-2.5-flash', 'anthropic/claude-sonnet-4-6', 'openai/gpt-4o', 'meta-llama/llama-4-maverick'],
+    needsKey: true,
+    placeholder: 'sk-or-...',
+  },
+  ollama: {
+    name: 'Ollama (Local)',
+    models: ['llama3.1', 'mistral', 'gemma2', 'qwen2.5'],
+    needsKey: false,
+    placeholder: 'http://localhost:11434',
+  },
+};
+
 export interface UserPreferences {
   currency: 'USD' | 'EUR' | 'RUB';
   language: 'EN' | 'RU';
@@ -82,6 +124,7 @@ export interface UserPreferences {
     priceAlerts: boolean;
   };
   twoFactorEnabled: boolean;
+  ai?: AIConfig;
 }
 
 export interface Achievement {

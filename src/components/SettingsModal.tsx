@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { X, Save, User, Shield, Bell, Globe, AlertTriangle, CheckCircle, Trash2, LogOut, Camera, Check, RefreshCw } from 'lucide-react';
-import { UserProfile } from '../types';
+import { X, Save, User, Shield, Bell, Globe, AlertTriangle, CheckCircle, Trash2, LogOut, Camera, Check, RefreshCw, Bot, Eye, EyeOff } from 'lucide-react';
+import { UserProfile, AIProvider, AIConfig, AI_MODELS } from '../types';
 import { getUserProfile, updateUserProfile, resetAccount, logoutUser } from '../services/userService';
 
 interface Props {
@@ -22,7 +22,7 @@ const AVATAR_PRESETS = [
 ];
 
 export const SettingsModal: React.FC<Props> = ({ isOpen, onClose, onUpdate }) => {
-  const [activeTab, setActiveTab] = useState<'GENERAL' | 'SECURITY' | 'PREFS'>('GENERAL');
+  const [activeTab, setActiveTab] = useState<'GENERAL' | 'AI' | 'SECURITY' | 'PREFS'>('GENERAL');
   const [user, setUser] = useState<UserProfile | null>(null);
   const [formData, setFormData] = useState({
     name: '',
@@ -35,6 +35,13 @@ export const SettingsModal: React.FC<Props> = ({ isOpen, onClose, onUpdate }) =>
     priceAlerts: false,
     twoFactor: false
   });
+  const [aiConfig, setAiConfig] = useState<AIConfig>({
+    provider: 'gemini',
+    apiKey: '',
+    model: 'gemini-2.5-flash',
+    baseUrl: '',
+  });
+  const [showApiKey, setShowApiKey] = useState(false);
   const [feedback, setFeedback] = useState<{type: 'success' | 'error', message: string} | null>(null);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [savingAvatar, setSavingAvatar] = useState(false);
@@ -54,6 +61,10 @@ export const SettingsModal: React.FC<Props> = ({ isOpen, onClose, onUpdate }) =>
         priceAlerts: profile.preferences.notifications.priceAlerts,
         twoFactor: profile.preferences.twoFactorEnabled
       });
+      if (profile.preferences.ai) {
+        setAiConfig(profile.preferences.ai);
+      }
+      setShowApiKey(false);
       setFeedback(null);
       setShowAvatarPicker(false);
     }
@@ -64,7 +75,7 @@ export const SettingsModal: React.FC<Props> = ({ isOpen, onClose, onUpdate }) =>
     updateUserProfile({
       name: formData.name,
       email: formData.email,
-      avatar: formData.avatar, 
+      avatar: formData.avatar,
       preferences: {
         currency: formData.currency as any,
         language: formData.language as any,
@@ -73,7 +84,8 @@ export const SettingsModal: React.FC<Props> = ({ isOpen, onClose, onUpdate }) =>
           push: formData.pushNotif,
           priceAlerts: formData.priceAlerts
         },
-        twoFactorEnabled: formData.twoFactor
+        twoFactorEnabled: formData.twoFactor,
+        ai: aiConfig,
       }
     });
     
@@ -137,7 +149,13 @@ export const SettingsModal: React.FC<Props> = ({ isOpen, onClose, onUpdate }) =>
            >
              <User className="w-4 h-4" /> Профиль
            </button>
-           <button 
+           <button
+             onClick={() => setActiveTab('AI')}
+             className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${activeTab === 'AI' ? 'bg-brand-600 text-white' : 'text-gray-400 hover:bg-gray-800'}`}
+           >
+             <Bot className="w-4 h-4" /> AI Модель
+           </button>
+           <button
              onClick={() => setActiveTab('SECURITY')}
              className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${activeTab === 'SECURITY' ? 'bg-brand-600 text-white' : 'text-gray-400 hover:bg-gray-800'}`}
            >
@@ -155,7 +173,7 @@ export const SettingsModal: React.FC<Props> = ({ isOpen, onClose, onUpdate }) =>
         <div className="flex-1 flex flex-col h-full">
            <div className="p-6 border-b border-gray-700 flex justify-between items-center bg-dark-card">
               <h2 className="text-xl font-bold text-white">
-                {activeTab === 'GENERAL' ? 'Настройки профиля' : activeTab === 'SECURITY' ? 'Безопасность' : 'Настройки приложения'}
+                {activeTab === 'GENERAL' ? 'Настройки профиля' : activeTab === 'AI' ? 'AI Модель' : activeTab === 'SECURITY' ? 'Безопасность' : 'Настройки приложения'}
               </h2>
               <button onClick={onClose} className="text-gray-400 hover:text-white"><X className="w-5 h-5" /></button>
            </div>
@@ -302,6 +320,113 @@ export const SettingsModal: React.FC<Props> = ({ isOpen, onClose, onUpdate }) =>
                         </div>
                       </div>
                    </div>
+                </div>
+              )}
+
+              {/* AI TAB */}
+              {activeTab === 'AI' && (
+                <div className="space-y-6">
+                  <div className="bg-gray-800/30 rounded-xl p-4 border border-gray-700">
+                    <p className="text-sm text-gray-400 mb-4">
+                      Подключите свою AI модель для анализа рынка. Ключ хранится только в вашем браузере (localStorage).
+                    </p>
+
+                    {/* Provider Select */}
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Провайдер</label>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                          {(Object.keys(AI_MODELS) as AIProvider[]).map((p) => (
+                            <button
+                              key={p}
+                              onClick={() => setAiConfig({ ...aiConfig, provider: p, model: AI_MODELS[p].models[0], apiKey: p === aiConfig.provider ? aiConfig.apiKey : '' })}
+                              className={`py-2 px-3 text-xs font-bold transition-colors border rounded-lg ${
+                                aiConfig.provider === p
+                                  ? 'bg-brand-600 border-brand-500 text-white'
+                                  : 'bg-gray-900 border-gray-700 text-gray-400 hover:border-gray-500'
+                              }`}
+                            >
+                              {AI_MODELS[p].name}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Model Select */}
+                      <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Модель</label>
+                        <select
+                          value={aiConfig.model}
+                          onChange={(e) => setAiConfig({ ...aiConfig, model: e.target.value })}
+                          className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:border-brand-500 focus:outline-none text-sm"
+                        >
+                          {AI_MODELS[aiConfig.provider].models.map((m) => (
+                            <option key={m} value={m}>{m}</option>
+                          ))}
+                        </select>
+                        <p className="text-[10px] text-gray-600 mt-1">Или введите свою модель вручную:</p>
+                        <input
+                          type="text"
+                          value={aiConfig.model}
+                          onChange={(e) => setAiConfig({ ...aiConfig, model: e.target.value })}
+                          placeholder="custom-model-id"
+                          className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-white focus:border-brand-500 focus:outline-none text-xs font-mono mt-1"
+                        />
+                      </div>
+
+                      {/* API Key */}
+                      {AI_MODELS[aiConfig.provider].needsKey && (
+                        <div>
+                          <label className="block text-xs font-bold text-gray-500 uppercase mb-2">API Ключ</label>
+                          <div className="relative">
+                            <input
+                              type={showApiKey ? 'text' : 'password'}
+                              value={aiConfig.apiKey}
+                              onChange={(e) => setAiConfig({ ...aiConfig, apiKey: e.target.value })}
+                              placeholder={AI_MODELS[aiConfig.provider].placeholder}
+                              className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:border-brand-500 focus:outline-none text-sm font-mono pr-10"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowApiKey(!showApiKey)}
+                              className="absolute right-3 top-2.5 text-gray-500 hover:text-white"
+                            >
+                              {showApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </button>
+                          </div>
+                          <p className="text-[10px] text-gray-600 mt-1">Ключ хранится только локально в вашем браузере.</p>
+                        </div>
+                      )}
+
+                      {/* Ollama Base URL */}
+                      {aiConfig.provider === 'ollama' && (
+                        <div>
+                          <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Ollama URL</label>
+                          <input
+                            type="text"
+                            value={aiConfig.baseUrl || ''}
+                            onChange={(e) => setAiConfig({ ...aiConfig, baseUrl: e.target.value })}
+                            placeholder="http://localhost:11434"
+                            className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:border-brand-500 focus:outline-none text-sm font-mono"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Current Status */}
+                  <div className="bg-gray-900/30 rounded-xl p-4 border border-gray-800">
+                    <h4 className="text-xs font-bold text-gray-500 uppercase mb-2">Текущая конфигурация</h4>
+                    <div className="flex items-center gap-3">
+                      <div className={`w-2 h-2 rounded-full ${aiConfig.apiKey || aiConfig.provider === 'ollama' ? 'bg-cyber-green' : 'bg-gray-600'}`}></div>
+                      <span className="text-sm text-gray-300">
+                        {aiConfig.apiKey || aiConfig.provider === 'ollama'
+                          ? `${AI_MODELS[aiConfig.provider].name} / ${aiConfig.model}`
+                          : 'AI не настроен — введите API ключ'
+                        }
+                      </span>
+                    </div>
+                  </div>
                 </div>
               )}
 
