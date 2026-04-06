@@ -71,7 +71,7 @@ export const Profile: React.FC = () => {
         <div className="flex flex-col md:flex-row items-start md:items-center gap-8 relative z-10">
            {/* Avatar with Hexagon clip */}
            <div className="relative group">
-              <div className="w-24 h-24 bg-black border-2 border-cyber-cyan p-1 relative z-10" style={{ clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)' }}>
+              <div className="w-24 h-24 bg-cyber-black border-2 border-cyber-cyan p-1 relative z-10" style={{ clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)' }}>
                  {user.avatar ? <img src={user.avatar} className="w-full h-full object-cover" style={{ clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)' }} /> : <div className="w-full h-full bg-gray-900 flex items-center justify-center text-cyber-cyan font-bold text-2xl">{user.name.charAt(0)}</div>}
               </div>
               <div className="absolute -bottom-2 -right-2 bg-cyber-black border border-cyber-green px-2 py-0.5 text-[10px] font-mono text-cyber-green">ОНЛАЙН</div>
@@ -119,7 +119,7 @@ export const Profile: React.FC = () => {
                 { label: 'ИСПОЛЬЗ. МАРЖА', value: marginUsed, color: 'text-gray-400', sub: `${Math.min((marginUsed/equity)*100, 100).toFixed(1)}%` },
                 { label: 'ОТКРЫТЫЕ ПОЗИЦИИ', value: user.positions.length, color: 'text-white', isCount: true }
             ].map((stat, i) => (
-                <div key={i} className="bg-black/40 border border-gray-800 p-4 flex flex-col justify-between relative group overflow-hidden">
+                <div key={i} className="bg-cyber-black/40 border border-gray-800 p-4 flex flex-col justify-between relative group overflow-hidden">
                     <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-gray-600 group-hover:border-cyber-cyan transition-colors"></div>
                     <h3 className="text-gray-600 text-[10px] font-mono uppercase mb-1">{stat.label}</h3>
                     <div className={`text-2xl font-mono ${stat.color}`}>
@@ -138,7 +138,7 @@ export const Profile: React.FC = () => {
                     <div className="text-xs text-cyber-green font-mono mb-2">[ ЗАЩИЩЕННОЕ СОЕДИНЕНИЕ ]</div>
                     <div className="mb-4">
                         <div className="text-gray-500 text-[10px] font-mono uppercase">ID Кошелька</div>
-                        <div className="font-mono text-white bg-black border border-gray-800 p-2 text-xs flex justify-between items-center mt-1">
+                        <div className="font-mono text-white bg-cyber-black border border-gray-800 p-2 text-xs flex justify-between items-center mt-1">
                             {formatAddress(wallet.address)}
                             <Copy className="w-3 h-3 cursor-pointer hover:text-cyber-cyan" />
                         </div>
@@ -160,7 +160,7 @@ export const Profile: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* POSITIONS TABLE */}
         <div className="lg:col-span-2 cyber-card min-h-[400px]">
-           <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center bg-black/40">
+           <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center bg-cyber-black/40">
              <h2 className="font-display font-bold text-white tracking-wider">АКТИВНЫЕ ОРДЕРА</h2>
              <Activity className="w-4 h-4 text-cyber-cyan animate-pulse" />
            </div>
@@ -176,7 +176,7 @@ export const Profile: React.FC = () => {
                     let pnlPercent = (pnl / ((pos.entryPrice * pos.amount)/pos.leverage)) * 100;
 
                     return (
-                        <div key={pos.id} className="flex items-center justify-between p-3 bg-black/40 border border-gray-800 hover:border-cyber-cyan/30 transition-all">
+                        <div key={pos.id} className="flex items-center justify-between p-3 bg-cyber-black/40 border border-gray-800 hover:border-cyber-cyan/30 transition-all">
                             <div className="flex items-center gap-4">
                                 <div className={`w-1 h-10 ${pos.type === 'LONG' ? 'bg-cyber-green' : 'bg-cyber-pink'}`}></div>
                                 <div>

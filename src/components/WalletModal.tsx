@@ -38,7 +38,7 @@ export const WalletModal: React.FC<Props> = ({ isOpen, onClose }) => {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose}></div>
+      <div className="absolute inset-0 bg-cyber-black/70 backdrop-blur-sm" onClick={onClose}></div>
       
       <div className="bg-dark-card border border-gray-700 rounded-2xl w-full max-w-md relative z-10 overflow-hidden shadow-2xl shadow-black/50 animate-scale-in">
         

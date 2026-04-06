@@ -78,7 +78,7 @@ export const MarketPage: React.FC<MarketPageProps> = ({ category, title, subtitl
              <span className="tracking-widest">СИСТЕМА ОНЛАЙН :: {subtitle}</span>
            </div>
         </div>
-        <div className="font-mono text-xs text-gray-500 border border-gray-800 px-3 py-1 bg-black/50">
+        <div className="font-mono text-xs text-gray-500 border border-gray-800 px-3 py-1 bg-cyber-black/50">
            ВОЛАТИЛЬНОСТЬ: <span className="text-cyber-yellow">СРЕДНЯЯ</span>
         </div>
       </div>
@@ -118,7 +118,7 @@ export const MarketPage: React.FC<MarketPageProps> = ({ category, title, subtitl
            </div>
            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {marketNews.map(news => (
-                 <a href={news.url} target="_blank" rel="noopener noreferrer" key={news.id} className="block bg-black/40 border border-gray-800 hover:border-cyber-cyan/50 p-3 transition-all group">
+                 <a href={news.url} target="_blank" rel="noopener noreferrer" key={news.id} className="block bg-cyber-black/40 border border-gray-800 hover:border-cyber-cyan/50 p-3 transition-all group">
                     <div className="flex justify-between items-start gap-2">
                        <h3 className="text-sm font-medium text-gray-300 group-hover:text-cyber-cyan transition-colors line-clamp-2">{news.title}</h3>
                        <ExternalLink className="w-3 h-3 text-gray-600 group-hover:text-white flex-shrink-0" />
@@ -151,7 +151,7 @@ export const MarketPage: React.FC<MarketPageProps> = ({ category, title, subtitl
         </div>
          <div className="relative group cursor-pointer">
             <div className="absolute inset-0 bg-cyber-gradient blur-md opacity-50 group-hover:opacity-100 transition-opacity"></div>
-            <div className="relative bg-black border border-cyber-cyan p-5 flex flex-col items-center justify-center text-center h-full">
+            <div className="relative bg-cyber-black border border-cyber-cyan p-5 flex flex-col items-center justify-center text-center h-full">
                 <h3 className="text-white font-display font-bold text-lg mb-1">ОТКРЫТЬ СДЕЛКУ</h3>
                 <p className="text-cyber-cyan/60 text-xs font-mono">0% КОМИССИИ // МОМЕНТАЛЬНО</p>
             </div>
@@ -160,7 +160,7 @@ export const MarketPage: React.FC<MarketPageProps> = ({ category, title, subtitl
 
       {/* Main Asset Table */}
       <div className="cyber-card overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-800 bg-black/40 flex justify-between items-center">
+        <div className="px-6 py-4 border-b border-gray-800 bg-cyber-black/40 flex justify-between items-center">
           <h2 className="font-display font-bold text-lg text-white tracking-wider">РЫНОЧНЫЕ ДАННЫЕ</h2>
           <div className="text-[10px] font-mono text-gray-500">ЗАДЕРЖКА: 24мс</div>
         </div>

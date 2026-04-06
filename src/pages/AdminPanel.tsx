@@ -89,7 +89,7 @@ export const AdminPanel: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-950 text-white flex">
       {/* Sidebar */}
-      <div className="w-64 border-r border-gray-800 bg-black/50 flex flex-col">
+      <div className="w-64 border-r border-gray-800 bg-cyber-black/50 flex flex-col">
         <div className="h-16 flex items-center px-6 border-b border-gray-800">
           <Shield className="w-6 h-6 text-red-500 mr-2" />
           <span className="font-bold tracking-wider">COMMAND</span>
@@ -133,7 +133,7 @@ export const AdminPanel: React.FC = () => {
 
       {/* Main Content */}
       <div className="flex-1 overflow-auto">
-        <header className="h-16 border-b border-gray-800 bg-black/20 flex items-center justify-between px-8">
+        <header className="h-16 border-b border-gray-800 bg-cyber-black/20 flex items-center justify-between px-8">
            <h1 className="font-bold text-xl">{activeTab.charAt(0) + activeTab.slice(1).toLowerCase()}</h1>
            <div className="text-sm text-gray-400">Admin Session: {new Date().toLocaleTimeString()}</div>
         </header>
@@ -164,7 +164,7 @@ export const AdminPanel: React.FC = () => {
 
               <div className="bg-dark-card border border-gray-800 rounded-xl p-6">
                 <h2 className="text-lg font-bold mb-4">Live System Activity</h2>
-                <div className="h-64 bg-black/20 rounded-lg flex items-center justify-center border border-gray-800 border-dashed">
+                <div className="h-64 bg-cyber-black/20 rounded-lg flex items-center justify-center border border-gray-800 border-dashed">
                    <p className="text-gray-600">Real-time Visualization Placeholder</p>
                 </div>
               </div>
@@ -175,7 +175,7 @@ export const AdminPanel: React.FC = () => {
           {activeTab === 'USERS' && (
             <div className="bg-dark-card border border-gray-800 rounded-xl overflow-hidden">
               <table className="w-full">
-                <thead className="bg-black/20 border-b border-gray-800">
+                <thead className="bg-cyber-black/20 border-b border-gray-800">
                   <tr className="text-left text-xs font-bold text-gray-500 uppercase">
                     <th className="px-6 py-4">User</th>
                     <th className="px-6 py-4">Status</th>
@@ -315,7 +315,7 @@ export const AdminPanel: React.FC = () => {
 
           {/* SYSTEM LOGS */}
            {activeTab === 'LOGS' && (
-             <div className="bg-black border border-gray-800 rounded-xl overflow-hidden font-mono text-sm">
+             <div className="bg-cyber-black border border-gray-800 rounded-xl overflow-hidden font-mono text-sm">
                 <div className="p-4 bg-gray-900 border-b border-gray-800 flex items-center justify-between">
                   <span>System Output Stream</span>
                   <div className="flex gap-2">

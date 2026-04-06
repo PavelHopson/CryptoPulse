@@ -111,7 +111,7 @@ export const TechAnalysisModal: React.FC<Props> = ({ coin, isOpen, onClose }) =>
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose}></div>
+      <div className="absolute inset-0 bg-cyber-black/70 backdrop-blur-sm" onClick={onClose}></div>
       
       <div className="bg-dark-card border border-gray-700 rounded-2xl w-full max-w-2xl relative z-10 overflow-hidden shadow-2xl animate-scale-in max-h-[90vh] flex flex-col">
         {/* Header */}
@@ -125,7 +125,7 @@ export const TechAnalysisModal: React.FC<Props> = ({ coin, isOpen, onClose }) =>
         </div>
 
         {/* Timeframe Selector */}
-        <div className="px-6 py-3 border-b border-gray-800 bg-black/20 flex gap-2 overflow-x-auto">
+        <div className="px-6 py-3 border-b border-gray-800 bg-cyber-black/20 flex gap-2 overflow-x-auto">
             {(['1M', '5M', '15M', '1H', '4H', '1D'] as AnalysisTimeframe[]).map((tf) => (
                 <button
                     key={tf}

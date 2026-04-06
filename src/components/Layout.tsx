@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Activity, BarChart2, Search, Bell, User, Star, TrendingUp, DollarSign, Shield, LogIn, Check, X, Info, CheckCircle, AlertTriangle, Trophy, CreditCard, Megaphone, ArrowLeftRight, Wallet, LogOut, Cpu, Globe, Zap } from 'lucide-react';
+import { Activity, BarChart2, Search, Bell, User, Star, TrendingUp, DollarSign, Shield, LogIn, Check, X, Info, CheckCircle, AlertTriangle, Trophy, CreditCard, Megaphone, ArrowLeftRight, Wallet, LogOut, Cpu, Globe, Zap, Moon, Sun, Monitor } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { getUserProfile } from '../services/userService';
 import { UserProfile, WalletState } from '../types';
@@ -7,6 +7,56 @@ import { MockAd } from './MockAd';
 import { getSystemConfig } from '../services/adminService';
 import { WalletModal } from './WalletModal';
 import { getWalletState, disconnectWallet } from '../services/web3Service';
+import { useTheme, type Theme } from '../context/ThemeContext';
+
+const THEME_META: Record<Theme, { icon: React.ReactNode; label: string }> = {
+  cyberpunk: { icon: <Monitor className="w-4 h-4" />, label: 'CYBER' },
+  midnight: { icon: <Moon className="w-4 h-4" />, label: 'NIGHT' },
+  light: { icon: <Sun className="w-4 h-4" />, label: 'LIGHT' },
+};
+
+const ThemeToggle: React.FC = () => {
+  const { theme, setTheme } = useTheme();
+  const [open, setOpen] = useState(false);
+  const themes: Theme[] = ['cyberpunk', 'midnight', 'light'];
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-1.5 px-3 py-1.5 border border-cyber-cyan/30 text-cyber-cyan text-xs font-mono hover:bg-cyber-cyan/10 transition-all"
+        title="Switch theme"
+      >
+        {THEME_META[theme].icon}
+        <span className="hidden xl:inline">{THEME_META[theme].label}</span>
+      </button>
+
+      {open && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div className="absolute top-full right-0 mt-2 w-40 border border-cyber-cyan/20 bg-dark-card shadow-lg z-50 overflow-hidden"
+               style={{ borderRadius: 'var(--scanline-opacity, 0) == 0 ? 0.5rem : 0' }}>
+            {themes.map((t) => (
+              <button
+                key={t}
+                onClick={() => { setTheme(t); setOpen(false); }}
+                className={`w-full flex items-center gap-3 px-4 py-2.5 text-xs font-mono transition-colors ${
+                  theme === t
+                    ? 'bg-cyber-cyan/15 text-cyber-cyan'
+                    : 'text-gray-400 hover:bg-cyber-cyan/5 hover:text-cyber-cyan'
+                }`}
+              >
+                {THEME_META[t].icon}
+                <span className="uppercase">{t === 'cyberpunk' ? 'Cyberpunk' : t === 'midnight' ? 'Midnight' : 'Light'}</span>
+                {theme === t && <Check className="w-3 h-3 ml-auto" />}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
 
 export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
@@ -62,8 +112,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     <div className="min-h-screen bg-cyber-black text-gray-200 pb-24 md:pb-0 flex flex-col font-sans overflow-hidden relative">
       
       {/* Background Grid Effect */}
-      <div className="fixed inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none z-0"></div>
-      <div className="fixed inset-0 bg-cyber-grid bg-[length:40px_40px] opacity-10 pointer-events-none z-0"></div>
+      <div className="fixed inset-0 bg-cyber-grid bg-[length:40px_40px] pointer-events-none z-0" style={{ opacity: 'var(--grid-opacity)' }}></div>
 
       <WalletModal isOpen={isWalletModalOpen} onClose={() => setIsWalletModalOpen(false)} />
 
@@ -85,7 +134,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
               <Link to="/" className="flex items-center gap-3 group">
                 <div className="relative">
                   <div className="absolute inset-0 bg-cyber-cyan blur-md opacity-50 group-hover:opacity-100 transition-opacity"></div>
-                  <div className="bg-black border border-cyber-cyan p-2 rounded-none relative z-10">
+                  <div className="bg-cyber-black border border-cyber-cyan p-2 rounded-none relative z-10">
                     <Cpu className="w-6 h-6 text-cyber-cyan" />
                   </div>
                 </div>
@@ -125,13 +174,16 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                 <input 
                   type="text" 
                   placeholder="ПОИСК АКТИВА..." 
-                  className="bg-black border border-gray-800 text-sm w-48 pl-9 pr-4 py-1.5 text-cyber-cyan focus:border-cyber-cyan focus:outline-none font-mono placeholder-gray-700 transition-all focus:w-64 focus:shadow-[0_0_10px_rgba(0,243,255,0.2)]"
+                  className="bg-cyber-black border border-gray-800 text-sm w-48 pl-9 pr-4 py-1.5 text-cyber-cyan focus:border-cyber-cyan focus:outline-none font-mono placeholder-gray-700 transition-all focus:w-64 focus:shadow-[0_0_10px_rgba(0,243,255,0.2)]"
                 />
               </div>
 
+              {/* THEME TOGGLE */}
+              <ThemeToggle />
+
               {/* WALLET */}
               {wallet.isConnected && wallet.address ? (
-                 <button onClick={disconnectWallet} className="flex items-center gap-2 bg-black border border-cyber-green/50 hover:border-cyber-green text-cyber-green px-3 py-1.5 text-xs font-mono transition-all group relative overflow-hidden">
+                 <button onClick={disconnectWallet} className="flex items-center gap-2 bg-cyber-black border border-cyber-green/50 hover:border-cyber-green text-cyber-green px-3 py-1.5 text-xs font-mono transition-all group relative overflow-hidden">
                     <div className="w-1.5 h-1.5 bg-cyber-green animate-pulse"></div>
                     {formatAddress(wallet.address)}
                     <div className="absolute inset-0 bg-cyber-green/10 translate-y-full group-hover:translate-y-0 transition-transform"></div>
@@ -208,13 +260,14 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
             <Cpu className="w-6 h-6 text-cyber-cyan" />
             <span className="font-display font-bold text-lg tracking-wider text-white">CRYPTO<span className="text-cyber-cyan">PULSE</span></span>
          </div>
-         <div className="flex items-center gap-4">
+         <div className="flex items-center gap-3">
+             <ThemeToggle />
              <button onClick={() => setIsNotifOpen(!isNotifOpen)} className="text-gray-400"><Bell className="w-5 h-5" /></button>
              <Link to="/profile" className="w-8 h-8 bg-cyber-cyan/20 border border-cyber-cyan flex items-center justify-center text-cyber-cyan font-bold">{user ? user.name.charAt(0) : '?'}</Link>
          </div>
          {/* Mobile notification sheet */}
          {isNotifOpen && (
-             <div className="fixed inset-0 z-50 bg-black/95 flex flex-col animate-fade-in">
+             <div className="fixed inset-0 z-50 bg-cyber-black/95 flex flex-col animate-fade-in">
                  <div className="p-4 border-b border-gray-800 flex justify-between">
                      <span className="font-mono text-cyber-cyan">УВЕДОМЛЕНИЯ</span>
                      <X onClick={() => setIsNotifOpen(false)} className="text-white" />
@@ -247,7 +300,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
           </Link>
           
            <Link to={user && user.id !== 'demo-user' ? "/profile" : "/login"} className="relative -top-6">
-             <div className="w-14 h-14 bg-black border-2 border-cyber-cyan flex items-center justify-center shadow-[0_0_15px_rgba(0,243,255,0.3)]" style={{ clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)' }}>
+             <div className="w-14 h-14 bg-cyber-black border-2 border-cyber-cyan flex items-center justify-center shadow-[0_0_15px_rgba(0,243,255,0.3)]" style={{ clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)' }}>
                <User className="w-6 h-6 text-white" />
              </div>
            </Link>

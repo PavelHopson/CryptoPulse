@@ -88,7 +88,7 @@ export const CoinDetail: React.FC = () => {
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 cyber-card p-6">
         <div className="flex items-center gap-6">
-          <div className="relative w-20 h-20 flex items-center justify-center bg-black border border-gray-800">
+          <div className="relative w-20 h-20 flex items-center justify-center bg-cyber-black border border-gray-800">
               <img src={coin.image} alt={coin.name} className="w-12 h-12" />
               <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-cyber-cyan"></div>
               <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-cyber-cyan"></div>
@@ -128,7 +128,7 @@ export const CoinDetail: React.FC = () => {
         {/* Chart & AI */}
         <div className="lg:col-span-2 space-y-6">
            <div className="cyber-card p-1">
-              <div className="flex items-center justify-between px-5 py-3 bg-black/60 border-b border-gray-800">
+              <div className="flex items-center justify-between px-5 py-3 bg-cyber-black/60 border-b border-gray-800">
                 <h2 className="text-sm font-mono text-cyber-cyan flex items-center gap-2">
                    <Activity className="w-4 h-4" /> ВИЗУАЛИЗАЦИЯ ГРАФИКА
                 </h2>
@@ -140,7 +140,7 @@ export const CoinDetail: React.FC = () => {
                    ))}
                 </div>
               </div>
-              <div className="p-4 bg-black/40 min-h-[400px]">
+              <div className="p-4 bg-cyber-black/40 min-h-[400px]">
                   <TradingViewChart data={chartData} height={400} isPositive={isPositive} />
               </div>
            </div>

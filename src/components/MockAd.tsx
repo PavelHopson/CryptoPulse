@@ -12,12 +12,12 @@ export const MockAd: React.FC = () => {
       <div className="bg-gradient-to-r from-yellow-600 to-orange-600 rounded-lg shadow-2xl border-2 border-yellow-400 p-4 relative overflow-hidden">
         <button 
           onClick={() => setVisible(false)}
-          className="absolute top-2 right-2 text-white/80 hover:text-white bg-black/20 rounded-full p-1"
+          className="absolute top-2 right-2 text-white/80 hover:text-white bg-cyber-black/20 rounded-full p-1"
         >
           <X className="w-3 h-3" />
         </button>
         
-        <div className="text-xs font-bold bg-black/30 text-white px-2 py-0.5 rounded inline-block mb-2">
+        <div className="text-xs font-bold bg-cyber-black/30 text-white px-2 py-0.5 rounded inline-block mb-2">
           РЕКЛАМА
         </div>
         
