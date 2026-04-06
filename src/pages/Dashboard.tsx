@@ -195,16 +195,16 @@ export const MarketPage: React.FC<MarketPageProps> = ({ category, title, subtitl
                        </Link>
                     </td>
                     <td className="px-6 py-4 text-right font-bold text-white tracking-wide">
-                      {category === 'forex' ? '' : '$'}{coin.current_price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
+                      {category === 'forex' ? '' : '$'}{(coin.current_price ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <div className={`flex items-center justify-end gap-1 ${coin.price_change_percentage_24h >= 0 ? 'text-cyber-green' : 'text-cyber-pink'}`}>
-                        {coin.price_change_percentage_24h >= 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-                        {Math.abs(coin.price_change_percentage_24h).toFixed(2)}%
+                      <div className={`flex items-center justify-end gap-1 ${(coin.price_change_percentage_24h ?? 0) >= 0 ? 'text-cyber-green' : 'text-cyber-pink'}`}>
+                        {(coin.price_change_percentage_24h ?? 0) >= 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+                        {Math.abs(coin.price_change_percentage_24h ?? 0).toFixed(2)}%
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right text-gray-600 hidden md:table-cell text-xs">
-                      {coin.low_24h.toLocaleString()} / {coin.high_24h.toLocaleString()}
+                      {(coin.low_24h ?? 0).toLocaleString()} / {(coin.high_24h ?? 0).toLocaleString()}
                     </td>
                     <td className="px-6 py-4 hidden lg:table-cell">
                       <div className="flex justify-end opacity-70 group-hover:opacity-100 transition-opacity">

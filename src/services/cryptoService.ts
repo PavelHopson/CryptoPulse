@@ -210,6 +210,29 @@ const MOCK_COINS: CoinData[] = [
   }
 ];
 
+// --- NULL SAFETY: CoinGecko sometimes returns null fields ---
+const sanitizeCoin = (c: any): CoinData => ({
+  ...c,
+  current_price: c.current_price ?? 0,
+  market_cap: c.market_cap ?? 0,
+  market_cap_rank: c.market_cap_rank ?? 0,
+  fully_diluted_valuation: c.fully_diluted_valuation ?? null,
+  total_volume: c.total_volume ?? 0,
+  high_24h: c.high_24h ?? c.current_price ?? 0,
+  low_24h: c.low_24h ?? c.current_price ?? 0,
+  price_change_24h: c.price_change_24h ?? 0,
+  price_change_percentage_24h: c.price_change_percentage_24h ?? 0,
+  market_cap_change_24h: c.market_cap_change_24h ?? 0,
+  market_cap_change_percentage_24h: c.market_cap_change_percentage_24h ?? 0,
+  circulating_supply: c.circulating_supply ?? 0,
+  total_supply: c.total_supply ?? null,
+  max_supply: c.max_supply ?? null,
+  ath: c.ath ?? 0,
+  ath_change_percentage: c.ath_change_percentage ?? 0,
+  atl: c.atl ?? 0,
+  atl_change_percentage: c.atl_change_percentage ?? 0,
+});
+
 // --- DATA FETCHERS ---
 
 export const fetchMarketData = async (category: AssetCategory): Promise<ServiceResponse<CoinData[]>> => {
@@ -240,10 +263,10 @@ export const fetchTopCoins = async (): Promise<ServiceResponse<CoinData[]>> => {
     }
     
     const data = await response.json();
-    return { data: data.map((c: any) => ({ ...c, category: 'crypto' })) };
+    return { data: data.filter((c: any) => c.current_price != null).map((c: any) => sanitizeCoin({ ...c, category: 'crypto' })) };
   } catch (error) {
     console.error('Failed to fetch coins:', error);
-    return { 
+    return {
       data: applyLiveJitter(MOCK_COINS),
       error: 'Ошибка сети. Показаны кешированные данные.'
     };
@@ -274,7 +297,7 @@ export const fetchCoinDetails = async (id: string, category: AssetCategory = 'cr
         };
      }
      const data = await response.json();
-     return { data: data[0] ? { ...data[0], category: 'crypto' } : null };
+     return { data: data[0] ? sanitizeCoin({ ...data[0], category: 'crypto' }) : null };
   } catch (error) {
       console.error('Error fetching detail:', error);
       const mock = MOCK_COINS.find(c => c.id === id);
@@ -312,7 +335,7 @@ export const fetchFavoriteCoins = async (ids: string[]): Promise<ServiceResponse
     }
     
     const data = await response.json();
-    return { data: [...applyLiveJitter(nonCryptoFavorites), ...data.map((c: any) => ({...c, category: 'crypto'}))] };
+    return { data: [...applyLiveJitter(nonCryptoFavorites), ...data.filter((c: any) => c.current_price != null).map((c: any) => sanitizeCoin({...c, category: 'crypto'}))] };
   } catch (error) {
     console.error('Failed to fetch favorite coins:', error);
     return {

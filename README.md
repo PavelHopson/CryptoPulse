@@ -9,7 +9,7 @@
 **Real-time crypto, forex & futures analytics with AI-powered insights.**<br/>
 **Built with Cyberpunk 2077 aesthetic.**
 
-[![Live Demo](https://img.shields.io/badge/LIVE%20DEMO-00f3ff?style=for-the-badge&logo=cloudflarepages&logoColor=black)](https://cryptopulse-2077.pages.dev)
+[![Live Demo](https://img.shields.io/badge/LIVE%20DEMO-00f3ff?style=for-the-badge&logo=cloudflarepages&logoColor=black)](https://cryptopulse-1d0.pages.dev)
 [![React](https://img.shields.io/badge/React_19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://typescriptlang.org)
 [![Vite](https://img.shields.io/badge/Vite_6-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vite.dev)
