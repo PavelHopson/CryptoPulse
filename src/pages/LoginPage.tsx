@@ -57,7 +57,7 @@ export const LoginPage: React.FC = () => {
         </div>
 
         {/* Form */}
-        <div className="p-8 space-y-6">
+        <div className="p-4 sm:p-6 md:p-8 space-y-6">
           {error && (
              <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-3 rounded-lg text-sm flex items-center gap-2">
                 <AlertCircle className="w-4 h-4" /> {error}

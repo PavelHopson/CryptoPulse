@@ -96,7 +96,7 @@ export const CoinDetail: React.FC = () => {
               <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-cyber-cyan"></div>
           </div>
           <div>
-             <h1 className="text-4xl font-display font-black text-white tracking-wide">{coin.name.toUpperCase()}</h1>
+             <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-black text-white tracking-wide">{coin.name.toUpperCase()}</h1>
              <div className="flex items-center gap-3 mt-2">
                <span className="bg-cyber-cyan/10 text-cyber-cyan border border-cyber-cyan/30 text-xs px-2 py-0.5 font-mono">{coin.symbol.toUpperCase()}</span>
                <span className="bg-gray-900 text-gray-400 text-xs px-2 py-0.5 font-mono border border-gray-800">РАНГ #{coin.market_cap_rank}</span>
@@ -105,7 +105,7 @@ export const CoinDetail: React.FC = () => {
         </div>
         
         <div className="flex flex-col md:items-end">
-           <div className={`text-5xl font-mono font-bold tracking-tighter text-white drop-shadow-[0_0_5px_rgba(255,255,255,0.5)]`}>
+           <div className={`text-3xl sm:text-4xl md:text-5xl font-mono font-bold tracking-tighter text-white drop-shadow-[0_0_5px_rgba(255,255,255,0.5)]`}>
               ${coin.current_price.toLocaleString(undefined, { minimumFractionDigits: 2 })}
            </div>
            <div className={`flex items-center gap-2 mt-2 text-xl font-bold font-mono ${neonColor}`}>
@@ -114,10 +114,10 @@ export const CoinDetail: React.FC = () => {
            </div>
 
            <div className="flex gap-4 mt-6 w-full md:w-auto">
-             <button onClick={() => openTrade('LONG')} className="cyber-button bg-cyber-green/10 border-cyber-green text-cyber-green px-8 py-3 hover:shadow-neon-green w-full md:w-auto">
+             <button onClick={() => openTrade('LONG')} className="cyber-button bg-cyber-green/10 border-cyber-green text-cyber-green px-4 sm:px-8 py-3 hover:shadow-neon-green w-full md:w-auto">
                LONG (КУПИТЬ)
              </button>
-             <button onClick={() => openTrade('SHORT')} className="cyber-button bg-cyber-pink/10 border-cyber-pink text-cyber-pink px-8 py-3 hover:shadow-neon-pink w-full md:w-auto">
+             <button onClick={() => openTrade('SHORT')} className="cyber-button bg-cyber-pink/10 border-cyber-pink text-cyber-pink px-4 sm:px-8 py-3 hover:shadow-neon-pink w-full md:w-auto">
                SHORT (ПРОДАТЬ)
              </button>
            </div>
@@ -140,7 +140,7 @@ export const CoinDetail: React.FC = () => {
                    ))}
                 </div>
               </div>
-              <div className="p-4 bg-cyber-black/40 min-h-[400px]">
+              <div className="p-4 bg-cyber-black/40 min-h-[300px] sm:min-h-[400px]">
                   <TradingViewChart data={chartData} height={400} isPositive={isPositive} />
               </div>
            </div>

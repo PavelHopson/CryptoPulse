@@ -149,7 +149,7 @@ export const TechAnalysisModal: React.FC<Props> = ({ coin, isOpen, onClose }) =>
                   <div className="h-32 flex items-center text-brand-500"><Zap className="w-8 h-8 animate-spin" /></div>
               ) : (
                 <>
-                    <div className="relative w-64 h-32 overflow-hidden mb-4">
+                    <div className="relative w-48 sm:w-64 h-28 sm:h-32 overflow-hidden mb-4">
                         {/* Gauge Background Arcs */}
                         <div className="absolute bottom-0 left-0 w-full h-full rounded-t-full border-[20px] border-gray-800 border-b-0"></div>
                         
@@ -202,7 +202,7 @@ export const TechAnalysisModal: React.FC<Props> = ({ coin, isOpen, onClose }) =>
            {/* Content based on Tab */}
            <div className="animate-fade-in">
                 {activeTab === 'OVERVIEW' ? (
-                     <div className="grid grid-cols-2 gap-4">
+                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                         <div className="bg-gray-900/30 p-4 rounded-xl border border-gray-800">
                             <div className="text-gray-400 text-xs uppercase mb-2">Oscillators</div>
                             <div className="flex items-end gap-2">
@@ -219,7 +219,7 @@ export const TechAnalysisModal: React.FC<Props> = ({ coin, isOpen, onClose }) =>
                         </div>
                      </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
                         {/* Oscillators List */}
                         <div>
                             <h3 className="font-bold text-white mb-4 text-xs uppercase text-gray-500">Осцилляторы</h3>

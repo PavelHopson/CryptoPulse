@@ -87,15 +87,15 @@ export const AdminPanel: React.FC = () => {
   if (!auth) return <LoginScreen onLogin={() => setAuth(true)} />;
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white flex">
+    <div className="min-h-screen bg-gray-950 text-white flex flex-col md:flex-row">
       {/* Sidebar */}
-      <div className="w-64 border-r border-gray-800 bg-cyber-black/50 flex flex-col">
+      <div className="w-full md:w-64 border-b md:border-b-0 md:border-r border-gray-800 bg-cyber-black/50 flex flex-col">
         <div className="h-16 flex items-center px-6 border-b border-gray-800">
           <Shield className="w-6 h-6 text-red-500 mr-2" />
           <span className="font-bold tracking-wider">COMMAND</span>
         </div>
         
-        <nav className="flex-1 p-4 space-y-2">
+        <nav className="flex-1 p-2 sm:p-4 flex flex-row md:flex-col gap-1 sm:gap-2 overflow-x-auto md:overflow-visible">
           <button 
             onClick={() => setActiveTab('DASHBOARD')}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${activeTab === 'DASHBOARD' ? 'bg-brand-600 text-white' : 'text-gray-400 hover:bg-gray-900'}`}
@@ -143,7 +143,7 @@ export const AdminPanel: React.FC = () => {
           {/* DASHBOARD VIEW */}
           {activeTab === 'DASHBOARD' && (
             <div className="space-y-8">
-              <div className="grid grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                  <div className="bg-dark-card border border-gray-800 p-6 rounded-xl">
                     <h3 className="text-gray-500 text-xs font-bold uppercase mb-2">Total Volume</h3>
                     <p className="text-2xl font-bold">${(stats.totalVolume / 1e9).toFixed(2)}B</p>
@@ -173,8 +173,8 @@ export const AdminPanel: React.FC = () => {
 
           {/* USERS VIEW */}
           {activeTab === 'USERS' && (
-            <div className="bg-dark-card border border-gray-800 rounded-xl overflow-hidden">
-              <table className="w-full">
+            <div className="bg-dark-card border border-gray-800 rounded-xl overflow-hidden overflow-x-auto">
+              <table className="w-full min-w-[600px]">
                 <thead className="bg-cyber-black/20 border-b border-gray-800">
                   <tr className="text-left text-xs font-bold text-gray-500 uppercase">
                     <th className="px-6 py-4">User</th>
@@ -236,7 +236,7 @@ export const AdminPanel: React.FC = () => {
 
           {/* SYSTEM CONFIG VIEW */}
           {activeTab === 'SYSTEM' && (
-            <div className="grid grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
                <div className="bg-dark-card border border-gray-800 rounded-xl p-6 space-y-6">
                   <h2 className="text-lg font-bold flex items-center gap-2">
                      <BarChart2 className="w-5 h-5 text-brand-500" /> Market Control
@@ -324,7 +324,7 @@ export const AdminPanel: React.FC = () => {
                     <div className="w-3 h-3 rounded-full bg-green-500"></div>
                   </div>
                 </div>
-                <div className="p-4 h-[500px] overflow-auto space-y-2">
+                <div className="p-4 h-[300px] sm:h-[400px] lg:h-[500px] overflow-auto space-y-2">
                    {logs.length === 0 && <div className="text-gray-600 italic">No logs available.</div>}
                    {logs.map(log => (
                      <div key={log.id} className="flex gap-3">

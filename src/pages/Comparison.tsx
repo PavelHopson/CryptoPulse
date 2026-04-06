@@ -64,7 +64,7 @@ export const ComparisonPage: React.FC = () => {
     <div className="space-y-8 animate-fade-in pb-20">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-gray-800 pb-4">
         <div>
-           <h1 className="text-3xl font-bold text-white mb-2 flex items-center gap-3">
+           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-2 flex items-center gap-3">
              <ArrowLeftRight className="w-8 h-8 text-brand-500" /> СРАВНЕНИЕ АКТИВОВ
            </h1>
            <p className="text-gray-400">Анализ корреляции и относительной доходности (%)</p>
@@ -116,7 +116,7 @@ export const ComparisonPage: React.FC = () => {
       </div>
 
       {/* Chart Area */}
-      <div className="bg-dark-card border border-gray-800 rounded-2xl p-6 min-h-[400px] relative">
+      <div className="bg-dark-card border border-gray-800 rounded-2xl p-6 min-h-[300px] sm:min-h-[400px] relative">
          {loading ? (
              <div className="absolute inset-0 flex items-center justify-center bg-dark-card/80 z-10">
                  <div className="flex flex-col items-center gap-2">

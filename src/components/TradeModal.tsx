@@ -83,7 +83,7 @@ export const TradeModal: React.FC<Props> = ({ coin, type, isOpen, onClose, onSuc
 
         {/* Header */}
         <div className={`px-6 py-4 border-b border-gray-700 flex justify-between items-center ${type === 'LONG' ? 'bg-green-500/10' : 'bg-red-500/10'}`}>
-           <h2 className={`text-xl font-bold flex items-center gap-2 ${type === 'LONG' ? 'text-green-400' : 'text-red-400'}`}>
+           <h2 className={`text-lg sm:text-xl font-bold flex items-center gap-2 ${type === 'LONG' ? 'text-green-400' : 'text-red-400'}`}>
              {type === 'LONG' ? <TrendingUp className="w-5 h-5" /> : <TrendingUp className="w-5 h-5 rotate-180" />}
              {type === 'LONG' ? 'Покупка' : 'Продажа'} {coin.symbol}
            </h2>

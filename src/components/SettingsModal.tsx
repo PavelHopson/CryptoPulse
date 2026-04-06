@@ -229,7 +229,7 @@ export const SettingsModal: React.FC<Props> = ({ isOpen, onClose, onUpdate }) =>
                            </button>
 
                            <label className="block text-xs text-gray-400 mb-3 font-bold uppercase">Выберите аватар</label>
-                           <div className="grid grid-cols-4 gap-3 mb-5">
+                           <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 sm:gap-3 mb-5">
                                {AVATAR_PRESETS.map((src, i) => (
                                    <button 
                                      key={i}

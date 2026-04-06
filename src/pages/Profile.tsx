@@ -79,7 +79,7 @@ export const Profile: React.FC = () => {
            
            <div className="flex-grow">
              <div className="flex items-center gap-3 mb-1">
-                <h1 className="text-3xl font-display font-bold text-white uppercase tracking-widest">{user.name}</h1>
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-display font-bold text-white uppercase tracking-widest">{user.name}</h1>
                 <div className="px-2 py-1 border border-cyber-yellow text-cyber-yellow text-[10px] font-mono">LVL.{user.level}</div>
                 {user.is_pro && <div className="px-2 py-1 bg-cyber-purple/20 border border-cyber-purple text-cyber-purple text-[10px] font-mono flex items-center gap-1"><Star className="w-3 h-3" /> PRO ЛИЦЕНЗИЯ</div>}
              </div>

@@ -70,7 +70,7 @@ export const MarketPage: React.FC<MarketPageProps> = ({ category, title, subtitl
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-gray-800 pb-4">
         <div>
-           <h1 className="text-4xl font-display font-black text-white mb-1 tracking-wide uppercase drop-shadow-[0_0_5px_rgba(255,255,255,0.3)]">
+           <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-black text-white mb-1 tracking-wide uppercase drop-shadow-[0_0_5px_rgba(255,255,255,0.3)]">
              {title}
            </h1>
            <div className="flex items-center gap-2 text-cyber-cyan font-mono text-sm">

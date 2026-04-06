@@ -202,7 +202,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                 </button>
 
                 {isNotifOpen && (
-                   <div className="absolute top-full right-0 mt-4 w-80 bg-cyber-black border border-cyber-cyan/30 shadow-[0_0_20px_rgba(0,243,255,0.1)] z-50 origin-top-right animate-scale-in">
+                   <div className="absolute top-full right-0 mt-4 w-72 sm:w-80 max-w-[90vw] bg-cyber-black border border-cyber-cyan/30 shadow-[0_0_20px_rgba(0,243,255,0.1)] z-50 origin-top-right animate-scale-in">
                       {/* Notif Content - styled appropriately */}
                       <div className="p-3 border-b border-cyber-cyan/20 flex justify-between items-center bg-cyber-cyan/5">
                           <h3 className="font-display text-cyber-cyan text-xs tracking-widest">СИСТЕМНЫЙ ЛОГ</h3>

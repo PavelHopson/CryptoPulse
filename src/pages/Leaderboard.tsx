@@ -53,7 +53,7 @@ export const Leaderboard: React.FC = () => {
     <div className="space-y-8 animate-fade-in pb-20">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-           <h1 className="text-3xl font-bold text-white mb-2 flex items-center gap-2">
+           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-2 flex items-center gap-2">
              <Trophy className="w-8 h-8 text-yellow-400" /> Зал Славы
            </h1>
            <p className="text-gray-400">Топ трейдеров CryptoPulse по доходности за месяц. Копируйте лучших.</p>
@@ -136,7 +136,7 @@ export const Leaderboard: React.FC = () => {
                 {traders.slice(3).map(trader => (
                    <tr key={trader.id} className="hover:bg-gray-800/50 transition-colors">
                       <td className="px-6 py-4 text-gray-500 font-medium">#{trader.rank}</td>
-                      <td className="px-6 py-4 flex items-center gap-3">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 flex items-center gap-3">
                          <span className="text-xl">{trader.avatar}</span>
                          <div>
                             <div className="font-bold text-white">{trader.name}</div>
