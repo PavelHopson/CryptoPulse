@@ -34,8 +34,7 @@ const ThemeToggle: React.FC = () => {
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute top-full right-0 mt-2 w-40 border border-cyber-cyan/20 bg-dark-card shadow-lg z-50 overflow-hidden"
-               style={{ borderRadius: 'var(--scanline-opacity, 0) == 0 ? 0.5rem : 0' }}>
+          <div className="absolute top-full right-0 mt-2 w-44 border border-gray-700 bg-dark-card shadow-xl z-50 overflow-hidden rounded-lg">
             {themes.map((t) => (
               <button
                 key={t}

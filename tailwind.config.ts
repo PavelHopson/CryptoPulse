@@ -10,6 +10,7 @@ export default {
         mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
       },
       colors: {
+        // Theme-aware custom colors
         'cyber-black': 'rgb(var(--color-bg) / <alpha-value>)',
         'cyber-panel': 'rgb(var(--color-panel) / <alpha-value>)',
         'cyber-cyan': 'rgb(var(--color-accent) / <alpha-value>)',
@@ -25,6 +26,19 @@ export default {
           500: 'rgb(var(--color-brand) / <alpha-value>)',
           600: 'rgb(var(--color-brand) / <alpha-value>)',
           900: 'rgb(var(--color-bg) / <alpha-value>)',
+        },
+        // Override Tailwind grays → CSS vars (auto-adapt all 380+ usages)
+        white: 'rgb(var(--tw-white) / <alpha-value>)',
+        black: 'rgb(var(--color-bg) / <alpha-value>)',
+        gray: {
+          200: 'rgb(var(--tw-gray-200) / <alpha-value>)',
+          300: 'rgb(var(--tw-gray-300) / <alpha-value>)',
+          400: 'rgb(var(--tw-gray-400) / <alpha-value>)',
+          500: 'rgb(var(--tw-gray-500) / <alpha-value>)',
+          600: 'rgb(var(--tw-gray-600) / <alpha-value>)',
+          700: 'rgb(var(--tw-gray-700) / <alpha-value>)',
+          800: 'rgb(var(--tw-gray-800) / <alpha-value>)',
+          900: 'rgb(var(--tw-gray-900) / <alpha-value>)',
         },
       },
       keyframes: {
