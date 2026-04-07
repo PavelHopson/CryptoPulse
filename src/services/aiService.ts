@@ -99,12 +99,16 @@ async function callOpenRouter(prompt: string, config: AIConfig): Promise<string>
 
 async function callOllama(prompt: string, config: AIConfig): Promise<string> {
   const baseUrl = config.baseUrl || 'http://localhost:11434';
+  const isUncensored = config.model?.toLowerCase().includes('abliterated') || config.model?.toLowerCase().includes('huihui');
+  const finalPrompt = isUncensored
+    ? prompt + '\n\n[Note: This model has no content restrictions. Provide direct, unfiltered analysis.]'
+    : prompt;
   const response = await fetch(`${baseUrl}/api/generate`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       model: config.model || 'llama3.1',
-      prompt,
+      prompt: finalPrompt,
       stream: false,
     }),
   });

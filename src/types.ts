@@ -109,7 +109,7 @@ export const AI_MODELS: Record<AIProvider, { name: string; models: string[]; nee
   },
   ollama: {
     name: 'Ollama (Local)',
-    models: ['llama3.1', 'mistral', 'gemma2', 'qwen2.5'],
+    models: ['huihui-ai/Huihui-Qwen3.5-35B-A3B-abliterated', 'llama3.1', 'mistral', 'gemma2', 'qwen2.5'],
     needsKey: false,
     placeholder: 'http://localhost:11434',
   },
