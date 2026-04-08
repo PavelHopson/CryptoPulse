@@ -278,6 +278,45 @@ workers/
 
 ---
 
+---
+
+## Интеграции и Companion Tools
+
+### Dexter — Deep Financial Research Agent
+
+[Dexter](https://github.com/virattt/dexter) — автономный AI-агент для глубокого инвестиционного ресёрча. Дополняет встроенный AI-аналитик CryptoPulse:
+
+| | CryptoPulse AI | Dexter |
+|--|:---:|:---:|
+| **Тип** | Быстрый обзор актива | Глубокий ресёрч с отчётностью |
+| **Данные** | Цена, объём, новости | Income statements, balance sheets, cash flow |
+| **Валидация** | Нет | Самопроверка каждой цифры |
+| **Формат** | Инсайт в 1 клик | Многоступенчатый отчёт |
+| **Провайдеры** | Gemini, OpenAI, Claude, Ollama | OpenAI, Anthropic, Google, Ollama |
+
+**Как использовать вместе:**
+1. CryptoPulse — мониторинг рынка, быстрые AI-сигналы, симулятор торговли
+2. Dexter — глубокий анализ перед принятием решения (финансовая отчётность, фактчекинг)
+
+```bash
+# Установка Dexter (TypeScript/Bun)
+git clone https://github.com/virattt/dexter.git
+cd dexter && bun install
+cp .env.example .env  # Настроить API ключи
+bun start
+# Пример: "Analyze NVDA for investment potential"
+```
+
+### Roadmap: Deep Research Mode
+
+В планах — интеграция Dexter-style глубокого анализа прямо в UI CryptoPulse:
+- [ ] Кнопка "Глубокий анализ" на странице актива
+- [ ] Финансовая отчётность (income statement, balance sheet, cash flow)
+- [ ] Самовалидация AI-выводов перед отображением
+- [ ] Сравнительный анализ нескольких активов
+
+---
+
 <div align="center">
 
 **Создано с React 19 + Cyberpunk 2077 эстетикой**
