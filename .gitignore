@@ -3,3 +3,7 @@ dist
 .env
 *.local
 .DS_Store
+.cursor/
+AGENTS.md
+CLAUDE.md
+.github/copilot-instructions.md
