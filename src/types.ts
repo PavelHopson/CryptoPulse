@@ -73,7 +73,7 @@ export interface PerformancePoint {
   value: number;
 }
 
-export type AIProvider = 'gemini' | 'openai' | 'anthropic' | 'openrouter' | 'ollama';
+export type AIProvider = 'gemini' | 'openai' | 'anthropic' | 'openrouter' | 'ollama' | 'nvidia';
 
 export interface AIConfig {
   provider: AIProvider;
@@ -112,6 +112,18 @@ export const AI_MODELS: Record<AIProvider, { name: string; models: string[]; nee
     models: ['huihui-ai/Huihui-Qwen3.5-35B-A3B-abliterated', 'llama3.1', 'mistral', 'gemma2', 'qwen2.5'],
     needsKey: false,
     placeholder: 'http://localhost:11434',
+  },
+  nvidia: {
+    name: 'NVIDIA NIM',
+    models: [
+      'nvidia/llama-3.3-nemotron-super-49b-v1',
+      'meta/llama-3.3-70b-instruct',
+      'qwen/qwen2.5-coder-32b-instruct',
+      'deepseek-ai/deepseek-r1',
+      'mistralai/mistral-nemo-12b-instruct',
+    ],
+    needsKey: true,
+    placeholder: 'nvapi-...',
   },
 };
 
