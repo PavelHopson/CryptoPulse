@@ -10,6 +10,13 @@ interface Props {
 }
 
 export const PortfolioAnalytics: React.FC<Props> = ({ allocation, history }) => {
+  const formatCurrencyValue = (value: number | string | ReadonlyArray<number | string> | undefined, label: string) => {
+    const rawValue = Array.isArray(value) ? value[0] : value;
+    const numericValue = typeof rawValue === 'number' ? rawValue : Number(rawValue ?? 0);
+
+    return [`$${numericValue.toLocaleString(undefined, { maximumFractionDigits: 2 })}`, label];
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
       
@@ -31,7 +38,7 @@ export const PortfolioAnalytics: React.FC<Props> = ({ allocation, history }) => 
                 contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px' }}
                 labelStyle={{ color: '#94a3b8' }}
                 itemStyle={{ color: '#f8fafc' }}
-                formatter={(value: number) => [`$${value.toLocaleString(undefined, {maximumFractionDigits: 2})}`, 'Equity']}
+                formatter={(value) => formatCurrencyValue(value, 'Equity')}
               />
               <XAxis 
                 dataKey="date" 
@@ -83,10 +90,13 @@ export const PortfolioAnalytics: React.FC<Props> = ({ allocation, history }) => 
               <Tooltip 
                 contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px' }}
                 itemStyle={{ color: '#f8fafc' }}
-                formatter={(value: number, name: string, props: any) => [
-                  `$${value.toLocaleString(undefined, {maximumFractionDigits: 2})} (${props.payload.percentage.toFixed(1)}%)`, 
-                  name
-                ]}
+                formatter={(value, name, props) => {
+                  const rawValue = Array.isArray(value) ? value[0] : value;
+                  const numericValue = typeof rawValue === 'number' ? rawValue : Number(rawValue ?? 0);
+                  const percentage = typeof props?.payload?.percentage === 'number' ? props.payload.percentage.toFixed(1) : '0.0';
+
+                  return [`$${numericValue.toLocaleString(undefined, { maximumFractionDigits: 2 })} (${percentage}%)`, String(name)];
+                }}
               />
             </PieChart>
           </ResponsiveContainer>

@@ -59,6 +59,12 @@ export const ComparisonPage: React.FC = () => {
   }, [coinA, coinB, timeframe, availableCoins]);
 
   const getName = (id: string) => availableCoins.find(c => c.id === id)?.name || id;
+  const formatPercentValue = (value: number | string | ReadonlyArray<number | string> | undefined, label: string) => {
+    const rawValue = Array.isArray(value) ? value[0] : value;
+    const numericValue = typeof rawValue === 'number' ? rawValue : Number(rawValue ?? 0);
+
+    return [`${numericValue.toFixed(2)}%`, label];
+  };
 
   return (
     <div className="space-y-8 animate-fade-in pb-20">
@@ -177,10 +183,7 @@ export const ComparisonPage: React.FC = () => {
                                 contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px' }}
                                 labelStyle={{ color: '#94a3b8' }}
                                 itemStyle={{ color: '#f8fafc' }}
-                                formatter={(value: number, name: string) => [
-                                    `${value.toFixed(2)}%`, 
-                                    name === 'valueA' ? getName(coinA) : getName(coinB)
-                                ]}
+                                formatter={(value, name) => formatPercentValue(value, name === 'valueA' ? getName(coinA) : getName(coinB))}
                             />
                             <Area 
                                 type="monotone" 

@@ -11,6 +11,12 @@ interface Props {
 
 export const ChartComponent: React.FC<Props> = ({ data, height = 300, showAxes = true, isPositive = true }) => {
   const color = isPositive ? '#10b981' : '#ef4444';
+  const formatTooltipValue = (value: number | string | ReadonlyArray<number | string> | undefined) => {
+    const rawValue = Array.isArray(value) ? value[0] : value;
+    const numericValue = typeof rawValue === 'number' ? rawValue : Number(rawValue ?? 0);
+
+    return [`$${numericValue.toLocaleString(undefined, { maximumFractionDigits: 4 })}`, 'Цена'];
+  };
 
   if (!data || data.length === 0) return <div className="flex items-center justify-center h-full text-gray-500">Нет данных для графика</div>;
 
@@ -50,7 +56,7 @@ export const ChartComponent: React.FC<Props> = ({ data, height = 300, showAxes =
             contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px' }}
             labelStyle={{ color: '#94a3b8' }}
             itemStyle={{ color: '#f8fafc' }}
-            formatter={(value: number) => [`$${value.toLocaleString(undefined, {maximumFractionDigits: 4})}`, 'Цена']}
+            formatter={formatTooltipValue}
           />
           <Area 
             type="monotone" 
