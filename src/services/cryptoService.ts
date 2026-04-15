@@ -1,11 +1,44 @@
 import { CoinData, AssetCategory, Timeframe, CandleData } from '../types';
 import { getSystemConfig } from './adminService';
+import { retry, isRetryableHttpStatus } from '../core/retry';
 
 const API_URL = 'https://api.coingecko.com/api/v3';
+
+/**
+ * Where the data in a ServiceResponse came from. Allows the UI to show a
+ * LIVE/MOCK/RETRY badge and makes test assertions deterministic — no more
+ * "did this come from the real API or not?" guessing.
+ */
+export type DataSource =
+  /** Real data fetched from upstream API on the current call. */
+  | 'api'
+  /** Mock data: non-crypto assets (forex/futures) which have no real API yet. */
+  | 'mock'
+  /** Mock data: we tried the real API, it failed transiently, retry exhausted. */
+  | 'retry-mock';
 
 export interface ServiceResponse<T> {
   data: T;
   error?: string;
+  source: DataSource;
+}
+
+/**
+ * Wraps a fetch call with exponential-backoff retry for transient errors
+ * (408, 425, 429, 5xx). Non-retryable HTTP statuses and thrown errors
+ * bubble up so the caller can decide how to handle them.
+ */
+async function fetchWithRetry(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+  return retry(
+    async () => {
+      const res = await fetch(input, init);
+      if (!res.ok && isRetryableHttpStatus(res.status)) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+      return res;
+    },
+    { maxAttempts: 3, initialDelayMs: 500, maxDelayMs: 4000, jitter: true },
+  );
 }
 
 // --- MOCK DATA GENERATORS ---
@@ -239,36 +272,43 @@ export const fetchMarketData = async (category: AssetCategory): Promise<ServiceR
   if (category === 'crypto') {
     return fetchTopCoins();
   } else if (category === 'forex') {
-    await new Promise(r => setTimeout(r, 600)); 
-    return { data: applyLiveJitter(MOCK_FOREX) };
+    await new Promise(r => setTimeout(r, 600));
+    return { data: applyLiveJitter(MOCK_FOREX), source: 'mock' };
   } else if (category === 'futures') {
     await new Promise(r => setTimeout(r, 600));
-    return { data: applyLiveJitter(MOCK_FUTURES) };
+    return { data: applyLiveJitter(MOCK_FUTURES), source: 'mock' };
   }
-  return { data: [] };
+  return { data: [], source: 'mock' };
 };
 
 export const fetchTopCoins = async (): Promise<ServiceResponse<CoinData[]>> => {
   try {
-    const response = await fetch(
-      `${API_URL}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=20&page=1&sparkline=true&price_change_percentage=24h`
+    const response = await fetchWithRetry(
+      `${API_URL}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=20&page=1&sparkline=true&price_change_percentage=24h`,
     );
-    
+
     if (!response.ok) {
-      console.warn('CoinGecko API rate limited or down, using mock data.');
-      return { 
+      console.warn(`CoinGecko API ${response.status}, using mock data.`);
+      return {
         data: applyLiveJitter(MOCK_COINS),
-        error: 'Рыночные данные временно недоступны. Показаны кешированные данные.'
+        error: 'Рыночные данные временно недоступны. Показаны кешированные данные.',
+        source: 'retry-mock',
       };
     }
-    
+
     const data = await response.json();
-    return { data: data.filter((c: any) => c.current_price != null).map((c: any) => sanitizeCoin({ ...c, category: 'crypto' })) };
+    return {
+      data: data
+        .filter((c: any) => c.current_price != null)
+        .map((c: any) => sanitizeCoin({ ...c, category: 'crypto' })),
+      source: 'api',
+    };
   } catch (error) {
     console.error('Failed to fetch coins:', error);
     return {
       data: applyLiveJitter(MOCK_COINS),
-      error: 'Ошибка сети. Показаны кешированные данные.'
+      error: 'Ошибка сети. Показаны кешированные данные.',
+      source: 'retry-mock',
     };
   }
 };
@@ -277,40 +317,45 @@ export const fetchCoinDetails = async (id: string, category: AssetCategory = 'cr
   // Handle non-crypto assets using mock data
   if (category === 'forex') {
     const asset = MOCK_FOREX.find(a => a.id === id);
-    return { data: asset ? applyLiveJitter([asset])[0] : null };
+    return { data: asset ? applyLiveJitter([asset])[0] : null, source: 'mock' };
   }
   if (category === 'futures') {
     const asset = MOCK_FUTURES.find(a => a.id === id);
-    return { data: asset ? applyLiveJitter([asset])[0] : null };
+    return { data: asset ? applyLiveJitter([asset])[0] : null, source: 'mock' };
   }
 
   // Existing Crypto logic
   try {
-     const response = await fetch(
-      `${API_URL}/coins/markets?vs_currency=usd&ids=${id}&sparkline=true&price_change_percentage=24h`
+    const response = await fetchWithRetry(
+      `${API_URL}/coins/markets?vs_currency=usd&ids=${id}&sparkline=true&price_change_percentage=24h`,
     );
-     if (!response.ok) {
-        const mock = MOCK_COINS.find(c => c.id === id);
-        return {
-          data: mock ? applyLiveJitter([mock])[0] : null,
-          error: mock ? 'Детали недоступны. Используется кеш.' : 'Не удалось получить детали.'
-        };
-     }
-     const data = await response.json();
-     return { data: data[0] ? sanitizeCoin({ ...data[0], category: 'crypto' }) : null };
-  } catch (error) {
-      console.error('Error fetching detail:', error);
+    if (!response.ok) {
       const mock = MOCK_COINS.find(c => c.id === id);
       return {
         data: mock ? applyLiveJitter([mock])[0] : null,
-        error: mock ? 'Ошибка сети. Используется кеш.' : 'Не удалось подключиться к провайдеру данных.'
+        error: mock ? 'Детали недоступны. Используется кеш.' : 'Не удалось получить детали.',
+        source: 'retry-mock',
       };
+    }
+    const data = await response.json();
+    return {
+      data: data[0] ? sanitizeCoin({ ...data[0], category: 'crypto' }) : null,
+      source: 'api',
+    };
+  } catch (error) {
+    console.error('Error fetching detail:', error);
+    const mock = MOCK_COINS.find(c => c.id === id);
+    return {
+      data: mock ? applyLiveJitter([mock])[0] : null,
+      error: mock ? 'Ошибка сети. Используется кеш.' : 'Не удалось подключиться к провайдеру данных.',
+      source: 'retry-mock',
+    };
   }
 };
 
 export const fetchFavoriteCoins = async (ids: string[]): Promise<ServiceResponse<CoinData[]>> => {
-  if (ids.length === 0) return { data: [] };
-  
+  if (ids.length === 0) return { data: [], source: 'api' };
+
   // Filter mock non-crypto assets first
   const nonCryptoFavorites = [
     ...MOCK_FOREX.filter(a => ids.includes(a.id)),
@@ -319,28 +364,46 @@ export const fetchFavoriteCoins = async (ids: string[]): Promise<ServiceResponse
 
   // Filter for actual crypto IDs
   const cryptoIds = ids.filter(id => !nonCryptoFavorites.find(nc => nc.id === id));
-  
-  if (cryptoIds.length === 0) return { data: applyLiveJitter(nonCryptoFavorites) };
+
+  if (cryptoIds.length === 0) {
+    return { data: applyLiveJitter(nonCryptoFavorites), source: 'mock' };
+  }
 
   try {
-    const response = await fetch(
-      `${API_URL}/coins/markets?vs_currency=usd&ids=${cryptoIds.join(',')}&order=market_cap_desc&sparkline=true&price_change_percentage=24h`
+    const response = await fetchWithRetry(
+      `${API_URL}/coins/markets?vs_currency=usd&ids=${cryptoIds.join(',')}&order=market_cap_desc&sparkline=true&price_change_percentage=24h`,
     );
-    
+
     if (!response.ok) {
       return {
-        data: applyLiveJitter([...nonCryptoFavorites, ...MOCK_COINS.filter(c => cryptoIds.includes(c.id))]),
-        error: 'Не удалось обновить избранное. Показан кеш.'
+        data: applyLiveJitter([
+          ...nonCryptoFavorites,
+          ...MOCK_COINS.filter(c => cryptoIds.includes(c.id)),
+        ]),
+        error: 'Не удалось обновить избранное. Показан кеш.',
+        source: 'retry-mock',
       };
     }
-    
+
     const data = await response.json();
-    return { data: [...applyLiveJitter(nonCryptoFavorites), ...data.filter((c: any) => c.current_price != null).map((c: any) => sanitizeCoin({...c, category: 'crypto'}))] };
+    return {
+      data: [
+        ...applyLiveJitter(nonCryptoFavorites),
+        ...data
+          .filter((c: any) => c.current_price != null)
+          .map((c: any) => sanitizeCoin({ ...c, category: 'crypto' })),
+      ],
+      source: 'api',
+    };
   } catch (error) {
     console.error('Failed to fetch favorite coins:', error);
     return {
-      data: applyLiveJitter([...nonCryptoFavorites, ...MOCK_COINS.filter(c => cryptoIds.includes(c.id))]),
-      error: 'Ошибка соединения. Показан кеш.'
+      data: applyLiveJitter([
+        ...nonCryptoFavorites,
+        ...MOCK_COINS.filter(c => cryptoIds.includes(c.id)),
+      ]),
+      error: 'Ошибка соединения. Показан кеш.',
+      source: 'retry-mock',
     };
   }
 };

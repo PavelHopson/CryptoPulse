@@ -121,7 +121,8 @@
 <td width="50%">
 
 ### AI и интеллект
-- **5 провайдеров** — Gemini, OpenAI, Claude, OpenRouter, Ollama
+- **6 провайдеров** — Gemini, OpenAI, Claude, OpenRouter, Ollama, **NVIDIA NIM**
+- **Free tier** через NVIDIA NIM (Nemotron, DeepSeek, Qwen, Mistral NeMo, Llama 3.3 70B)
 - **Пользователь подключает свою модель** в настройках
 - **Торговые сигналы** — BUY/SELL/HOLD рекомендации
 - **Анализ настроения** — бычий/медвежий тренд
@@ -151,13 +152,16 @@
 Фронтенд        React 19 + TypeScript + Vite 6
 Стилизация       TailwindCSS 3 + CSS-переменные (3 темы)
 Графики          Recharts + TradingView Lightweight Charts
-AI               Gemini / OpenAI / Claude / OpenRouter / Ollama
+AI               Gemini / OpenAI / Claude / OpenRouter / Ollama / NVIDIA NIM
 Новости          Собственный парсер на Cloudflare Workers
 Иконки           Lucide React
 Роутинг          React Router v7
 Состояние        localStorage + сервисный слой
+Тесты            Vitest + @testing-library/react + jsdom (76 тестов)
 Деплой           Cloudflare Pages (фронт) + Workers (парсер)
 ```
+
+Архитектура: смотри [ARCHITECTURE.md](./ARCHITECTURE.md) — диаграммы data flow, стратегия retry, провайдеры, стратегия тестирования.
 
 ## Дизайн-система
 

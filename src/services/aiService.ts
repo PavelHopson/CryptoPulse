@@ -116,6 +116,33 @@ async function callOllama(prompt: string, config: AIConfig): Promise<string> {
   return data.response || '';
 }
 
+/**
+ * NVIDIA NIM — OpenAI-compatible Chat Completions API at
+ * https://integrate.api.nvidia.com/v1. Free tier available at
+ * https://build.nvidia.com/models with models like Nemotron, Qwen,
+ * DeepSeek, Mistral NeMo, Gemma.
+ */
+async function callNvidia(prompt: string, config: AIConfig): Promise<string> {
+  const baseUrl = (config.baseUrl || 'https://integrate.api.nvidia.com/v1').replace(/\/+$/, '');
+  const response = await fetch(`${baseUrl}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${config.apiKey}`,
+      Accept: 'application/json',
+    },
+    body: JSON.stringify({
+      model: config.model || 'nvidia/llama-3.3-nemotron-super-49b-v1',
+      messages: [{ role: 'user', content: prompt }],
+      max_tokens: 500,
+      temperature: 0.7,
+    }),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error?.message || data.detail || 'NVIDIA NIM API error');
+  return data.choices?.[0]?.message?.content || '';
+}
+
 // ====== DISPATCH ======
 
 const PROVIDERS: Record<AIProvider, (prompt: string, config: AIConfig) => Promise<string>> = {
@@ -124,6 +151,7 @@ const PROVIDERS: Record<AIProvider, (prompt: string, config: AIConfig) => Promis
   anthropic: callAnthropic,
   openrouter: callOpenRouter,
   ollama: callOllama,
+  nvidia: callNvidia,
 };
 
 async function callAI(prompt: string): Promise<string> {
