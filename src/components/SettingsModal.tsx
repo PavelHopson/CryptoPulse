@@ -3,6 +3,10 @@ import React, { useState, useEffect } from 'react';
 import { X, Save, User, Shield, Bell, Globe, AlertTriangle, CheckCircle, Trash2, LogOut, Camera, Check, RefreshCw, Bot, Eye, EyeOff } from 'lucide-react';
 import { UserProfile, AIProvider, AIConfig, AI_MODELS } from '../types';
 import { getUserProfile, updateUserProfile, resetAccount, logoutUser } from '../services/userService';
+import {
+  AvatarTrader1, AvatarTrader2, AvatarTrader3,
+  AvatarRobot, AvatarAlien, AvatarBear, AvatarLion, AvatarCrypto,
+} from '../assets/icons';
 
 interface Props {
   isOpen: boolean;
@@ -10,16 +14,20 @@ interface Props {
   onUpdate: () => void;
 }
 
-const AVATAR_PRESETS = [
-  'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&h=150',
-  'https://images.unsplash.com/photo-1527980965255-d3b416303d12?auto=format&fit=crop&w=150&h=150',
-  'https://images.unsplash.com/photo-1633332755192-727a05c4013d?auto=format&fit=crop&w=150&h=150',
-  'https://cdn-icons-png.flaticon.com/512/4140/4140048.png', // Robot
-  'https://cdn-icons-png.flaticon.com/512/4140/4140037.png', // Alien
-  'https://cdn-icons-png.flaticon.com/512/4140/4140047.png', // Bear
-  'https://cdn-icons-png.flaticon.com/512/4140/4140051.png', // Lion
-  'https://cdn-icons-png.flaticon.com/512/12114/12114233.png' // Crypto
+const AVATAR_PRESET_COMPONENTS = [
+  { id: 'avatar-trader1', Component: AvatarTrader1 },
+  { id: 'avatar-trader2', Component: AvatarTrader2 },
+  { id: 'avatar-trader3', Component: AvatarTrader3 },
+  { id: 'avatar-robot', Component: AvatarRobot },
+  { id: 'avatar-alien', Component: AvatarAlien },
+  { id: 'avatar-bear', Component: AvatarBear },
+  { id: 'avatar-lion', Component: AvatarLion },
+  { id: 'avatar-crypto', Component: AvatarCrypto },
 ];
+
+const AVATAR_PRESET_IDS = AVATAR_PRESET_COMPONENTS.map(p => p.id);
+const isPresetAvatar = (val: string) => AVATAR_PRESET_IDS.includes(val);
+const getPresetComponent = (val: string) => AVATAR_PRESET_COMPONENTS.find(p => p.id === val);
 
 export const SettingsModal: React.FC<Props> = ({ isOpen, onClose, onUpdate }) => {
   const [activeTab, setActiveTab] = useState<'GENERAL' | 'AI' | 'SECURITY' | 'PREFS'>('GENERAL');
@@ -192,7 +200,9 @@ export const SettingsModal: React.FC<Props> = ({ isOpen, onClose, onUpdate }) =>
                 <div className="space-y-6">
                    <div className="flex items-center gap-4">
                       <div className="relative group">
-                        {formData.avatar ? (
+                        {formData.avatar && isPresetAvatar(formData.avatar) ? (
+                            (() => { const preset = getPresetComponent(formData.avatar); return preset ? <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-brand-500 shadow-lg"><preset.Component size={80} /></div> : null; })()
+                        ) : formData.avatar ? (
                             <img src={formData.avatar} alt="Avatar" className="w-20 h-20 rounded-full object-cover border-2 border-brand-500 shadow-lg bg-gray-800" />
                         ) : (
                             <div className="w-20 h-20 bg-brand-600 rounded-full flex items-center justify-center text-2xl font-bold text-white border-2 border-brand-500 shadow-lg">
@@ -230,14 +240,14 @@ export const SettingsModal: React.FC<Props> = ({ isOpen, onClose, onUpdate }) =>
 
                            <label className="block text-xs text-gray-400 mb-3 font-bold uppercase">Выберите аватар</label>
                            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 sm:gap-3 mb-5">
-                               {AVATAR_PRESETS.map((src, i) => (
-                                   <button 
-                                     key={i}
-                                     onClick={() => setFormData({...formData, avatar: src})}
-                                     className={`relative rounded-full overflow-hidden aspect-square border-2 transition-all group ${formData.avatar === src ? 'border-brand-500 ring-2 ring-brand-500/30 scale-105' : 'border-transparent hover:border-gray-500'}`}
+                               {AVATAR_PRESET_COMPONENTS.map(({ id, Component }) => (
+                                   <button
+                                     key={id}
+                                     onClick={() => setFormData({...formData, avatar: id})}
+                                     className={`relative rounded-full overflow-hidden aspect-square border-2 transition-all group flex items-center justify-center bg-gray-900 ${formData.avatar === id ? 'border-brand-500 ring-2 ring-brand-500/30 scale-105' : 'border-transparent hover:border-gray-500'}`}
                                    >
-                                       <img src={src} alt="Preset" className="w-full h-full object-cover" />
-                                       {formData.avatar === src && (
+                                       <Component size={64} />
+                                       {formData.avatar === id && (
                                          <div className="absolute inset-0 bg-brand-500/30 flex items-center justify-center">
                                             <Check className="w-4 h-4 text-white drop-shadow-md" />
                                          </div>

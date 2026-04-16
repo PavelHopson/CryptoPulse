@@ -156,7 +156,7 @@ export const fetchCoinHistory = async (coinId: string, timeframe: Timeframe, cur
 
 const MOCK_FOREX: CoinData[] = [
   {
-    id: 'eur-usd', symbol: 'EUR/USD', name: 'Евро / Доллар', image: 'https://flagcdn.com/w80/eu.png',
+    id: 'eur-usd', symbol: 'EUR/USD', name: 'Евро / Доллар', image: '',
     current_price: 1.0845, market_cap: 0, market_cap_rank: 0, fully_diluted_valuation: null, total_volume: 50000000000,
     high_24h: 1.0890, low_24h: 1.0810, price_change_24h: 0.0025, price_change_percentage_24h: 0.23,
     market_cap_change_24h: 0, market_cap_change_percentage_24h: 0, circulating_supply: 0, total_supply: 0, max_supply: 0,
@@ -164,7 +164,7 @@ const MOCK_FOREX: CoinData[] = [
     category: 'forex', sparkline_in_7d: { price: generateSparkline(1.08, 0.01) }
   },
   {
-    id: 'usd-jpy', symbol: 'USD/JPY', name: 'Доллар / Йена', image: 'https://flagcdn.com/w80/jp.png',
+    id: 'usd-jpy', symbol: 'USD/JPY', name: 'Доллар / Йена', image: '',
     current_price: 155.60, market_cap: 0, market_cap_rank: 0, fully_diluted_valuation: null, total_volume: 40000000000,
     high_24h: 156.10, low_24h: 155.20, price_change_24h: -0.40, price_change_percentage_24h: -0.26,
     market_cap_change_24h: 0, market_cap_change_percentage_24h: 0, circulating_supply: 0, total_supply: 0, max_supply: 0,
@@ -172,7 +172,7 @@ const MOCK_FOREX: CoinData[] = [
     category: 'forex', sparkline_in_7d: { price: generateSparkline(155, 0.015) }
   },
   {
-    id: 'usd-rub', symbol: 'USD/RUB', name: 'Доллар / Рубль', image: 'https://flagcdn.com/w80/ru.png',
+    id: 'usd-rub', symbol: 'USD/RUB', name: 'Доллар / Рубль', image: '',
     current_price: 92.45, market_cap: 0, market_cap_rank: 0, fully_diluted_valuation: null, total_volume: 5000000000,
     high_24h: 93.00, low_24h: 91.80, price_change_24h: 0.50, price_change_percentage_24h: 0.54,
     market_cap_change_24h: 0, market_cap_change_percentage_24h: 0, circulating_supply: 0, total_supply: 0, max_supply: 0,
@@ -180,7 +180,7 @@ const MOCK_FOREX: CoinData[] = [
     category: 'forex', sparkline_in_7d: { price: generateSparkline(92, 0.03) }
   },
   {
-    id: 'usd-cny', symbol: 'USD/CNY', name: 'Доллар / Юань', image: 'https://flagcdn.com/w80/cn.png',
+    id: 'usd-cny', symbol: 'USD/CNY', name: 'Доллар / Юань', image: '',
     current_price: 7.24, market_cap: 0, market_cap_rank: 0, fully_diluted_valuation: null, total_volume: 15000000000,
     high_24h: 7.25, low_24h: 7.23, price_change_24h: 0.01, price_change_percentage_24h: 0.14,
     market_cap_change_24h: 0, market_cap_change_percentage_24h: 0, circulating_supply: 0, total_supply: 0, max_supply: 0,
@@ -191,7 +191,7 @@ const MOCK_FOREX: CoinData[] = [
 
 const MOCK_FUTURES: CoinData[] = [
   {
-    id: 'spx-500', symbol: 'US500', name: 'S&P 500', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/S%26P_Standard_%26_Poor%27s_logo.svg/1200px-S%26P_Standard_%26_Poor%27s_logo.svg.png',
+    id: 'spx-500', symbol: 'US500', name: 'S&P 500', image: '',
     current_price: 5230.50, market_cap: 0, market_cap_rank: 0, fully_diluted_valuation: null, total_volume: 0,
     high_24h: 5250.00, low_24h: 5210.00, price_change_24h: 15.50, price_change_percentage_24h: 0.30,
     market_cap_change_24h: 0, market_cap_change_percentage_24h: 0, circulating_supply: 0, total_supply: 0, max_supply: 0,
@@ -199,7 +199,7 @@ const MOCK_FUTURES: CoinData[] = [
     category: 'futures', sparkline_in_7d: { price: generateSparkline(5200, 0.03) }
   },
   {
-    id: 'nasdaq-100', symbol: 'NAS100', name: 'Nasdaq 100', image: 'https://upload.wikimedia.org/wikipedia/en/thumb/2/24/NASDAQ_Logo.svg/1200px-NASDAQ_Logo.svg.png',
+    id: 'nasdaq-100', symbol: 'NAS100', name: 'Nasdaq 100', image: '',
     current_price: 18150.20, market_cap: 0, market_cap_rank: 0, fully_diluted_valuation: null, total_volume: 0,
     high_24h: 18300.00, low_24h: 17950.00, price_change_24h: 85.20, price_change_percentage_24h: 0.47,
     market_cap_change_24h: 0, market_cap_change_percentage_24h: 0, circulating_supply: 0, total_supply: 0, max_supply: 0,
@@ -207,7 +207,7 @@ const MOCK_FUTURES: CoinData[] = [
     category: 'futures', sparkline_in_7d: { price: generateSparkline(18000, 0.04) }
   },
   {
-    id: 'gold', symbol: 'XAU', name: 'Золото (Gold)', image: 'https://cdn-icons-png.flaticon.com/512/197/197596.png',
+    id: 'gold', symbol: 'XAU', name: 'Золото (Gold)', image: '',
     current_price: 2350.10, market_cap: 0, market_cap_rank: 0, fully_diluted_valuation: null, total_volume: 0,
     high_24h: 2365.00, low_24h: 2340.00, price_change_24h: 8.10, price_change_percentage_24h: 0.35,
     market_cap_change_24h: 0, market_cap_change_percentage_24h: 0, circulating_supply: 0, total_supply: 0, max_supply: 0,
@@ -215,7 +215,7 @@ const MOCK_FUTURES: CoinData[] = [
     category: 'futures', sparkline_in_7d: { price: generateSparkline(2350, 0.02) }
   },
   {
-    id: 'oil-wti', symbol: 'WTI', name: 'Нефть WTI', image: 'https://cdn-icons-png.flaticon.com/512/2102/2102494.png',
+    id: 'oil-wti', symbol: 'WTI', name: 'Нефть WTI', image: '',
     current_price: 78.40, market_cap: 0, market_cap_rank: 0, fully_diluted_valuation: null, total_volume: 0,
     high_24h: 79.20, low_24h: 77.80, price_change_24h: -0.90, price_change_percentage_24h: -1.14,
     market_cap_change_24h: 0, market_cap_change_percentage_24h: 0, circulating_supply: 0, total_supply: 0, max_supply: 0,

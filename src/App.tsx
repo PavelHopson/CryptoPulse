@@ -1,6 +1,7 @@
 import React from 'react';
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import { Layout } from './components/Layout';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { MarketPage } from './pages/Dashboard';
 import { CoinDetail } from './pages/CoinDetail';
 import { Favorites } from './pages/Favorites';
@@ -13,6 +14,7 @@ import { ComparisonPage } from './pages/Comparison';
 
 const App: React.FC = () => {
   return (
+    <ErrorBoundary>
     <Router>
       <Routes>
         {/* Admin Route (No Layout) */}
@@ -56,6 +58,7 @@ const App: React.FC = () => {
         } />
       </Routes>
     </Router>
+    </ErrorBoundary>
   );
 };
 

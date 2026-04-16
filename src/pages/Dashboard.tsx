@@ -4,6 +4,8 @@ import { fetchMarketData } from '../services/cryptoService';
 import { fetchMarketNews, getProjectNews } from '../services/newsService';
 import { CoinData, AssetCategory, NewsArticle } from '../types';
 import { ArrowUpRight, ArrowDownRight, Star, TrendingUp, Activity, Globe, Zap, Bell, ExternalLink } from 'lucide-react';
+import { CryptoIcon } from '../components/CryptoIcon';
+import { TableRowSkeleton, NewsSkeleton, MarketNewsSkeleton, CardSkeleton } from '../components/Skeleton';
 import { AreaChart, Area, ResponsiveContainer } from 'recharts';
 
 const MiniChart = ({ data, isPositive }: { data: number[], isPositive: boolean }) => (
@@ -93,17 +95,21 @@ export const MarketPage: React.FC<MarketPageProps> = ({ category, title, subtitl
             <h2 className="font-display font-bold text-lg tracking-wider">ОБНОВЛЕНИЯ</h2>
           </div>
           <div className="space-y-4">
-             {projectNews.map(news => (
-               <div key={news.id} className="flex gap-3 group cursor-pointer">
-                 <div className="w-12 h-12 bg-gray-900 border border-gray-700 flex-shrink-0 overflow-hidden grayscale group-hover:grayscale-0 transition-all">
-                    <img src={news.imageUrl} className="w-full h-full object-cover" />
+             {loading ? (
+               Array.from({ length: 3 }).map((_, i) => <NewsSkeleton key={i} />)
+             ) : (
+               projectNews.map(news => (
+                 <div key={news.id} className="flex gap-3 group cursor-pointer">
+                   <div className="w-12 h-12 bg-gray-900 border border-gray-700 flex-shrink-0 overflow-hidden grayscale group-hover:grayscale-0 transition-all">
+                      <img src={news.imageUrl} className="w-full h-full object-cover" />
+                   </div>
+                   <div>
+                      <h3 className="text-sm font-bold text-gray-200 group-hover:text-cyber-pink transition-colors leading-tight font-sans">{news.title}</h3>
+                      <span className="text-[10px] text-gray-500 font-mono block mt-1">{news.publishedAt}</span>
+                   </div>
                  </div>
-                 <div>
-                    <h3 className="text-sm font-bold text-gray-200 group-hover:text-cyber-pink transition-colors leading-tight font-sans">{news.title}</h3>
-                    <span className="text-[10px] text-gray-500 font-mono block mt-1">{news.publishedAt}</span>
-                 </div>
-               </div>
-             ))}
+               ))
+             )}
           </div>
         </div>
 
@@ -117,18 +123,22 @@ export const MarketPage: React.FC<MarketPageProps> = ({ category, title, subtitl
               <span className="text-xs font-mono text-cyber-green animate-pulse">● ПРЯМОЙ ЭФИР</span>
            </div>
            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {marketNews.map(news => (
-                 <a href={news.url} target="_blank" rel="noopener noreferrer" key={news.id} className="block bg-cyber-black/40 border border-gray-800 hover:border-cyber-cyan/50 p-3 transition-all group">
-                    <div className="flex justify-between items-start gap-2">
-                       <h3 className="text-sm font-medium text-gray-300 group-hover:text-cyber-cyan transition-colors line-clamp-2">{news.title}</h3>
-                       <ExternalLink className="w-3 h-3 text-gray-600 group-hover:text-white flex-shrink-0" />
-                    </div>
-                    <div className="flex justify-between items-end mt-3">
-                       <span className="text-[10px] text-cyber-purple font-mono uppercase">{news.source}</span>
-                       <span className="text-[10px] text-gray-600 font-mono">{news.publishedAt}</span>
-                    </div>
-                 </a>
-              ))}
+              {loading ? (
+                Array.from({ length: 4 }).map((_, i) => <MarketNewsSkeleton key={i} />)
+              ) : (
+                marketNews.map(news => (
+                   <a href={news.url} target="_blank" rel="noopener noreferrer" key={news.id} className="block bg-cyber-black/40 border border-gray-800 hover:border-cyber-cyan/50 p-3 transition-all group">
+                      <div className="flex justify-between items-start gap-2">
+                         <h3 className="text-sm font-medium text-gray-300 group-hover:text-cyber-cyan transition-colors line-clamp-2">{news.title}</h3>
+                         <ExternalLink className="w-3 h-3 text-gray-600 group-hover:text-white flex-shrink-0" />
+                      </div>
+                      <div className="flex justify-between items-end mt-3">
+                         <span className="text-[10px] text-cyber-purple font-mono uppercase">{news.source}</span>
+                         <span className="text-[10px] text-gray-600 font-mono">{news.publishedAt}</span>
+                      </div>
+                   </a>
+                ))
+              )}
            </div>
         </div>
       </div>
@@ -166,8 +176,24 @@ export const MarketPage: React.FC<MarketPageProps> = ({ category, title, subtitl
         </div>
         
         {loading ? (
-          <div className="p-12 flex justify-center">
-            <Zap className="w-8 h-8 text-cyber-cyan animate-bounce" />
+          <div className="overflow-x-auto">
+            <table className="w-full font-mono text-sm">
+              <thead className="bg-gray-900/50 text-gray-500 text-xs uppercase">
+                <tr>
+                  <th className="px-6 py-3 text-left">Актив</th>
+                  <th className="px-6 py-3 text-right">Цена</th>
+                  <th className="px-6 py-3 text-right">24ч %</th>
+                  <th className="px-6 py-3 text-right hidden md:table-cell">Диапазон</th>
+                  <th className="px-6 py-3 text-right hidden lg:table-cell">Тренд</th>
+                  <th className="px-6 py-3 text-center">Избр</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-800">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <TableRowSkeleton key={i} />
+                ))}
+              </tbody>
+            </table>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -187,7 +213,7 @@ export const MarketPage: React.FC<MarketPageProps> = ({ category, title, subtitl
                   <tr key={coin.id} className="hover:bg-cyber-cyan/5 transition-colors group">
                     <td className="px-6 py-4">
                        <Link to={`/coin/${coin.id}?cat=${category}`} className="flex items-center gap-3">
-                        <img src={coin.image} className="w-8 h-8 grayscale group-hover:grayscale-0 transition-all" />
+                        <CryptoIcon id={coin.id} size={32} fallbackUrl={coin.image} className="grayscale group-hover:grayscale-0 transition-all" />
                         <div>
                           <div className="font-bold text-gray-200 group-hover:text-cyber-cyan font-display tracking-wide">{coin.symbol.toUpperCase()}</div>
                           <div className="text-xs text-gray-600">{coin.name}</div>

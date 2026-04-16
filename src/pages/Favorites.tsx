@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { fetchFavoriteCoins } from '../services/cryptoService';
 import { CoinData } from '../types';
 import { ArrowUpRight, ArrowDownRight, Star, ArrowLeft, AlertTriangle } from 'lucide-react';
+import { CryptoIcon } from '../components/CryptoIcon';
 import { AreaChart, Area, ResponsiveContainer } from 'recharts';
 
 const MiniChart = ({ data, isPositive }: { data: number[], isPositive: boolean }) => (
@@ -111,7 +112,7 @@ export const Favorites: React.FC = () => {
                   <tr key={coin.id} className="hover:bg-gray-800/50 transition-colors group">
                     <td className="px-6 py-4">
                        <Link to={`/coin/${coin.id}`} className="flex items-center gap-3">
-                        <img src={coin.image} alt={coin.name} className="w-8 h-8 rounded-full" />
+                        <CryptoIcon id={coin.id} size={32} fallbackUrl={coin.image} />
                         <div>
                           <div className="font-bold text-white group-hover:text-brand-400 transition-colors">{coin.name}</div>
                           <div className="text-xs text-gray-500 uppercase">{coin.symbol}</div>

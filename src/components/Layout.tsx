@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { Activity, BarChart2, Search, Bell, User, Star, TrendingUp, DollarSign, Shield, LogIn, Check, X, Info, CheckCircle, AlertTriangle, Trophy, CreditCard, Megaphone, ArrowLeftRight, Wallet, LogOut, Cpu, Globe, Zap, Moon, Sun, Monitor } from 'lucide-react';
+import { Activity, BarChart2, Search, Bell, User, Star, TrendingUp, DollarSign, Shield, LogIn, Check, X, Info, CheckCircle, AlertTriangle, Trophy, CreditCard, Megaphone, ArrowLeftRight, Wallet, LogOut, Cpu, Globe, Zap, Moon, Sun, Monitor, Calculator } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { getUserProfile } from '../services/userService';
 import { UserProfile, WalletState } from '../types';
 import { MockAd } from './MockAd';
 import { getSystemConfig } from '../services/adminService';
 import { WalletModal } from './WalletModal';
+import { PositionCalculator } from './PositionCalculator';
 import { getWalletState, disconnectWallet } from '../services/web3Service';
 import { useTheme, type Theme } from '../context/ThemeContext';
+import { AvatarDefault } from '../assets/icons';
 
 const THEME_META: Record<Theme, { icon: React.ReactNode; label: string }> = {
   cyberpunk: { icon: <Monitor className="w-4 h-4" />, label: 'CYBER' },
@@ -63,6 +65,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   const [globalAlert, setGlobalAlert] = useState<string | null>(null);
   const [wallet, setWallet] = useState<WalletState>(getWalletState());
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
+  const [isCalcOpen, setIsCalcOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [notifications, setNotifications] = useState([
     { id: 1, title: 'BTC ПРОБИЛ $65,000', time: '02:14', read: false, type: 'alert' },
@@ -114,6 +117,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       <div className="fixed inset-0 bg-cyber-grid bg-[length:40px_40px] pointer-events-none z-0" style={{ opacity: 'var(--grid-opacity)' }}></div>
 
       <WalletModal isOpen={isWalletModalOpen} onClose={() => setIsWalletModalOpen(false)} />
+      <PositionCalculator isOpen={isCalcOpen} onClose={() => setIsCalcOpen(false)} />
 
       {/* GLOBAL ALERT */}
       {globalAlert && (
@@ -177,6 +181,16 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                 />
               </div>
 
+              {/* CALCULATOR */}
+              <button
+                onClick={() => setIsCalcOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 border border-cyber-cyan/30 text-cyber-cyan text-xs font-mono hover:bg-cyber-cyan/10 transition-all"
+                title="Position Calculator"
+              >
+                <Calculator className="w-4 h-4" />
+                <span className="hidden xl:inline">КАЛЬКУЛЯТОР</span>
+              </button>
+
               {/* THEME TOGGLE */}
               <ThemeToggle />
 
@@ -229,8 +243,12 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
               {user && user.id !== 'demo-user' ? (
                 <Link to="/profile" className="flex items-center gap-3 pl-2 pr-4 py-1 group">
                   <div className="relative">
-                     {user.avatar ? (
-                       <img src={user.avatar} className="w-9 h-9 object-cover border border-gray-600 group-hover:border-cyber-cyan transition-colors" style={{ clipPath: 'polygon(20% 0, 100% 0, 100% 80%, 80% 100%, 0 100%, 0 20%)' }} />
+                     {user.avatar && user.avatar.startsWith('avatar-') ? (
+                       <div className="w-9 h-9 overflow-hidden border border-gray-600 group-hover:border-cyber-cyan transition-colors" style={{ clipPath: 'polygon(20% 0, 100% 0, 100% 80%, 80% 100%, 0 100%, 0 20%)' }}>
+                         <AvatarDefault size={36} />
+                       </div>
+                     ) : user.avatar ? (
+                       <img src={user.avatar} className="w-9 h-9 object-cover border border-gray-600 group-hover:border-cyber-cyan transition-colors" style={{ clipPath: 'polygon(20% 0, 100% 0, 100% 80%, 80% 100%, 0 100%, 0 20%)' }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                      ) : (
                        <div className="w-9 h-9 bg-cyber-cyan/20 flex items-center justify-center text-cyber-cyan font-display border border-cyber-cyan" style={{ clipPath: 'polygon(20% 0, 100% 0, 100% 80%, 80% 100%, 0 100%, 0 20%)' }}>{user.name.charAt(0)}</div>
                      )}

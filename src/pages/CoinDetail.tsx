@@ -6,7 +6,9 @@ import { TradingViewChart } from '../components/TradingViewChart';
 import { AIInsight } from '../components/AIInsight';
 import { TradeModal } from '../components/TradeModal';
 import { TechAnalysisModal } from '../components/TechAnalysisModal';
-import { ArrowLeft, Globe, TrendingUp, DollarSign, Activity, AlertTriangle, CheckCircle, RefreshCw, ExternalLink, Terminal } from 'lucide-react';
+import { ArrowLeft, Globe, TrendingUp, DollarSign, Activity, AlertTriangle, CheckCircle, RefreshCw, ExternalLink, Terminal, BellRing } from 'lucide-react';
+import { CryptoIcon } from '../components/CryptoIcon';
+import { PriceAlertModal } from '../components/PriceAlertModal';
 
 export const CoinDetail: React.FC = () => {
   const { id } = useParams();
@@ -22,6 +24,7 @@ export const CoinDetail: React.FC = () => {
   const [tradeType, setTradeType] = useState<'LONG' | 'SHORT'>('LONG');
   const [showSuccess, setShowSuccess] = useState(false);
   const [techModalOpen, setTechModalOpen] = useState(false);
+  const [alertModalOpen, setAlertModalOpen] = useState(false);
 
   const loadData = async (silent = false) => {
     if (id) {
@@ -74,6 +77,7 @@ export const CoinDetail: React.FC = () => {
     <div className="space-y-6 animate-fade-in pb-20">
       <TradeModal coin={coin} type={tradeType} isOpen={tradeModalOpen} onClose={() => setTradeModalOpen(false)} onSuccess={handleTradeSuccess} />
       <TechAnalysisModal coin={coin} isOpen={techModalOpen} onClose={() => setTechModalOpen(false)} />
+      <PriceAlertModal isOpen={alertModalOpen} onClose={() => setAlertModalOpen(false)} coinId={coin.id} coinName={coin.name} currentPrice={coin.current_price} />
 
       {showSuccess && (
         <div className="fixed top-24 right-4 z-50 bg-cyber-black border border-cyber-green text-cyber-green px-6 py-3 flex items-center gap-3 shadow-neon-green font-mono">
@@ -89,7 +93,7 @@ export const CoinDetail: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 cyber-card p-6">
         <div className="flex items-center gap-6">
           <div className="relative w-20 h-20 flex items-center justify-center bg-cyber-black border border-gray-800">
-              <img src={coin.image} alt={coin.name} className="w-12 h-12" />
+              <CryptoIcon id={coin.id} size={48} fallbackUrl={coin.image} />
               <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-cyber-cyan"></div>
               <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-cyber-cyan"></div>
               <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-cyber-cyan"></div>
@@ -119,6 +123,9 @@ export const CoinDetail: React.FC = () => {
              </button>
              <button onClick={() => openTrade('SHORT')} className="cyber-button bg-cyber-pink/10 border-cyber-pink text-cyber-pink px-4 sm:px-8 py-3 hover:shadow-neon-pink w-full md:w-auto">
                SHORT (ПРОДАТЬ)
+             </button>
+             <button onClick={() => setAlertModalOpen(true)} className="cyber-button border-cyber-yellow text-cyber-yellow px-3 py-3 hover:bg-cyber-yellow/10 transition-all" title="Ценовой алерт">
+               <BellRing className="w-5 h-5" />
              </button>
            </div>
         </div>

@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { User, Settings, CreditCard, History, TrendingUp, ArrowUpRight, Shield, LogOut, Award, XCircle, Star, Download, Wallet, Copy, Fingerprint, Scan, Activity } from 'lucide-react';
+import { User, Settings, CreditCard, History, TrendingUp, ArrowUpRight, Shield, LogOut, Award, XCircle, Star, Download, Wallet, Copy, Fingerprint, Scan, Activity, FileDown } from 'lucide-react';
 import { getUserProfile, closePosition, calculateEquity, getAssetAllocation, getPerformanceHistory, logoutUser } from '../services/userService';
 import { UserProfile, AssetAllocation, PerformancePoint, WalletState } from '../types';
 import { fetchTopCoins } from '../services/cryptoService';
 import { DepositModal } from '../components/DepositModal';
 import { SettingsModal } from '../components/SettingsModal';
 import { PortfolioAnalytics } from '../components/PortfolioAnalytics';
+import { AvatarDefault } from '../assets/icons';
 import { getLevelProgress } from '../services/gamificationService';
 import { Link } from 'react-router-dom';
 import { downloadTransactionReport } from '../services/reportService';
+import { exportTradesCSV } from '../services/exportService';
 import { getWalletState } from '../services/web3Service';
 
 export const Profile: React.FC = () => {
@@ -72,7 +74,7 @@ export const Profile: React.FC = () => {
            {/* Avatar with Hexagon clip */}
            <div className="relative group">
               <div className="w-24 h-24 bg-cyber-black border-2 border-cyber-cyan p-1 relative z-10" style={{ clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)' }}>
-                 {user.avatar ? <img src={user.avatar} className="w-full h-full object-cover" style={{ clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)' }} /> : <div className="w-full h-full bg-gray-900 flex items-center justify-center text-cyber-cyan font-bold text-2xl">{user.name.charAt(0)}</div>}
+                 {user.avatar && user.avatar.startsWith('avatar-') ? <div className="w-full h-full flex items-center justify-center"><AvatarDefault size={80} /></div> : user.avatar ? <img src={user.avatar} className="w-full h-full object-cover" style={{ clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)' }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} /> : <div className="w-full h-full bg-gray-900 flex items-center justify-center text-cyber-cyan font-bold text-2xl">{user.name.charAt(0)}</div>}
               </div>
               <div className="absolute -bottom-2 -right-2 bg-cyber-black border border-cyber-green px-2 py-0.5 text-[10px] font-mono text-cyber-green">ОНЛАЙН</div>
            </div>
@@ -162,7 +164,18 @@ export const Profile: React.FC = () => {
         <div className="lg:col-span-2 cyber-card min-h-[400px]">
            <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center bg-cyber-black/40">
              <h2 className="font-display font-bold text-white tracking-wider">АКТИВНЫЕ ОРДЕРА</h2>
-             <Activity className="w-4 h-4 text-cyber-cyan animate-pulse" />
+             <div className="flex items-center gap-3">
+               {user.positions.length > 0 && (
+                 <button
+                   onClick={() => exportTradesCSV(user.positions, currentPrices)}
+                   className="flex items-center gap-1.5 text-cyber-cyan hover:text-white text-[10px] font-mono border border-cyber-cyan/30 px-2.5 py-1 hover:bg-cyber-cyan/10 transition-all"
+                   title="Экспорт CSV"
+                 >
+                   <FileDown className="w-3 h-3" /> EXPORT CSV
+                 </button>
+               )}
+               <Activity className="w-4 h-4 text-cyber-cyan animate-pulse" />
+             </div>
            </div>
            <div className="p-4 space-y-2">
              {user.positions.length === 0 ? (
