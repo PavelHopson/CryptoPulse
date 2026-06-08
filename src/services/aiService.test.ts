@@ -286,4 +286,12 @@ describe('aiService.generateCoinAnalysis — prompt construction', () => {
     expect(prompt).toContain('3500.42');
     expect(prompt).toContain('1.2%');
   });
+
+  it('includes the skeptical risk/confidence guardrail (no overconfident calls)', async () => {
+    await generateCoinAnalysis('Bitcoin', 50000, 2.5);
+    const prompt: string = JSON.parse(fetchMock.mock.calls[0][1].body).messages[0].content;
+    expect(prompt).toContain('Уверенность и риск');
+    expect(prompt).toContain('overconfident');
+    expect(prompt).toContain('DYOR');
+  });
 });
