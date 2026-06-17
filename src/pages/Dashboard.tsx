@@ -100,7 +100,7 @@ export const MarketPage: React.FC<MarketPageProps> = ({ category, title, subtitl
              ) : (
                projectNews.map(news => (
                  <div key={news.id} className="flex gap-3 group cursor-pointer">
-                   <div className="w-12 h-12 bg-gray-900 border border-gray-700 flex-shrink-0 overflow-hidden grayscale group-hover:grayscale-0 transition-all">
+                   <div className="w-12 h-12 bg-gray-900 border border-gray-700 flex-shrink-0 overflow-hidden grayscale group-hover:grayscale-0 transition-[filter] duration-300 ease-soft">
                       <img src={news.imageUrl} className="w-full h-full object-cover" />
                    </div>
                    <div>
@@ -127,7 +127,7 @@ export const MarketPage: React.FC<MarketPageProps> = ({ category, title, subtitl
                 Array.from({ length: 4 }).map((_, i) => <MarketNewsSkeleton key={i} />)
               ) : (
                 marketNews.map(news => (
-                   <a href={news.url} target="_blank" rel="noopener noreferrer" key={news.id} className="block bg-cyber-black/40 border border-gray-800 hover:border-cyber-cyan/50 p-3 transition-all group">
+                   <a href={news.url} target="_blank" rel="noopener noreferrer" key={news.id} className="block bg-cyber-black/40 border border-gray-800 hover:border-cyber-cyan/50 p-3 transition-colors duration-200 ease-soft group">
                       <div className="flex justify-between items-start gap-2">
                          <h3 className="text-sm font-medium text-gray-300 group-hover:text-cyber-cyan transition-colors line-clamp-2">{news.title}</h3>
                          <ExternalLink className="w-3 h-3 text-gray-600 group-hover:text-white flex-shrink-0" />
@@ -213,7 +213,7 @@ export const MarketPage: React.FC<MarketPageProps> = ({ category, title, subtitl
                   <tr key={coin.id} className="hover:bg-cyber-cyan/5 transition-colors group">
                     <td className="px-6 py-4">
                        <Link to={`/coin/${coin.id}?cat=${category}`} className="flex items-center gap-3">
-                        <CryptoIcon id={coin.id} size={32} fallbackUrl={coin.image} className="grayscale group-hover:grayscale-0 transition-all" />
+                        <CryptoIcon id={coin.id} size={32} fallbackUrl={coin.image} className="grayscale group-hover:grayscale-0 transition-[filter] duration-300 ease-soft" />
                         <div>
                           <div className="font-bold text-gray-200 group-hover:text-cyber-cyan font-display tracking-wide">{coin.symbol.toUpperCase()}</div>
                           <div className="text-xs text-gray-600">{coin.name}</div>

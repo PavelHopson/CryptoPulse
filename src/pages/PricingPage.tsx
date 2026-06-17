@@ -108,7 +108,7 @@ export const PricingPage: React.FC = () => {
             onClick={() => setBilling(billing === 'MONTHLY' ? 'YEARLY' : 'MONTHLY')}
             className="w-14 h-8 bg-gray-800 rounded-full relative border border-gray-700 transition-colors"
           >
-            <div className={`absolute top-1 w-6 h-6 bg-brand-500 rounded-full transition-all ${billing === 'YEARLY' ? 'left-7' : 'left-1'}`}></div>
+            <div className={`absolute top-1 w-6 h-6 bg-brand-500 rounded-full [transition:left_.2s_var(--ease-spring)] ${billing === 'YEARLY' ? 'left-7' : 'left-1'}`}></div>
           </button>
           <span className={`text-sm font-bold ${billing === 'YEARLY' ? 'text-white' : 'text-gray-500'}`}>
             Ежегодно <span className="text-green-400 text-xs ml-1">-20%</span>
@@ -120,7 +120,7 @@ export const PricingPage: React.FC = () => {
         {plans.map((plan) => (
           <div 
             key={plan.id} 
-            className={`relative bg-dark-card border rounded-2xl p-8 flex flex-col transition-all hover:transform hover:-translate-y-2 duration-300
+            className={`relative bg-dark-card border rounded-2xl p-8 flex flex-col [transition:border-color_.25s_var(--ease),box-shadow_.25s_var(--ease),transform_.25s_var(--ease-spring)] hover:-translate-y-2
               ${plan.popular ? 'border-brand-500 shadow-2xl shadow-brand-500/20' : 'border-gray-800 hover:border-gray-600'}
             `}
           >
@@ -165,8 +165,8 @@ export const PricingPage: React.FC = () => {
             <button 
               onClick={() => handleUpgrade(plan.id)}
               disabled={plan.isCurrent || loading !== null}
-              className={`w-full py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2
-                ${plan.isCurrent 
+              className={`w-full py-3 rounded-xl font-bold [transition:background-color_.2s_var(--ease),box-shadow_.2s_var(--ease),transform_.2s_var(--ease-spring)] hover:enabled:-translate-y-0.5 active:enabled:translate-y-0 flex items-center justify-center gap-2
+                ${plan.isCurrent
                   ? 'bg-gray-800 text-gray-400 cursor-default' 
                   : plan.popular 
                     ? 'bg-brand-600 hover:bg-brand-500 text-white shadow-lg shadow-brand-500/30' 

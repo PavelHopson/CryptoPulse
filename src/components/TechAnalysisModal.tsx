@@ -130,7 +130,7 @@ export const TechAnalysisModal: React.FC<Props> = ({ coin, isOpen, onClose }) =>
                 <button
                     key={tf}
                     onClick={() => setTimeframe(tf)}
-                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-colors duration-200 ease-soft whitespace-nowrap ${
                         timeframe === tf 
                         ? 'bg-brand-600 text-white shadow-lg shadow-brand-500/20' 
                         : 'bg-gray-800 text-gray-400 hover:bg-gray-700'

@@ -66,7 +66,7 @@ export const WalletModal: React.FC<Props> = ({ isOpen, onClose }) => {
                    key={w.id}
                    onClick={() => handleConnect(w.id)}
                    disabled={connecting !== null}
-                   className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all group ${connecting === w.id ? 'bg-brand-600 border-brand-500' : 'bg-gray-900/50 border-gray-800 hover:bg-gray-800 hover:border-gray-600'}`}
+                   className={`w-full flex items-center justify-between p-4 rounded-xl border transition-colors duration-200 ease-soft group ${connecting === w.id ? 'bg-brand-600 border-brand-500' : 'bg-gray-900/50 border-gray-800 hover:bg-gray-800 hover:border-gray-600'}`}
                  >
                     <div className="flex items-center gap-4">
                        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xl bg-gray-900 ${w.color}`}>

@@ -115,7 +115,7 @@ export const LoginPage: React.FC = () => {
             <button 
               type="submit" 
               disabled={loading}
-              className="w-full bg-brand-600 hover:bg-brand-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-brand-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full bg-brand-600 hover:bg-brand-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-brand-500/20 [transition:background-color_.2s_var(--ease),box-shadow_.2s_var(--ease),transform_.2s_var(--ease-spring)] hover:enabled:-translate-y-0.5 active:enabled:translate-y-0 flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {loading ? 'Обработка...' : (isLogin ? 'Войти' : 'Зарегистрироваться')} <ArrowRight className="w-4 h-4" />
             </button>

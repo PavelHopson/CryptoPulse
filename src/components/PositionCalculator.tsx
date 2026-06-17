@@ -95,7 +95,7 @@ export const PositionCalculator: React.FC<Props> = ({ isOpen, onClose }) => {
           <div className="flex gap-2">
             <button
               onClick={() => setDirection('LONG')}
-              className={`flex-1 py-2.5 font-mono text-sm font-bold flex items-center justify-center gap-2 border transition-all ${
+              className={`flex-1 py-2.5 font-mono text-sm font-bold flex items-center justify-center gap-2 border transition-colors duration-200 ease-soft ${
                 direction === 'LONG'
                   ? 'bg-cyber-green/15 border-cyber-green text-cyber-green shadow-[0_0_10px_rgba(0,255,136,0.2)]'
                   : 'border-gray-700 text-gray-500 hover:text-gray-300'
@@ -105,7 +105,7 @@ export const PositionCalculator: React.FC<Props> = ({ isOpen, onClose }) => {
             </button>
             <button
               onClick={() => setDirection('SHORT')}
-              className={`flex-1 py-2.5 font-mono text-sm font-bold flex items-center justify-center gap-2 border transition-all ${
+              className={`flex-1 py-2.5 font-mono text-sm font-bold flex items-center justify-center gap-2 border transition-colors duration-200 ease-soft ${
                 direction === 'SHORT'
                   ? 'bg-cyber-pink/15 border-cyber-pink text-cyber-pink shadow-[0_0_10px_rgba(255,0,128,0.2)]'
                   : 'border-gray-700 text-gray-500 hover:text-gray-300'

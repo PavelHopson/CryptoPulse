@@ -37,7 +37,7 @@ const LoginScreen: React.FC<{ onLogin: () => void }> = ({ onLogin }) => {
               placeholder="Enter Security Key" 
               value={pass}
               onChange={e => setPass(e.target.value)}
-              className="w-full bg-gray-900 border border-gray-700 text-white px-4 py-3 rounded-lg focus:border-brand-500 focus:outline-none transition-all"
+              className="w-full bg-gray-900 border border-gray-700 text-white px-4 py-3 rounded-lg focus:border-brand-500 focus:outline-none transition-colors duration-200 ease-soft"
             />
           </div>
           {err && <p className="text-red-400 text-xs text-center">Access Denied: Invalid Key</p>}

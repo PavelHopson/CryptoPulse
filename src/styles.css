@@ -2,6 +2,30 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ====== MOTION CORE ====== */
+:root {
+  --ease: cubic-bezier(.22, .61, .36, 1);
+  --ease-spring: cubic-bezier(.34, 1.4, .64, 1);
+}
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Content entrance for routed main view */
+@keyframes view-enter {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.view-enter {
+  animation: view-enter 0.4s var(--ease) both;
+}
+
 /* ====== THEME VARIABLES ====== */
 :root,
 [data-theme="cyberpunk"] {
@@ -197,11 +221,17 @@ body {
     font-family: 'Orbitron', sans-serif;
     font-size: 0.75rem;
     letter-spacing: 0.05em;
-    transition: all 0.2s;
+    transition: background-color 0.18s var(--ease), color 0.18s var(--ease),
+      border-color 0.18s var(--ease), box-shadow 0.18s var(--ease),
+      transform 0.18s var(--ease-spring);
   }
-  .cyber-button:hover {
+  .cyber-button:hover:not(:disabled) {
     background: rgb(var(--color-accent));
     color: rgb(var(--color-bg));
+    transform: translateY(-1px);
+  }
+  .cyber-button:active:not(:disabled) {
+    transform: translateY(0);
   }
 
   [data-theme="cyberpunk"] .cyber-button:hover {
@@ -219,7 +249,7 @@ body {
     border-color: rgb(var(--color-accent2));
     color: rgb(var(--color-accent2));
   }
-  .cyber-button.danger:hover {
+  .cyber-button.danger:hover:not(:disabled) {
     background: rgb(var(--color-accent2));
     color: rgb(var(--color-bg));
   }

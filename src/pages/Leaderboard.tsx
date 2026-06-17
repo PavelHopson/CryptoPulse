@@ -90,7 +90,7 @@ export const Leaderboard: React.FC = () => {
              <div className="text-sm text-gray-400 mt-1">Win Rate: {traders[0].winRate}%</div>
              <button 
                 onClick={() => handleCopyTrade(traders[0])}
-                className="mt-6 w-full py-3 bg-brand-600 hover:bg-brand-500 rounded-xl text-sm font-bold text-white transition-all shadow-lg shadow-brand-500/30 flex items-center justify-center gap-2"
+                className="mt-6 w-full py-3 bg-brand-600 hover:bg-brand-500 rounded-xl text-sm font-bold text-white [transition:background-color_.2s_var(--ease),box-shadow_.2s_var(--ease),transform_.2s_var(--ease-spring)] hover:-translate-y-0.5 active:translate-y-0 shadow-lg shadow-brand-500/30 flex items-center justify-center gap-2"
              >
                {copySuccess === traders[0].id ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                {copySuccess === traders[0].id ? 'Успешно' : 'Копировать ($1000)'}

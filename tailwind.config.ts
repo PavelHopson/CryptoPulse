@@ -9,6 +9,10 @@ export default {
         sans: ['Rajdhani', 'sans-serif'],
         mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
       },
+      transitionTimingFunction: {
+        soft: 'cubic-bezier(.22, .61, .36, 1)',
+        spring: 'cubic-bezier(.34, 1.4, .64, 1)',
+      },
       colors: {
         // Theme-aware custom colors
         'cyber-black': 'rgb(var(--color-bg) / <alpha-value>)',
@@ -67,8 +71,8 @@ export default {
         scanline: 'scanline 8s linear infinite',
         glitch: 'glitch 0.3s cubic-bezier(.25,.46,.45,.94) both infinite',
         'pulse-fast': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'fade-in': 'fade-in 0.3s ease-out',
-        'scale-in': 'scale-in 0.2s ease-out',
+        'fade-in': 'fade-in 0.3s cubic-bezier(.22, .61, .36, 1)',
+        'scale-in': 'scale-in 0.2s cubic-bezier(.34, 1.4, .64, 1)',
       },
       backgroundImage: {
         'cyber-grid': "linear-gradient(to right, rgba(var(--color-accent), 0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(var(--color-accent), 0.05) 1px, transparent 1px)",

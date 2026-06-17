@@ -26,7 +26,7 @@ const ThemeToggle: React.FC = () => {
     <div className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-1.5 px-3 py-1.5 border border-cyber-cyan/30 text-cyber-cyan text-xs font-mono hover:bg-cyber-cyan/10 transition-all"
+        className="flex items-center gap-1.5 px-3 py-1.5 border border-cyber-cyan/30 text-cyber-cyan text-xs font-mono hover:bg-cyber-cyan/10 transition-colors duration-200 ease-soft"
         title="Switch theme"
       >
         {THEME_META[theme].icon}
@@ -159,7 +159,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                   { path: '/compare', label: 'СРАВНЕНИЕ' },
                   { path: '/favorites', label: 'ИЗБРАННОЕ' }
                 ].map(link => (
-                  <Link key={link.path} to={link.path} className={`px-4 py-2 transition-all duration-300 ${isActive(link.path)}`}>
+                  <Link key={link.path} to={link.path} className={`px-4 py-2 transition-[color,background-color,border-color,box-shadow] duration-300 ease-soft ${isActive(link.path)}`}>
                     {link.label}
                   </Link>
                 ))}
@@ -168,7 +168,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
             {/* RIGHT ACTIONS */}
             <div className="flex items-center gap-4">
-              <Link to="/pricing" className="hidden lg:flex items-center gap-2 px-3 py-1 border border-cyber-yellow/30 text-cyber-yellow text-xs font-mono hover:bg-cyber-yellow/10 transition-all">
+              <Link to="/pricing" className="hidden lg:flex items-center gap-2 px-3 py-1 border border-cyber-yellow/30 text-cyber-yellow text-xs font-mono hover:bg-cyber-yellow/10 transition-colors duration-200 ease-soft">
                   <Zap className="w-3 h-3" /> UPGRADE
               </Link>
 
@@ -177,14 +177,14 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                 <input 
                   type="text" 
                   placeholder="ПОИСК АКТИВА..." 
-                  className="bg-cyber-black border border-gray-800 text-sm w-48 pl-9 pr-4 py-1.5 text-cyber-cyan focus:border-cyber-cyan focus:outline-none font-mono placeholder-gray-700 transition-all focus:w-64 focus:shadow-[0_0_10px_rgba(0,243,255,0.2)]"
+                  className="bg-cyber-black border border-gray-800 text-sm w-48 pl-9 pr-4 py-1.5 text-cyber-cyan focus:border-cyber-cyan focus:outline-none font-mono placeholder-gray-700 transition-[width,border-color,box-shadow] duration-300 ease-soft focus:w-64 focus:shadow-[0_0_10px_rgba(0,243,255,0.2)]"
                 />
               </div>
 
               {/* CALCULATOR */}
               <button
                 onClick={() => setIsCalcOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 border border-cyber-cyan/30 text-cyber-cyan text-xs font-mono hover:bg-cyber-cyan/10 transition-all"
+                className="flex items-center gap-1.5 px-3 py-1.5 border border-cyber-cyan/30 text-cyber-cyan text-xs font-mono hover:bg-cyber-cyan/10 transition-colors duration-200 ease-soft"
                 title="Position Calculator"
               >
                 <Calculator className="w-4 h-4" />
@@ -196,7 +196,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
               {/* WALLET */}
               {wallet.isConnected && wallet.address ? (
-                 <button onClick={disconnectWallet} className="flex items-center gap-2 bg-cyber-black border border-cyber-green/50 hover:border-cyber-green text-cyber-green px-3 py-1.5 text-xs font-mono transition-all group relative overflow-hidden">
+                 <button onClick={disconnectWallet} className="flex items-center gap-2 bg-cyber-black border border-cyber-green/50 hover:border-cyber-green text-cyber-green px-3 py-1.5 text-xs font-mono transition-colors duration-200 ease-soft group relative overflow-hidden">
                     <div className="w-1.5 h-1.5 bg-cyber-green animate-pulse"></div>
                     {formatAddress(wallet.address)}
                     <div className="absolute inset-0 bg-cyber-green/10 translate-y-full group-hover:translate-y-0 transition-transform"></div>
@@ -301,7 +301,9 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       </div>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full relative z-10">
-        {children}
+        <div key={location.key} className="view-enter">
+          {children}
+        </div>
       </main>
 
       {user && !user.is_pro && <MockAd />}

@@ -82,7 +82,7 @@ export const ComparisonPage: React.FC = () => {
             <button 
                 key={t} 
                 onClick={() => setTimeframe(t)}
-                className={`px-4 py-2 text-sm font-medium rounded transition-all ${timeframe === t ? 'bg-brand-600 text-white shadow' : 'text-gray-500 hover:text-gray-300'}`}
+                className={`px-4 py-2 text-sm font-medium rounded transition-colors duration-200 ease-soft ${timeframe === t ? 'bg-brand-600 text-white shadow' : 'text-gray-500 hover:text-gray-300'}`}
             >
                 {t}
             </button>

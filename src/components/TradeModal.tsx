@@ -164,8 +164,8 @@ export const TradeModal: React.FC<Props> = ({ coin, type, isOpen, onClose, onSuc
           <button 
             onClick={handleExecute}
             disabled={loading || !canAfford || numAmount <= 0}
-            className={`w-full py-3.5 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2
-              ${type === 'LONG' 
+            className={`w-full py-3.5 rounded-xl font-bold text-lg [transition:background-color_.2s_var(--ease),box-shadow_.2s_var(--ease),transform_.2s_var(--ease-spring)] hover:enabled:-translate-y-0.5 active:enabled:translate-y-0 flex items-center justify-center gap-2
+              ${type === 'LONG'
                 ? 'bg-green-600 hover:bg-green-500 text-white shadow-lg shadow-green-900/20' 
                 : 'bg-red-600 hover:bg-red-500 text-white shadow-lg shadow-red-900/20'}
               disabled:opacity-50 disabled:cursor-not-allowed

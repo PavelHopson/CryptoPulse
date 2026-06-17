@@ -244,7 +244,7 @@ export const SettingsModal: React.FC<Props> = ({ isOpen, onClose, onUpdate }) =>
                                    <button
                                      key={id}
                                      onClick={() => setFormData({...formData, avatar: id})}
-                                     className={`relative rounded-full overflow-hidden aspect-square border-2 transition-all group flex items-center justify-center bg-gray-900 ${formData.avatar === id ? 'border-brand-500 ring-2 ring-brand-500/30 scale-105' : 'border-transparent hover:border-gray-500'}`}
+                                     className={`relative rounded-full overflow-hidden aspect-square border-2 transition-[border-color,box-shadow,transform] duration-200 ease-soft group flex items-center justify-center bg-gray-900 ${formData.avatar === id ? 'border-brand-500 ring-2 ring-brand-500/30 scale-105' : 'border-transparent hover:border-gray-500'}`}
                                    >
                                        <Component size={64} />
                                        {formData.avatar === id && (

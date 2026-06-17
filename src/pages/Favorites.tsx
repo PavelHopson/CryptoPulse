@@ -180,7 +180,7 @@ export const Favorites: React.FC = () => {
                   <td className="px-6 py-4 text-center">
                     <button
                       onClick={(e) => removeFavorite(e, coin.id)}
-                      className="p-2 rounded-full transition-all text-yellow-400 hover:scale-110"
+                      className="p-2 rounded-full transition-transform duration-200 ease-spring text-yellow-400 hover:scale-110 active:scale-100"
                       style={{ background: 'rgba(var(--color-warning), 0.1)' }}
                       title="Remove from favorites"
                     >

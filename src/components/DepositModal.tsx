@@ -91,7 +91,7 @@ export const DepositModal: React.FC<Props> = ({ isOpen, onClose, onSuccess }) =>
                 <div className="space-y-2">
                   <button 
                     onClick={() => setMethod('card')}
-                    className={`w-full flex items-center justify-between p-3 rounded-lg border transition-all ${
+                    className={`w-full flex items-center justify-between p-3 rounded-lg border transition-colors duration-200 ease-soft ${
                       method === 'card' ? 'bg-brand-500/10 border-brand-500 text-white' : 'bg-gray-800/50 border-gray-700 text-gray-400 hover:bg-gray-800'
                     }`}
                   >
@@ -104,7 +104,7 @@ export const DepositModal: React.FC<Props> = ({ isOpen, onClose, onSuccess }) =>
 
                   <button 
                     onClick={() => setMethod('sbp')}
-                    className={`w-full flex items-center justify-between p-3 rounded-lg border transition-all ${
+                    className={`w-full flex items-center justify-between p-3 rounded-lg border transition-colors duration-200 ease-soft ${
                       method === 'sbp' ? 'bg-brand-500/10 border-brand-500 text-white' : 'bg-gray-800/50 border-gray-700 text-gray-400 hover:bg-gray-800'
                     }`}
                   >
@@ -117,7 +117,7 @@ export const DepositModal: React.FC<Props> = ({ isOpen, onClose, onSuccess }) =>
 
                   <button 
                     onClick={() => setMethod('crypto')}
-                    className={`w-full flex items-center justify-between p-3 rounded-lg border transition-all ${
+                    className={`w-full flex items-center justify-between p-3 rounded-lg border transition-colors duration-200 ease-soft ${
                       method === 'crypto' ? 'bg-brand-500/10 border-brand-500 text-white' : 'bg-gray-800/50 border-gray-700 text-gray-400 hover:bg-gray-800'
                     }`}
                   >
@@ -162,7 +162,7 @@ export const DepositModal: React.FC<Props> = ({ isOpen, onClose, onSuccess }) =>
               <button
                 onClick={handleDeposit}
                 disabled={loading}
-                className="w-full bg-brand-600 hover:bg-brand-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-brand-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full bg-brand-600 hover:bg-brand-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-brand-500/20 [transition:background-color_.2s_var(--ease),box-shadow_.2s_var(--ease),transform_.2s_var(--ease-spring)] hover:enabled:-translate-y-0.5 active:enabled:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {loading ? 'Обработка...' : 'Подтвердить платеж'}
               </button>

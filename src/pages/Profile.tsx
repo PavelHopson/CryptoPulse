@@ -168,7 +168,7 @@ export const Profile: React.FC = () => {
                {user.positions.length > 0 && (
                  <button
                    onClick={() => exportTradesCSV(user.positions, currentPrices)}
-                   className="flex items-center gap-1.5 text-cyber-cyan hover:text-white text-[10px] font-mono border border-cyber-cyan/30 px-2.5 py-1 hover:bg-cyber-cyan/10 transition-all"
+                   className="flex items-center gap-1.5 text-cyber-cyan hover:text-white text-[10px] font-mono border border-cyber-cyan/30 px-2.5 py-1 hover:bg-cyber-cyan/10 transition-colors duration-200 ease-soft"
                    title="Экспорт CSV"
                  >
                    <FileDown className="w-3 h-3" /> EXPORT CSV
@@ -189,7 +189,7 @@ export const Profile: React.FC = () => {
                     let pnlPercent = (pnl / ((pos.entryPrice * pos.amount)/pos.leverage)) * 100;
 
                     return (
-                        <div key={pos.id} className="flex items-center justify-between p-3 bg-cyber-black/40 border border-gray-800 hover:border-cyber-cyan/30 transition-all">
+                        <div key={pos.id} className="flex items-center justify-between p-3 bg-cyber-black/40 border border-gray-800 hover:border-cyber-cyan/30 transition-colors duration-200 ease-soft">
                             <div className="flex items-center gap-4">
                                 <div className={`w-1 h-10 ${pos.type === 'LONG' ? 'bg-cyber-green' : 'bg-cyber-pink'}`}></div>
                                 <div>
@@ -205,7 +205,7 @@ export const Profile: React.FC = () => {
                                     {pnlPercent.toFixed(2)}%
                                 </div>
                             </div>
-                             <button onClick={() => handleClosePosition(pos.id)} className="text-gray-600 hover:text-white hover:rotate-90 transition-all"><XCircle className="w-5 h-5" /></button>
+                             <button onClick={() => handleClosePosition(pos.id)} className="text-gray-600 hover:text-white hover:rotate-90 [transition:color_.2s_var(--ease),transform_.2s_var(--ease-spring)]"><XCircle className="w-5 h-5" /></button>
                         </div>
                     );
                  })

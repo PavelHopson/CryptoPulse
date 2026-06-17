@@ -124,7 +124,7 @@ export const CoinDetail: React.FC = () => {
              <button onClick={() => openTrade('SHORT')} className="cyber-button bg-cyber-pink/10 border-cyber-pink text-cyber-pink px-4 sm:px-8 py-3 hover:shadow-neon-pink w-full md:w-auto">
                SHORT (ПРОДАТЬ)
              </button>
-             <button onClick={() => setAlertModalOpen(true)} className="cyber-button border-cyber-yellow text-cyber-yellow px-3 py-3 hover:bg-cyber-yellow/10 transition-all" title="Ценовой алерт">
+             <button onClick={() => setAlertModalOpen(true)} className="cyber-button border-cyber-yellow text-cyber-yellow px-3 py-3 hover:bg-cyber-yellow/10" title="Ценовой алерт">
                <BellRing className="w-5 h-5" />
              </button>
            </div>
@@ -141,7 +141,7 @@ export const CoinDetail: React.FC = () => {
                 </h2>
                 <div className="flex gap-1">
                    {(['1H', '1D', '1W', '1M', '1Y'] as Timeframe[]).map(t => (
-                      <button key={t} onClick={() => setTimeframe(t)} className={`px-3 py-1 text-[10px] font-mono transition-all ${timeframe === t ? 'bg-cyber-cyan text-black font-bold' : 'text-gray-500 hover:text-white'}`}>
+                      <button key={t} onClick={() => setTimeframe(t)} className={`px-3 py-1 text-[10px] font-mono transition-colors duration-200 ease-soft ${timeframe === t ? 'bg-cyber-cyan text-black font-bold' : 'text-gray-500 hover:text-white'}`}>
                         {t}
                       </button>
                    ))}
@@ -182,11 +182,11 @@ export const CoinDetail: React.FC = () => {
            <div className="cyber-card p-6">
               <h3 className="text-lg font-display font-bold mb-4 text-white">ССЫЛКИ</h3>
               <div className="space-y-3">
-                 <a href="#" target="_blank" className="flex items-center justify-between p-3 bg-gray-900 border border-gray-700 hover:border-cyber-cyan hover:text-cyber-cyan transition-all group">
+                 <a href="#" target="_blank" className="flex items-center justify-between p-3 bg-gray-900 border border-gray-700 hover:border-cyber-cyan hover:text-cyber-cyan transition-colors duration-200 ease-soft group">
                     <span className="font-mono text-xs flex items-center gap-2"><Globe className="w-3 h-3" /> ОФИЦИАЛЬНЫЙ САЙТ</span>
                     <ExternalLink className="w-3 h-3 opacity-50 group-hover:opacity-100" />
                  </a>
-                 <button onClick={() => setTechModalOpen(true)} className="w-full p-3 bg-cyber-purple/10 border border-cyber-purple text-cyber-purple font-mono text-xs font-bold hover:bg-cyber-purple/20 transition-all flex items-center justify-center gap-2">
+                 <button onClick={() => setTechModalOpen(true)} className="w-full p-3 bg-cyber-purple/10 border border-cyber-purple text-cyber-purple font-mono text-xs font-bold hover:bg-cyber-purple/20 transition-colors duration-200 ease-soft flex items-center justify-center gap-2">
                     <Terminal className="w-3 h-3" /> ЗАПУСТИТЬ ТЕХ. АНАЛИЗ
                  </button>
               </div>

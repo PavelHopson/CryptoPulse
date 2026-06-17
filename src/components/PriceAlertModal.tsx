@@ -117,7 +117,7 @@ export const PriceAlertModal: React.FC<Props> = ({
               />
               <button
                 onClick={() => setDirection(direction === 'above' ? 'below' : 'above')}
-                className={`px-3 py-2 border font-mono text-xs font-bold flex items-center gap-1.5 transition-all ${
+                className={`px-3 py-2 border font-mono text-xs font-bold flex items-center gap-1.5 transition-colors duration-200 ease-soft ${
                   direction === 'above'
                     ? 'border-cyber-green text-cyber-green bg-cyber-green/10'
                     : 'border-cyber-pink text-cyber-pink bg-cyber-pink/10'
@@ -149,7 +149,7 @@ export const PriceAlertModal: React.FC<Props> = ({
                 {activeAlerts.map((alert) => (
                   <div
                     key={alert.id}
-                    className="flex items-center justify-between p-3 bg-gray-900/60 border border-gray-800 hover:border-cyber-cyan/30 transition-all"
+                    className="flex items-center justify-between p-3 bg-gray-900/60 border border-gray-800 hover:border-cyber-cyan/30 transition-colors duration-200 ease-soft"
                   >
                     <div className="flex items-center gap-3">
                       <Bell className="w-4 h-4 text-cyber-yellow" />
