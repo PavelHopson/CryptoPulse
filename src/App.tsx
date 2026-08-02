@@ -11,6 +11,7 @@ import { LoginPage } from './pages/LoginPage';
 import { Leaderboard } from './pages/Leaderboard';
 import { PricingPage } from './pages/PricingPage';
 import { ComparisonPage } from './pages/Comparison';
+import { StrategyLab } from './pages/StrategyLab';
 
 const App: React.FC = () => {
   return (
@@ -51,6 +52,7 @@ const App: React.FC = () => {
               <Route path="/favorites" element={<Favorites />} />
               <Route path="/community" element={<Leaderboard />} />
               <Route path="/compare" element={<ComparisonPage />} />
+              <Route path="/strategy-lab" element={<StrategyLab />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/pricing" element={<PricingPage />} />
             </Routes>

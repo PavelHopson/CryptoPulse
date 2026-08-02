@@ -32,6 +32,7 @@
 - Симулятор трейдинга с кредитным плечом до 100x
 - Собственный парсер новостей (CoinTelegraph, CoinDesk, Investing.com)
 - 3 темы оформления — Cyberpunk, Midnight (мягкая тёмная), Light (светлая)
+- Strategy Lab — исторический paper backtest с комиссиями, slippage, Monte Carlo, walk-forward и независимыми ролями Optimist / Skeptic / Risk Manager; live orders отсутствуют
 
 ---
 

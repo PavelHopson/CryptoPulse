@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Activity, BarChart2, Search, Bell, User, Star, TrendingUp, DollarSign, Shield, LogIn, Check, X, Info, CheckCircle, AlertTriangle, Trophy, CreditCard, Megaphone, ArrowLeftRight, Wallet, LogOut, Cpu, Globe, Zap, Moon, Sun, Monitor, Calculator } from 'lucide-react';
+import { Activity, BarChart2, Search, Bell, User, Star, TrendingUp, DollarSign, Shield, LogIn, Check, X, Info, CheckCircle, AlertTriangle, Trophy, CreditCard, Megaphone, ArrowLeftRight, Wallet, LogOut, Cpu, Globe, Zap, Moon, Sun, Monitor, Calculator, FlaskConical } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { getUserProfile } from '../services/userService';
 import { UserProfile, WalletState } from '../types';
@@ -157,6 +157,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                   { path: '/futures', label: 'ФЬЮЧЕРСЫ' },
                   { path: '/community', label: 'ТОП ТРЕЙДЕРЫ' },
                   { path: '/compare', label: 'СРАВНЕНИЕ' },
+                  { path: '/strategy-lab', label: 'STRATEGY LAB' },
                   { path: '/favorites', label: 'ИЗБРАННОЕ' }
                 ].map(link => (
                   <Link key={link.path} to={link.path} className={`px-4 py-2 transition-[color,background-color,border-color,box-shadow] duration-300 ease-soft ${isActive(link.path)}`}>
@@ -324,8 +325,8 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
              </div>
            </Link>
 
-           <Link to="/futures" className={`flex flex-col items-center gap-1 w-16 ${isActive('/futures') ? 'text-cyber-cyan' : 'text-gray-500'}`}>
-             <TrendingUp className="w-5 h-5" /> ФЬЮЧ.
+           <Link to="/strategy-lab" className={`flex flex-col items-center gap-1 w-16 ${isActive('/strategy-lab') ? 'text-cyber-cyan' : 'text-gray-500'}`}>
+             <FlaskConical className="w-5 h-5" /> ЛАБ.
           </Link>
            <Link to="/favorites" className={`flex flex-col items-center gap-1 w-16 ${isActive('/favorites') ? 'text-cyber-cyan' : 'text-gray-500'}`}>
              <Star className="w-5 h-5" /> ИЗБР.
