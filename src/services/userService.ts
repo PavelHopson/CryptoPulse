@@ -33,33 +33,6 @@ const INITIAL_STATE: UserProfile = {
   xp: 0
 };
 
-const PAVEL_USER: UserProfile = {
-  id: 'pavel-hopson-id',
-  name: "PavelHopson",
-  email: "garaa11@mail.ru",
-  password: "Zeref1997",
-  avatar: 'https://cdn-icons-png.flaticon.com/512/12114/12114233.png', // Default Crypto Avatar
-  balance: 500000, // VIP Balance
-  equity: 500000,
-  positions: [],
-  transactions: [],
-  is_pro: true,
-  member_since: new Date().toISOString(),
-  preferences: {
-    currency: 'USD',
-    language: 'RU',
-    notifications: {
-      email: true,
-      push: true,
-      priceAlerts: true
-    },
-    twoFactorEnabled: false
-  },
-  achievements: [],
-  level: 10, // Bonus Level
-  xp: 5000
-};
-
 // --- Helpers Defined Before Use ---
 
 const saveAllUsers = (users: UserProfile[]) => {
@@ -79,19 +52,16 @@ const getAllUsers = (): UserProfile[] => {
     needsSave = true;
   }
 
-  // Ensure Pavel exists and is synced
-  const pavelIndex = users.findIndex(u => u.email === PAVEL_USER.email);
-  if (pavelIndex === -1) {
-    users.push(PAVEL_USER);
+  // A privileged personal profile used to be bundled with a plaintext password.
+  // Never seed personal credentials in a client application. Scrub the legacy local copy;
+  // the exposed credential must still be rotated outside this repository.
+  users = users.map((user) => {
+    if (user.id !== 'pavel-hopson-id' || !user.password) return user;
     needsSave = true;
-  } else {
-    // Sync static data if changed in code
-    const existingPavel = users[pavelIndex];
-    if (existingPavel.avatar !== PAVEL_USER.avatar) {
-         users[pavelIndex] = { ...existingPavel, avatar: PAVEL_USER.avatar };
-         needsSave = true;
-    }
-  }
+    const safeUser = { ...user };
+    delete safeUser.password;
+    return safeUser;
+  });
 
   if (needsSave) {
     saveAllUsers(users);
