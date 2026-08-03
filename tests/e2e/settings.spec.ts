@@ -70,16 +70,20 @@ test.describe('Settings', () => {
     // Feedback toast appears
     await expect(page.getByText(/успешно сохранены/i)).toBeVisible({ timeout: 5000 });
 
-    // Verify the API key landed in localStorage somewhere
-    const hasKey = await page.evaluate(() => {
+    // Secrets must never land in persistent localStorage.
+    const keyStorage = await page.evaluate(() => {
+      let persistent = false;
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
         if (!key) continue;
         const raw = localStorage.getItem(key);
-        if (raw && raw.includes('test-api-key-abc-123')) return true;
+        if (raw && raw.includes('test-api-key-abc-123')) persistent = true;
       }
-      return false;
+      return {
+        persistent,
+        session: sessionStorage.getItem('cryptopulse_ai_secrets_v1')?.includes('test-api-key-abc-123') ?? false,
+      };
     });
-    expect(hasKey).toBe(true);
+    expect(keyStorage).toEqual({ persistent: false, session: true });
   });
 });

@@ -1,6 +1,6 @@
 # Architecture
 
-CryptoPulse 2077 is a **client-only** fintech SPA. There is no traditional backend — all state lives in the browser (localStorage + IndexedDB), and external services are reached directly or via lightweight Cloudflare Workers.
+CryptoPulse 2077 is a **client-only** fintech SPA. There is no traditional backend — state lives in browser storage, and external services are reached directly or via lightweight Cloudflare Workers.
 
 This document describes the three layers that matter for understanding how data flows through the app, and the engineering decisions that shape them.
 
@@ -26,7 +26,8 @@ flowchart LR
     AI --> Ollama[Ollama local]
     AI --> NVIDIA[NVIDIA NIM]
 
-    UI <--> LS[(localStorage)]
+    UI <--> LS[(localStorage: non-secret profile and paper state)]
+    UI <--> SS[(sessionStorage: tab session and user API key)]
 ```
 
 ### Layer responsibilities
@@ -161,18 +162,20 @@ All persistence lives in the browser:
 
 | Key | Purpose |
 |---|---|
-| `localStorage['cryptopulse_user']` | User profile including `preferences.ai` (API keys stay here, never sent to any backend we control) |
+| `localStorage['cryptopulse_users_v2']` | Local profiles, salted PBKDF2 password credential and non-secret AI provider/model settings. Plaintext passwords and API keys are removed during bootstrap migration |
 | `localStorage['cryptopulse_portfolio']` | Simulated portfolio positions |
 | `localStorage['cryptopulse_favorites']` | Favorite asset IDs |
 | `localStorage['cryptopulse_system_config']` | Admin overrides for volatility/bias (dev panel only) |
+| `sessionStorage['cryptopulse_session_id']` | Current tab-local profile session; removed when the tab session closes |
+| `sessionStorage['cryptopulse_ai_secrets_v1']` | User-supplied AI key for the current tab only; never written to persistent profile storage |
 
-There is deliberately **no server-side user database**. Account creation is local-only (SHA-256 password hash via Web Crypto API). This is a product constraint — the app is intended to run on Cloudflare Pages with zero backend cost — not a security oversight.
+There is deliberately **no server-side user database**. Account creation is local-only. Passwords are protected with Web Crypto PBKDF2-HMAC-SHA256, a per-user random salt and 600,000 iterations; this prevents plaintext persistence but does **not** turn the demo profile into real server-backed authentication. A bootstrap migration converts legacy plaintext values and moves legacy session/API-key data to `sessionStorage` before React renders.
 
 ---
 
 ## 6. Testing strategy
 
-Four test files covering the full services layer:
+Six test files covering the services and security-sensitive local state:
 
 | File | Tests | What it locks down |
 |---|---:|---|
@@ -180,7 +183,9 @@ Four test files covering the full services layer:
 | `src/services/cryptoService.test.ts` | 19 | Every branch through `source` tagging, retry-on-429/503, non-retryable 404, mock fall-through |
 | `src/services/aiService.test.ts` | 19 | All 6 provider handlers, error paths, prompt construction, Gemini SDK mock via class (not `vi.fn()`) |
 | `src/services/newsService.test.ts` | 12 | Worker primary path, RSS fallback, mock last-resort, date formatting |
-| **Total** | **76** | |
+| `src/services/strategyLab.test.ts` | 3 | Paper-only boundary, execution costs, walk-forward and Monte Carlo invariants |
+| `src/services/userService.test.ts` | 5 | Plaintext migration, revoked legacy personal credential, PBKDF2 login/change/reset-password and session-only secrets |
+| **Total** | **85** | |
 
 **Mocking patterns:**
 - `vi.stubGlobal('fetch', fetchMock)` for HTTP isolation
@@ -188,7 +193,7 @@ Four test files covering the full services layer:
 - `vi.mock('@google/genai', { GoogleGenAI: class { ... } })` — plain class, because `vi.fn()` isn't a real constructor
 - `vi.mock('./adminService', ...)` to pin `applyLiveJitter` determinism
 
-Tests use real timers and real retry delays (~10s total). A future optimization could inject retry options or use fake timers, but for 76 tests at ~10s wall time the CI impact is acceptable.
+Tests use real timers and real retry delays (~10s total). A future optimization could inject retry options or use fake timers, but for 85 tests at ~10s wall time the CI impact is acceptable.
 
 ---
 
@@ -207,7 +212,8 @@ No secrets are injected at build time — API keys are supplied by the user at r
 Being honest about trade-offs:
 
 - **No cross-device sync.** All state is per-browser. A user who installs the PWA on a new device starts fresh.
-- **API keys are client-side.** If a user opens DevTools, they can read their own keys. This is fine because keys are the user's own, but it means we can't offer "free AI access" paid for by the project.
+- **API keys are client-side and ephemeral.** A user can still inspect their own key in DevTools while the tab is open. Closing the tab session removes it, so the user must enter it again later. This reduces persistence risk but cannot provide server-grade secret custody.
+- **Local login is not identity.** PBKDF2 protects the stored verifier from plaintext disclosure, but there is no trusted server, shared account or authorization boundary. Production accounts require a backend auth project.
 - **No server-side rate limiting.** If a hostile user spams the CoinGecko free tier through the client, only the retry backoff and CoinGecko's own rate-limit will stop them.
 
 Each of these is a deliberate choice in service of a zero-backend, zero-cost, privacy-first deployment model. If any becomes a real constraint, the services layer is structured so a Cloudflare Workers backend could intercept and proxy — the `fetchWithRetry` wrapper is the natural place to inject that.

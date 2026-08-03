@@ -157,8 +157,9 @@ AI               Gemini / OpenAI / Claude / OpenRouter / Ollama / NVIDIA NIM
 Новости          Собственный парсер на Cloudflare Workers
 Иконки           Lucide React
 Роутинг          React Router v7
-Состояние        localStorage + сервисный слой
-Тесты            Vitest + @testing-library/react + jsdom (76 тестов)
+Состояние        localStorage для несекретных данных + sessionStorage для session/API key
+Локальный пароль salted PBKDF2-HMAC-SHA256, 600 000 итераций
+Тесты            Vitest + @testing-library/react + jsdom (85 тестов)
 Деплой           Cloudflare Pages (фронт) + Workers (парсер)
 ```
 

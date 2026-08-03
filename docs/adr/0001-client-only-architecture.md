@@ -48,13 +48,14 @@ ORM, no server SDK.
 
 **CryptoPulse is a 100% client-side React SPA.**
 
-- All state lives in React (plus `localStorage` for session continuity).
+- Non-secret state lives in React plus `localStorage`; tab session and user-supplied AI keys use `sessionStorage`.
 - All market data, price data, and AI calls are made directly from the
   browser to public APIs (CoinGecko, Binance public endpoints, Google
   Gemini, etc.).
-- User-supplied API keys stay in `localStorage` on the user's machine
+- User-supplied API keys stay in `sessionStorage` for the current tab session
   and are attached to outbound requests from the browser. They never
-  touch our servers, because we do not have servers.
+  touch our servers, because we do not have servers, and they are not persisted
+  after the tab session closes.
 - The **only** server-side component is a Cloudflare Worker (`workers/news-parser/`)
   whose single job is to fetch public RSS feeds and serve them with
   permissive CORS headers — see ADR 0002 for the reasoning.
@@ -97,13 +98,16 @@ ORM, no server SDK.
 
 ### Negative
 
-- **API keys exposed in the browser.** This is the loudest trade-off.
-  The user's Gemini key, any exchange key, etc., live in `localStorage`
-  and get attached to outbound requests from their own machine. We
+- **API keys exposed in the active browser tab.** This is the loudest trade-off.
+  The user's Gemini key lives in `sessionStorage` while the tab session is open
+  and gets attached to outbound requests from their own machine. We
   mitigate by: (1) requiring users to supply their own keys — we do
   not ship any shared / embedded production keys; (2) documenting the
-  threat model clearly in the README; (3) never persisting keys
-  server-side (we can't — there is no server).
+  threat model clearly in the README; (3) migrating old persistent keys out of
+  `localStorage`; and (4) never persisting keys server-side (we can't — there is no server).
+- **Local login is a convenience boundary, not real identity.** Password verifiers use
+  salted PBKDF2-HMAC-SHA256 with 600,000 iterations and the session is tab-local,
+  but a client-only application cannot enforce server-side authorization.
 - **No rate limiting we control.** If a user's Gemini key hits quota,
   they see the vendor's error. We cannot smooth it over with a
   server-side queue.

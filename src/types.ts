@@ -160,7 +160,6 @@ export interface UserProfile {
   id?: string;
   name: string;
   email: string;
-  password?: string;
   avatar?: string;
   balance: number;
   equity: number;

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Save, User, Shield, Bell, Globe, AlertTriangle, CheckCircle, Trash2, LogOut, Camera, Check, RefreshCw, Bot, Eye, EyeOff } from 'lucide-react';
 import { UserProfile, AIProvider, AIConfig, AI_MODELS } from '../types';
-import { getUserProfile, updateUserProfile, resetAccount, logoutUser } from '../services/userService';
+import { changePassword, getUserProfile, updateUserProfile, resetAccount, logoutUser } from '../services/userService';
 import {
   AvatarTrader1, AvatarTrader2, AvatarTrader3,
   AvatarRobot, AvatarAlien, AvatarBear, AvatarLion, AvatarCrypto,
@@ -50,6 +50,9 @@ export const SettingsModal: React.FC<Props> = ({ isOpen, onClose, onUpdate }) =>
     baseUrl: '',
   });
   const [showApiKey, setShowApiKey] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [changingPassword, setChangingPassword] = useState(false);
   const [feedback, setFeedback] = useState<{type: 'success' | 'error', message: string} | null>(null);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [savingAvatar, setSavingAvatar] = useState(false);
@@ -73,6 +76,8 @@ export const SettingsModal: React.FC<Props> = ({ isOpen, onClose, onUpdate }) =>
         setAiConfig(profile.preferences.ai);
       }
       setShowApiKey(false);
+      setCurrentPassword('');
+      setNewPassword('');
       setFeedback(null);
       setShowAvatarPicker(false);
     }
@@ -137,6 +142,17 @@ export const SettingsModal: React.FC<Props> = ({ isOpen, onClose, onUpdate }) =>
 
   const handleLogout = () => {
     logoutUser();
+  };
+
+  const handleChangePassword = async () => {
+    setChangingPassword(true);
+    const result = await changePassword(currentPassword, newPassword);
+    setChangingPassword(false);
+    setFeedback({ type: result.success ? 'success' : 'error', message: result.message });
+    if (result.success) {
+      setCurrentPassword('');
+      setNewPassword('');
+    }
   };
 
   if (!isOpen || !user) return null;
@@ -338,7 +354,7 @@ export const SettingsModal: React.FC<Props> = ({ isOpen, onClose, onUpdate }) =>
                 <div className="space-y-6">
                   <div className="bg-gray-800/30 rounded-xl p-4 border border-gray-700">
                     <p className="text-sm text-gray-400 mb-4">
-                      Подключите свою AI модель для анализа рынка. Ключ хранится только в вашем браузере (localStorage).
+                      Подключите свою AI модель для анализа рынка. Ключ хранится только в текущей вкладке и удаляется при её закрытии.
                     </p>
 
                     {/* Provider Select */}
@@ -404,7 +420,7 @@ export const SettingsModal: React.FC<Props> = ({ isOpen, onClose, onUpdate }) =>
                               {showApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                             </button>
                           </div>
-                          <p className="text-[10px] text-gray-600 mt-1">Ключ хранится только локально в вашем браузере.</p>
+                          <p className="text-[10px] text-gray-600 mt-1">Ключ не записывается в localStorage и действует только в текущей вкладке.</p>
                         </div>
                       )}
 
@@ -449,23 +465,44 @@ export const SettingsModal: React.FC<Props> = ({ isOpen, onClose, onUpdate }) =>
                             <Shield className={`w-6 h-6 ${formData.twoFactor ? 'text-green-500' : 'text-gray-500'}`} />
                             <div>
                                <div className="font-medium text-white">Двухфакторная аутентификация (2FA)</div>
-                               <div className="text-xs text-gray-400">Защитите свой аккаунт</div>
+                               <div className="text-xs text-gray-400">Потребуется серверная авторизация — в локальном demo недоступно</div>
                             </div>
                          </div>
-                         <button 
-                           onClick={() => setFormData({...formData, twoFactor: !formData.twoFactor})}
-                           className={`w-12 h-6 rounded-full p-1 transition-colors ${formData.twoFactor ? 'bg-brand-500' : 'bg-gray-600'}`}
-                         >
-                           <div className={`w-4 h-4 bg-white rounded-full transition-transform ${formData.twoFactor ? 'translate-x-6' : 'translate-x-0'}`}></div>
-                         </button>
+                         <span className="rounded-full border border-gray-700 bg-gray-900 px-3 py-1 text-[10px] font-bold uppercase text-gray-500">Недоступно</span>
                       </div>
                    </div>
 
                    <div>
                       <h3 className="text-white font-medium mb-4">Смена пароля</h3>
                       <div className="space-y-3">
-                         <input type="password" placeholder="Текущий пароль" className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-white focus:border-brand-500 focus:outline-none" />
-                         <input type="password" placeholder="Новый пароль" className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-white focus:border-brand-500 focus:outline-none" />
+                         <input
+                           type="password"
+                           value={currentPassword}
+                           onChange={(event) => setCurrentPassword(event.target.value)}
+                           maxLength={128}
+                           autoComplete="current-password"
+                           placeholder="Текущий пароль"
+                           className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-white focus:border-brand-500 focus:outline-none"
+                         />
+                         <input
+                           type="password"
+                           value={newPassword}
+                           onChange={(event) => setNewPassword(event.target.value)}
+                           minLength={8}
+                           maxLength={128}
+                           autoComplete="new-password"
+                           placeholder="Новый пароль — минимум 8 символов"
+                           className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-white focus:border-brand-500 focus:outline-none"
+                         />
+                         <button
+                           type="button"
+                           onClick={handleChangePassword}
+                           disabled={changingPassword || !currentPassword || newPassword.length < 8}
+                           className="w-full rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-500 disabled:cursor-not-allowed disabled:opacity-50"
+                         >
+                           {changingPassword ? 'Защищаем пароль…' : 'Сменить пароль в этом браузере'}
+                         </button>
+                         <p className="text-xs leading-5 text-gray-500">Пароль защищён PBKDF2, но локальный профиль не является банковским или биржевым аккаунтом.</p>
                       </div>
                    </div>
                 </div>

@@ -4,13 +4,35 @@ import { UserProfile, Position, CoinData, Transaction, AssetAllocation, Performa
 const STORAGE_KEY_USERS = 'cryptopulse_users_v2';
 const STORAGE_KEY_SESSION = 'cryptopulse_session_id';
 const STORAGE_KEY_ACTIVITY = 'cryptopulse_user_activity';
+const SESSION_KEY_AI_SECRETS = 'cryptopulse_ai_secrets_v1';
+const PASSWORD_ITERATIONS = 600_000;
+const PASSWORD_ALGORITHM = 'PBKDF2-SHA256' as const;
+const MAX_PASSWORD_LENGTH = 128;
 const COLORS = ['#0ea5e9', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#6366f1'];
 
-const INITIAL_STATE: UserProfile = {
+interface PasswordCredential {
+  algorithm: typeof PASSWORD_ALGORITHM;
+  hash: string;
+  iterations: number;
+  salt: string;
+}
+
+type StoredUserProfile = UserProfile & {
+  credential?: PasswordCredential;
+  /** Legacy field accepted only long enough to migrate it out of localStorage. */
+  password?: string;
+};
+
+const INITIAL_STATE: StoredUserProfile = {
   id: 'demo-user',
   name: "Трейдер (Демо)",
   email: "demo@cryptopulse.ai",
-  password: "demo",
+  credential: {
+    algorithm: PASSWORD_ALGORITHM,
+    hash: 'pDJzIjIjP+wtWNwj4fjdbIhNSIVuwVbM7Hx+HlPfhuw=',
+    iterations: PASSWORD_ITERATIONS,
+    salt: 'Y3J5cHRvcHVsc2UtZGVtbw==',
+  },
   avatar: '',
   balance: 100000,
   equity: 100000,
@@ -33,42 +55,165 @@ const INITIAL_STATE: UserProfile = {
   xp: 0
 };
 
-// --- Helpers Defined Before Use ---
+function bytesToBase64(bytes: Uint8Array): string {
+  let binary = '';
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary);
+}
 
-const saveAllUsers = (users: UserProfile[]) => {
-  localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(users));
+function base64ToBytes(value: string): Uint8Array {
+  const binary = atob(value);
+  return Uint8Array.from(binary, char => char.charCodeAt(0));
+}
+
+async function derivePasswordHash(password: string, salt: Uint8Array, iterations: number): Promise<Uint8Array> {
+  const key = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(password),
+    'PBKDF2',
+    false,
+    ['deriveBits'],
+  );
+  const bits = await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', hash: 'SHA-256', salt, iterations },
+    key,
+    256,
+  );
+  return new Uint8Array(bits);
+}
+
+async function createCredential(password: string): Promise<PasswordCredential> {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  return {
+    algorithm: PASSWORD_ALGORITHM,
+    hash: bytesToBase64(await derivePasswordHash(password, salt, PASSWORD_ITERATIONS)),
+    iterations: PASSWORD_ITERATIONS,
+    salt: bytesToBase64(salt),
+  };
+}
+
+async function verifyCredential(password: string, credential: PasswordCredential): Promise<boolean> {
+  if (credential.algorithm !== PASSWORD_ALGORITHM || credential.iterations !== PASSWORD_ITERATIONS) return false;
+  try {
+    const actual = await derivePasswordHash(password, base64ToBytes(credential.salt), credential.iterations);
+    const expected = base64ToBytes(credential.hash);
+    if (actual.length !== expected.length) return false;
+    let difference = 0;
+    for (let index = 0; index < actual.length; index += 1) difference |= actual[index] ^ expected[index];
+    return difference === 0;
+  } catch {
+    return false;
+  }
+}
+
+function loadAllUsers(): StoredUserProfile[] {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY_USERS) || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function getAiSecrets(): Record<string, string> {
+  try {
+    const parsed = JSON.parse(sessionStorage.getItem(SESSION_KEY_AI_SECRETS) || '{}');
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function setAiSecret(userId: string, apiKey: string): void {
+  const secrets = getAiSecrets();
+  if (apiKey) secrets[userId] = apiKey;
+  else delete secrets[userId];
+  if (Object.keys(secrets).length > 0) sessionStorage.setItem(SESSION_KEY_AI_SECRETS, JSON.stringify(secrets));
+  else sessionStorage.removeItem(SESSION_KEY_AI_SECRETS);
+}
+
+function sanitizeForPersistentStorage(user: StoredUserProfile): StoredUserProfile {
+  const safeUser: StoredUserProfile = {
+    ...user,
+    preferences: {
+      ...user.preferences,
+      ...(user.preferences.ai ? { ai: { ...user.preferences.ai, apiKey: '' } } : {}),
+    },
+  };
+  delete safeUser.password;
+  return safeUser;
+}
+
+const saveAllUsers = (users: StoredUserProfile[]) => {
+  localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(users.map(sanitizeForPersistentStorage)));
 };
 
-const getAllUsers = (): UserProfile[] => {
-  const stored = localStorage.getItem(STORAGE_KEY_USERS);
-  let users: UserProfile[] = stored ? JSON.parse(stored) : [];
-
-  let needsSave = false;
-
-  // Ensure Demo User exists
+const getAllUsers = (): StoredUserProfile[] => {
+  const users = loadAllUsers();
   if (!users.find(u => u.id === 'demo-user')) {
-    const demoUser = JSON.parse(JSON.stringify(INITIAL_STATE));
-    users.push(demoUser);
-    needsSave = true;
-  }
-
-  // A privileged personal profile used to be bundled with a plaintext password.
-  // Never seed personal credentials in a client application. Scrub the legacy local copy;
-  // the exposed credential must still be rotated outside this repository.
-  users = users.map((user) => {
-    if (user.id !== 'pavel-hopson-id' || !user.password) return user;
-    needsSave = true;
-    const safeUser = { ...user };
-    delete safeUser.password;
-    return safeUser;
-  });
-
-  if (needsSave) {
+    users.push(structuredClone(INITIAL_STATE));
     saveAllUsers(users);
   }
-
   return users;
 };
+
+function toPublicProfile(user: StoredUserProfile): UserProfile {
+  const { credential: _credential, password: _password, ...publicUser } = user;
+  const secret = user.id ? getAiSecrets()[user.id] : undefined;
+  return {
+    ...publicUser,
+    preferences: {
+      ...publicUser.preferences,
+      ...(publicUser.preferences.ai
+        ? { ai: { ...publicUser.preferences.ai, apiKey: secret || '' } }
+        : {}),
+    },
+  };
+}
+
+export async function initializeUserSecurity(): Promise<void> {
+  const users = loadAllUsers();
+  let changed = false;
+
+  for (const user of users) {
+    const apiKey = user.preferences?.ai?.apiKey;
+    if (user.id && apiKey) {
+      setAiSecret(user.id, apiKey);
+      user.preferences.ai!.apiKey = '';
+      changed = true;
+    }
+
+    // A privileged personal credential was previously bundled in the client. It is compromised
+    // by definition and must never be converted into another still-valid local credential.
+    if (user.id === 'pavel-hopson-id') {
+      if (user.password || user.credential) changed = true;
+      delete user.password;
+      delete user.credential;
+    } else if (typeof user.password === 'string') {
+      if (user.password.length > 0 && user.password.length <= MAX_PASSWORD_LENGTH) {
+        user.credential = await createCredential(user.password);
+      }
+      delete user.password;
+      changed = true;
+    }
+  }
+
+  if (!users.find(user => user.id === 'demo-user')) {
+    users.push(structuredClone(INITIAL_STATE));
+    changed = true;
+  }
+
+  const legacySession = localStorage.getItem(STORAGE_KEY_SESSION);
+  if (legacySession && !sessionStorage.getItem(STORAGE_KEY_SESSION)) {
+    sessionStorage.setItem(STORAGE_KEY_SESSION, legacySession);
+  }
+  if (legacySession) {
+    localStorage.removeItem(STORAGE_KEY_SESSION);
+    changed = true;
+  }
+
+  if (changed) saveAllUsers(users);
+}
 
 export const logUserActivity = (userId: string, type: UserActivity['type'], details: string) => {
   const storedLogs = localStorage.getItem(STORAGE_KEY_ACTIVITY);
@@ -80,7 +225,6 @@ export const logUserActivity = (userId: string, type: UserActivity['type'], deta
     type,
     details,
     timestamp: new Date().toISOString(),
-    ip: '192.168.1.' + Math.floor(Math.random() * 255)
   };
 
   // Keep last 500 logs total
@@ -92,16 +236,16 @@ export const logUserActivity = (userId: string, type: UserActivity['type'], deta
 
 export const getUserProfile = (): UserProfile => {
   const users = getAllUsers();
-  const sessionId = localStorage.getItem(STORAGE_KEY_SESSION);
+  const sessionId = sessionStorage.getItem(STORAGE_KEY_SESSION);
   
   if (!sessionId) {
      // No session, try to default to demo
      const demo = users.find(u => u.id === 'demo-user');
      if (demo) {
-       localStorage.setItem(STORAGE_KEY_SESSION, 'demo-user');
-       return demo;
+       sessionStorage.setItem(STORAGE_KEY_SESSION, 'demo-user');
+       return toPublicProfile(demo);
      }
-     return users[0];
+     return toPublicProfile(users[0]);
   }
 
   const user = users.find(u => u.id === sessionId);
@@ -110,29 +254,34 @@ export const getUserProfile = (): UserProfile => {
       // Session ID invalid (user deleted?), fallback to demo
       const demo = users.find(u => u.id === 'demo-user');
       if (demo) {
-        localStorage.setItem(STORAGE_KEY_SESSION, 'demo-user');
-        return demo;
+        sessionStorage.setItem(STORAGE_KEY_SESSION, 'demo-user');
+        return toPublicProfile(demo);
       }
-      return users[0];
+      return toPublicProfile(users[0]);
   }
   
-  return user;
+  return toPublicProfile(user);
 };
 
-export const registerUser = (name: string, email: string, password: string): { success: boolean, message: string } => {
+export const registerUser = async (name: string, email: string, password: string): Promise<{ success: boolean, message: string }> => {
+  await initializeUserSecurity();
   const users = getAllUsers();
   const normalizedEmail = email.trim().toLowerCase();
+
+  if (password.length < 8 || password.length > MAX_PASSWORD_LENGTH) {
+    return { success: false, message: 'Пароль должен содержать от 8 до 128 символов' };
+  }
   
   if (users.find(u => u.email.toLowerCase() === normalizedEmail)) {
     return { success: false, message: 'Пользователь с таким email уже существует' };
   }
 
-  const newUser: UserProfile = {
-    ...JSON.parse(JSON.stringify(INITIAL_STATE)),
+  const newUser: StoredUserProfile = {
+    ...structuredClone(INITIAL_STATE),
     id: Math.random().toString(36).substr(2, 9),
     name: name.trim(),
     email: normalizedEmail,
-    password,
+    credential: await createCredential(password),
     avatar: '',
     member_since: new Date().toISOString(),
     balance: 10000, // Bonus
@@ -147,20 +296,22 @@ export const registerUser = (name: string, email: string, password: string): { s
 
   users.push(newUser);
   saveAllUsers(users);
-  localStorage.setItem(STORAGE_KEY_SESSION, newUser.id!);
+  sessionStorage.setItem(STORAGE_KEY_SESSION, newUser.id!);
   logUserActivity(newUser.id!, 'LOGIN', 'New user registration');
   return { success: true, message: 'Регистрация успешна' };
 };
 
-export const loginUser = (email: string, password: string): { success: boolean, message: string } => {
+export const loginUser = async (email: string, password: string): Promise<{ success: boolean, message: string }> => {
+  if (password.length === 0 || password.length > MAX_PASSWORD_LENGTH) {
+    return { success: false, message: 'Неверный email или пароль' };
+  }
+  await initializeUserSecurity();
   const users = getAllUsers();
   const normalizedEmail = email.trim().toLowerCase();
+  const user = users.find(u => u.email.toLowerCase() === normalizedEmail);
   
-  // Strict check
-  const user = users.find(u => u.email.toLowerCase() === normalizedEmail && u.password === password);
-  
-  if (user && user.id) {
-    localStorage.setItem(STORAGE_KEY_SESSION, user.id);
+  if (user?.id && user.credential && await verifyCredential(password, user.credential)) {
+    sessionStorage.setItem(STORAGE_KEY_SESSION, user.id);
     logUserActivity(user.id, 'LOGIN', 'Login via email');
     return { success: true, message: 'Вход выполнен успешно' };
   }
@@ -168,8 +319,31 @@ export const loginUser = (email: string, password: string): { success: boolean, 
 };
 
 export const logoutUser = () => {
+  sessionStorage.removeItem(STORAGE_KEY_SESSION);
+  sessionStorage.removeItem(SESSION_KEY_AI_SECRETS);
   localStorage.removeItem(STORAGE_KEY_SESSION);
   window.location.reload();
+};
+
+export const changePassword = async (
+  currentPassword: string,
+  newPassword: string,
+): Promise<{ success: boolean; message: string }> => {
+  if (newPassword.length < 8 || newPassword.length > MAX_PASSWORD_LENGTH) {
+    return { success: false, message: 'Новый пароль должен содержать от 8 до 128 символов' };
+  }
+  await initializeUserSecurity();
+  const current = getUserProfile();
+  const users = getAllUsers();
+  const index = users.findIndex(user => user.id === current.id);
+  const stored = users[index];
+  if (!stored?.credential || !await verifyCredential(currentPassword, stored.credential)) {
+    return { success: false, message: 'Текущий пароль указан неверно' };
+  }
+  stored.credential = await createCredential(newPassword);
+  saveAllUsers(users);
+  logUserActivity(stored.id!, 'SECURITY_UPDATE', 'Local password changed');
+  return { success: true, message: 'Пароль изменён для этого браузера' };
 };
 
 export const updateUserProfile = (updates: Partial<UserProfile>): UserProfile => {
@@ -182,7 +356,7 @@ export const updateUserProfile = (updates: Partial<UserProfile>): UserProfile =>
   if (index === -1) return current;
 
   // Perform deep merge for preferences
-  const updatedUser = { ...current, ...updates };
+  const updatedUser: StoredUserProfile = { ...users[index], ...updates };
   if (updates.preferences) {
     updatedUser.preferences = {
       ...current.preferences,
@@ -194,6 +368,10 @@ export const updateUserProfile = (updates: Partial<UserProfile>): UserProfile =>
     };
   }
 
+  if (current.id && updates.preferences?.ai) {
+    setAiSecret(current.id, updates.preferences.ai.apiKey);
+  }
+
   users[index] = updatedUser;
   saveAllUsers(users);
   
@@ -203,15 +381,18 @@ export const updateUserProfile = (updates: Partial<UserProfile>): UserProfile =>
   else if (updates.preferences) logUserActivity(current.id, 'PROFILE_UPDATE', 'Preferences updated');
   else if (updates.is_pro !== undefined) logUserActivity(current.id, 'PROFILE_UPDATE', `Subscription status changed to ${updates.is_pro ? 'PRO' : 'FREE'}`);
 
-  return updatedUser;
+  return toPublicProfile(updatedUser);
 };
 
 export const resetAccount = (): UserProfile => {
   const current = getUserProfile();
   if (!current.id) return current;
+  const users = getAllUsers();
+  const index = users.findIndex(u => u.id === current.id);
+  if (index === -1) return current;
 
-  const resetUser: UserProfile = {
-    ...current,
+  const resetUser: StoredUserProfile = {
+    ...users[index],
     balance: 100000,
     equity: 100000,
     positions: [],
@@ -220,16 +401,12 @@ export const resetAccount = (): UserProfile => {
     level: 1,
     xp: 0
   };
-  
-  const users = getAllUsers();
-  const index = users.findIndex(u => u.id === current.id);
-  if (index !== -1) {
-    users[index] = resetUser;
-    saveAllUsers(users);
-    logUserActivity(current.id, 'SECURITY_UPDATE', 'Account reset performed');
-  }
 
-  return resetUser;
+  users[index] = resetUser;
+  saveAllUsers(users);
+  logUserActivity(current.id, 'SECURITY_UPDATE', 'Account reset performed');
+
+  return toPublicProfile(resetUser);
 };
 
 export const depositFunds = (amount: number, currency: 'USD' | 'EUR' | 'RUB', method: string) => {

@@ -22,14 +22,14 @@ export const LoginPage: React.FC = () => {
     await new Promise(r => setTimeout(r, 1000));
 
     if (isLogin) {
-      const res = loginUser(email.trim(), password);
+      const res = await loginUser(email.trim(), password);
       if (res.success) {
         navigate('/');
       } else {
         setError(res.message);
       }
     } else {
-      const res = registerUser(name.trim(), email.trim(), password);
+      const res = await registerUser(name.trim(), email.trim(), password);
       if (res.success) {
         navigate('/');
       } else {
@@ -106,6 +106,8 @@ export const LoginPage: React.FC = () => {
                    placeholder="••••••••"
                    value={password}
                    onChange={e => setPassword(e.target.value)}
+                   minLength={isLogin ? undefined : 8}
+                   maxLength={128}
                    className="w-full bg-gray-900 border border-gray-700 rounded-xl py-3 pl-10 pr-4 text-white focus:border-brand-500 focus:outline-none transition-colors"
                    required
                  />
