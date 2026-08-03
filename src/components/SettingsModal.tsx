@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Save, User, Shield, Bell, Globe, AlertTriangle, CheckCircle, Trash2, LogOut, Camera, Check, RefreshCw, Bot, Eye, EyeOff } from 'lucide-react';
 import { UserProfile, AIProvider, AIConfig, AI_MODELS } from '../types';
 import { changePassword, getUserProfile, updateUserProfile, resetAccount, logoutUser } from '../services/userService';
@@ -83,6 +84,15 @@ export const SettingsModal: React.FC<Props> = ({ isOpen, onClose, onUpdate }) =>
     }
   }, [isOpen]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isOpen]);
+
   // Standard Save for Text Fields
   const handleSave = () => {
     updateUserProfile({
@@ -157,7 +167,7 @@ export const SettingsModal: React.FC<Props> = ({ isOpen, onClose, onUpdate }) =>
 
   if (!isOpen || !user) return null;
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
       <div className="absolute inset-0 bg-cyber-black/70 backdrop-blur-sm" onClick={onClose}></div>
       
@@ -597,6 +607,7 @@ export const SettingsModal: React.FC<Props> = ({ isOpen, onClose, onUpdate }) =>
            </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 };
