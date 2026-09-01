@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { AlertTriangle, BarChart3, FlaskConical, Play, ShieldCheck } from 'lucide-react';
+import { AlertTriangle, BarChart3, CheckCircle2, Download, FlaskConical, Play, ShieldCheck, XCircle } from 'lucide-react';
 import { createDemoPriceHistory, runStrategyLab, StrategyLabConfig, StrategyLabResult } from '../services/strategyLab';
 
 const money = new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
@@ -14,8 +14,17 @@ export const StrategyLab: React.FC = () => {
   const update = (key: keyof StrategyLabConfig, value: number) => setConfig((current) => ({ ...current, [key]: value }));
   const run = () => {
     setError('');
-    try { setResult(runStrategyLab(prices, config)); }
+    try { setResult(runStrategyLab(prices, config, { id: 'cryptopulse-demo-v1', kind: 'synthetic', source: 'Детерминированный синтетический ряд CryptoPulse' })); }
     catch (caught) { setResult(null); setError(caught instanceof Error ? caught.message : 'Не удалось выполнить backtest'); }
+  };
+  const downloadReceipt = () => {
+    if (!result) return;
+    const url = URL.createObjectURL(new Blob([JSON.stringify(result.receipt, null, 2)], { type: 'application/json' }));
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `${result.receipt.experimentId}.json`;
+    anchor.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -60,14 +69,35 @@ export const StrategyLab: React.FC = () => {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+              <div className="grid grid-cols-2 gap-3 xl:grid-cols-3">
                 {[
                   { label: 'Net return', value: percent(result.netReturnPct), tone: result.netReturnPct >= 0 ? 'text-cyber-green' : 'text-cyber-pink' },
+                  { label: 'Buy & hold', value: percent(result.baseline.buyAndHoldReturnPct), tone: 'text-white' },
+                  { label: 'Excess vs baseline', value: percent(result.baseline.excessReturnPct), tone: result.baseline.excessReturnPct >= 0 ? 'text-cyber-green' : 'text-cyber-pink' },
                   { label: 'Max drawdown', value: `-${result.maxDrawdownPct.toFixed(1)}%`, tone: 'text-cyber-yellow' },
                   { label: 'Win rate', value: `${result.winRatePct.toFixed(0)}%`, tone: 'text-white' },
                   { label: 'Сделки / costs', value: `${result.tradeCount} / ${money.format(result.estimatedCosts)}`, tone: 'text-white' },
                 ].map((metric) => <div key={metric.label} className="cyber-card p-4"><div className="font-mono text-[10px] uppercase tracking-wider text-gray-500">{metric.label}</div><div className={`mt-2 font-display text-xl font-bold ${metric.tone}`}>{metric.value}</div></div>)}
               </div>
+
+              <div className="grid gap-4 lg:grid-cols-2">
+                <article className="cyber-card p-5">
+                  <div className="flex items-start justify-between gap-4"><div><div className="font-mono text-[10px] uppercase tracking-[0.16em] text-cyber-cyan">RESEARCH GATES</div><h2 className="mt-1 font-display font-bold text-white">{result.decision === 'paper-forward-test' ? 'ГОТОВО К PAPER FORWARD-TEST' : 'НУЖНЫ ДОПОЛНИТЕЛЬНЫЕ ПРОВЕРКИ'}</h2></div><span className={`border px-2 py-1 font-mono text-[10px] ${result.decision === 'paper-forward-test' ? 'border-cyber-green/30 text-cyber-green' : 'border-cyber-yellow/30 text-cyber-yellow'}`}>{result.qualityGates.filter((gate) => gate.passed).length}/{result.qualityGates.length}</span></div>
+                  <ul className="mt-4 space-y-3">{result.qualityGates.map((gate) => <li key={gate.id} className="flex items-start gap-3 text-sm"><span className="mt-0.5">{gate.passed ? <CheckCircle2 className="h-4 w-4 text-cyber-green" /> : <XCircle className="h-4 w-4 text-cyber-pink" />}</span><span><b className="block text-gray-200">{gate.label}</b><small className="text-gray-500">{gate.detail}</small></span></li>)}</ul>
+                </article>
+                <article className="cyber-card p-5">
+                  <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-cyber-cyan">REPRODUCIBLE RECEIPT</div>
+                  <h2 className="mt-1 font-display font-bold text-white">{result.receipt.experimentId}</h2>
+                  <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2"><div><dt className="font-mono text-[10px] text-gray-600">DATASET</dt><dd className="mt-1 text-gray-300">{result.dataset.source}</dd></div><div><dt className="font-mono text-[10px] text-gray-600">RANGE</dt><dd className="mt-1 text-gray-300">{result.dataset.startDate} — {result.dataset.endDate}</dd></div><div><dt className="font-mono text-[10px] text-gray-600">POINTS</dt><dd className="mt-1 text-gray-300">{result.dataset.pointCount}</dd></div><div><dt className="font-mono text-[10px] text-gray-600">CHECKSUM</dt><dd className="mt-1 font-mono text-gray-300">{result.dataset.checksum}</dd></div></dl>
+                  <button type="button" onClick={downloadReceipt} className="cyber-button mt-5 flex w-full items-center justify-center gap-2"><Download className="h-4 w-4" /> СКАЧАТЬ RECEIPT JSON</button>
+                  <p className="mt-3 text-xs leading-5 text-gray-600">Receipt фиксирует dataset, параметры, метрики и gates. Он не содержит API-ключей и не разрешает live execution.</p>
+                </article>
+              </div>
+
+              <article className="cyber-card overflow-hidden">
+                <div className="border-b border-gray-800 px-5 py-4"><h2 className="font-display font-bold text-white">ПРОВЕРКА ПО ТРЁМ РЕЖИМАМ</h2><p className="mt-1 text-xs text-gray-500">Один хороший итог не должен скрывать слабый отдельный период.</p></div>
+                <div className="overflow-x-auto"><table className="w-full min-w-[620px] font-mono text-xs"><thead className="bg-gray-900/40 text-gray-500"><tr><th className="px-5 py-3 text-left">Период</th><th className="px-5 py-3 text-left">Диапазон</th><th className="px-5 py-3 text-right">Стратегия</th><th className="px-5 py-3 text-right">Buy & hold</th></tr></thead><tbody className="divide-y divide-gray-800">{result.regimes.map((regime) => <tr key={regime.label}><td className="px-5 py-3 text-gray-200">{regime.label}</td><td className="px-5 py-3 text-gray-500">{regime.startDate} — {regime.endDate}</td><td className={`px-5 py-3 text-right ${regime.strategyReturnPct >= 0 ? 'text-cyber-green' : 'text-cyber-pink'}`}>{percent(regime.strategyReturnPct)}</td><td className="px-5 py-3 text-right text-gray-300">{percent(regime.baselineReturnPct)}</td></tr>)}</tbody></table></div>
+              </article>
 
               <div className="grid gap-4 md:grid-cols-2">
                 <article className="cyber-card p-5">

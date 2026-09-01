@@ -7,6 +7,12 @@ describe('Strategy Lab', () => {
   it('is paper-only and includes fees, Monte Carlo and walk-forward validation', () => {
     const result = runStrategyLab(prices, { fastWindow: 12, slowWindow: 36, feeBps: 10, slippageBps: 8, initialCapital: 10_000 });
     expect(result.mode).toBe('paper');
+    expect(result.executionAllowed).toBe(false);
+    expect(result.receipt.schemaVersion).toBe('cryptopulse.strategy-receipt.v1');
+    expect(result.receipt.executionAllowed).toBe(false);
+    expect(result.regimes).toHaveLength(3);
+    expect(Number.isFinite(result.baseline.buyAndHoldReturnPct)).toBe(true);
+    expect(result.qualityGates).toHaveLength(6);
     expect(result.estimatedCosts).toBeGreaterThan(0);
     expect(result.monteCarlo.simulations).toBe(500);
     expect(Number.isFinite(result.walkForward.testReturnPct)).toBe(true);

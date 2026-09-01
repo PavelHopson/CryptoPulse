@@ -1,3 +1,6 @@
+import { buildStrategyEvidence } from './strategyEvidence';
+import type { StrategyEvidence, StrategyLabDataset } from './strategyEvidence';
+
 export interface PricePoint { date: string; close: number }
 
 export interface StrategyLabConfig {
@@ -16,7 +19,7 @@ export interface PaperTrade {
   netReturnPct: number;
 }
 
-export interface StrategyLabResult {
+export interface StrategyLabResult extends StrategyEvidence {
   mode: 'paper';
   netReturnPct: number;
   maxDrawdownPct: number;
@@ -127,7 +130,7 @@ function simulate(points: PricePoint[], config: StrategyLabConfig) {
   };
 }
 
-export function runStrategyLab(points: PricePoint[], config: StrategyLabConfig): StrategyLabResult {
+export function runStrategyLab(points: PricePoint[], config: StrategyLabConfig, dataset?: StrategyLabDataset): StrategyLabResult {
   assertConfig(config, points);
   const base = simulate(points, config);
   const split = Math.max(config.slowWindow + 2, Math.floor(points.length * 0.6));
@@ -153,8 +156,17 @@ export function runStrategyLab(points: PricePoint[], config: StrategyLabConfig):
   const overfitWarning = train.returnPct > 0 && test.returnPct < 0
     ? 'Параметры прибыльны на train, но убыточны на test — возможное переобучение.'
     : null;
+  const evidence = buildStrategyEvidence(points, config, {
+    netReturnPct: base.returnPct,
+    maxDrawdownPct: base.maxDrawdownPct,
+    tradeCount: base.trades.length,
+    estimatedCosts: base.estimatedCosts,
+    walkForwardTestReturnPct: test.returnPct,
+    monteCarloP10ReturnPct: percentile(outcomes, 0.1),
+  }, (segment) => simulate(segment, config).returnPct, dataset);
 
   return {
+    ...evidence,
     mode: 'paper',
     netReturnPct: base.returnPct,
     maxDrawdownPct: base.maxDrawdownPct,
