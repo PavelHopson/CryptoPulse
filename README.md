@@ -1,24 +1,45 @@
-<div align="center">
+# CryptoPulse
 
-![CryptoPulse 2077](https://socialify.git.ci/PavelHopson/CryptoPulse/image?description=1&descriptionEditable=%D0%A4%D0%B8%D0%BD%D0%B0%D0%BD%D1%81%D0%BE%D0%B2%D1%8B%D0%B9%20%D1%82%D0%B5%D1%80%D0%BC%D0%B8%D0%BD%D0%B0%D0%BB%20%D0%BD%D0%BE%D0%B2%D0%BE%D0%B3%D0%BE%20%D0%BF%D0%BE%D0%BA%D0%BE%D0%BB%D0%B5%D0%BD%D0%B8%D1%8F&font=Source%20Code%20Pro&language=1&name=1&pattern=Circuit%20Board&theme=Dark&owner=1)
+![CryptoPulse: Рынок → Гипотеза → Проверка](docs/assets/repository-cover.svg)
 
-# CRYPTOPULSE // 2077
+**Рыночные исследования.** Рабочее пространство для анализа крипторынка, сценариев и исследовательских гипотез.
 
-### *Wake up, Samurai. We have a market to burn.*
+<!-- repository-guide:start -->
+[Первый запуск](#readme-start) · [Что внутри](#readme-map) · [Путеводитель](docs/repository-guide.md#start) · [Карта кода](docs/repository-guide.md#map) · [Проверки](docs/repository-guide.md#checks) · [Границы и права](docs/repository-guide.md#boundaries)
 
-**Финансовый терминал нового поколения с AI-аналитикой и дизайном в стиле Cyberpunk 2077.**<br/>
-**Криптовалюты, форекс, фьючерсы — всё в одном месте.**
+<a id="readme-map"></a>
 
-[![Демо](https://img.shields.io/badge/%D0%9E%D0%A2%D0%9A%D0%A0%D0%AB%D0%A2%D0%AC%20%D0%94%D0%95%D0%9C%D0%9E-00f3ff?style=for-the-badge&logo=cloudflarepages&logoColor=black)](https://cryptopulse-1d0.pages.dev)
-[![React](https://img.shields.io/badge/React_19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
-[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://typescriptlang.org)
-[![Vite](https://img.shields.io/badge/Vite_6-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vite.dev)
-[![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
-[![Cloudflare](https://img.shields.io/badge/Cloudflare-F38020?style=for-the-badge&logo=cloudflare&logoColor=white)](https://pages.cloudflare.com)
+## Проект за минуту
 
-</div>
+- **[Лаборатория стратегий](<src/pages/StrategyLab.tsx>)** — Исследовательские сценарии и сравнение гипотез.
+- **[Рыночные данные](<src/services/cryptoService.ts>)** — Интеграция получения и обработки данных.
+- **[Доказательства стратегии](<src/services/strategyEvidence.ts>)** — Структура исследовательских результатов, не обещание доходности.
 
----
+<a id="readme-start"></a>
+
+## Начать локально
+
+**Среда:** Node.js и npm. **Источник:** [package.json](<package.json>).
+
+Из корня клонированного репозитория:
+
+```bash
+npm ci
+npm run dev
+```
+
+Интерфейс и внешние AI-вызовы — разные этапы. До подключения провайдера проверьте настройки, стоимость и обработку ключей; значения секретов в README не размещаются.
+
+<details>
+<summary><strong>Перед первым запуском и изменением кода</strong></summary>
+
+- Команды сверены с исходниками 8 сентября 2026. Это инструкция, а не отметка об успешном запуске или текущем production.
+- Установка зависимостей может обращаться в registry и выполнять lifecycle scripts. Используйте отдельную рабочую среду и демонстрационные данные.
+- Аналитика и paper trading не доказывают доходность. Подключение биржи и реальные сделки требуют отдельного решения.
+- [ARCHITECTURE.md](<ARCHITECTURE.md>)
+
+</details>
+<!-- repository-guide:end -->
 
 ## Что это за проект?
 
