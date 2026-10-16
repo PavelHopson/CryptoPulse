@@ -1,5 +1,9 @@
 # CryptoPulse
 
+<!-- project-links:start -->
+[Открыть веб-версию](https://cryptopulse-1d0.pages.dev) · [Документация](docs/repository-guide.md) · [Код](https://github.com/PavelHopson/CryptoPulse/tree/main) · [История изменений](https://github.com/PavelHopson/CryptoPulse/commits/main/)
+<!-- project-links:end -->
+
 ![CryptoPulse: Рынок → Гипотеза → Проверка](docs/assets/repository-cover.svg)
 
 **Рыночные исследования.** Рабочее пространство для анализа крипторынка, сценариев и исследовательских гипотез.
