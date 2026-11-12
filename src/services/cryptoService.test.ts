@@ -1,9 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  dataStatusForSource,
   fetchCoinDetails,
+  fetchCoinHistory,
   fetchFavoriteCoins,
   fetchMarketData,
   fetchTopCoins,
+  isTrustedDataStatus,
+  requireTrustedData,
+  UntrustedDataError,
 } from './cryptoService';
 
 // cryptoService imports adminService.getSystemConfig which reads localStorage
@@ -20,6 +25,12 @@ function mockJsonResponse(body: unknown, status = 200): Response {
     json: async () => body,
     text: async () => JSON.stringify(body),
   } as unknown as Response;
+}
+
+function installFetchMock(fetchMock: typeof fetch): () => void {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = fetchMock;
+  return () => { globalThis.fetch = originalFetch; };
 }
 
 function makeCoinPayload(id: string, overrides: Record<string, unknown> = {}) {
@@ -58,14 +69,16 @@ function makeCoinPayload(id: string, overrides: Record<string, unknown> = {}) {
 
 describe('fetchTopCoins', () => {
   let fetchMock: ReturnType<typeof vi.fn>;
+  let restoreFetch: (() => void) | undefined;
 
   beforeEach(() => {
     fetchMock = vi.fn();
-    vi.stubGlobal('fetch', fetchMock);
+    restoreFetch = installFetchMock(fetchMock as unknown as typeof fetch);
   });
 
   afterEach(() => {
-    vi.unstubAllGlobals();
+    restoreFetch?.();
+    restoreFetch = undefined;
   });
 
   it('returns source="api" with sanitized data on success', async () => {
@@ -75,6 +88,8 @@ describe('fetchTopCoins', () => {
     const result = await fetchTopCoins();
 
     expect(result.source).toBe('api');
+    expect(result.status).toBe('LIVE');
+    expect(Number.isNaN(Date.parse(result.checkedAt))).toBe(false);
     expect(result.error).toBeUndefined();
     expect(result.data).toHaveLength(2);
     expect(result.data[0].id).toBe('bitcoin');
@@ -100,10 +115,11 @@ describe('fetchTopCoins', () => {
 
     expect(fetchMock).toHaveBeenCalledTimes(3);
     expect(result.source).toBe('retry-mock');
-    // retry() exhaustion throws RetryError which lands in the outer catch,
-    // so the user-facing message is the "network error" one rather than the
-    // "temporarily unavailable" one. Both are retry-mock; the message differs.
+    expect(result.status).toBe('RETRY');
+    // retry() exhaustion throws RetryError which lands in the outer catch.
+    // The fallback is explicitly marked as demo data and not exchange cache.
     expect(result.error).toContain('Ошибка сети');
+    expect(result.error).toContain('не кеш биржи');
     expect(result.data.length).toBeGreaterThan(0);
   });
 
@@ -126,7 +142,8 @@ describe('fetchTopCoins', () => {
     const result = await fetchTopCoins();
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(result.source).toBe('retry-mock');
+    expect(result.source).toBe('unavailable-mock');
+    expect(result.status).toBe('UNAVAILABLE');
   });
 
   it('falls back to mock on network error with source="retry-mock"', async () => {
@@ -142,20 +159,24 @@ describe('fetchTopCoins', () => {
 
 describe('fetchCoinDetails', () => {
   let fetchMock: ReturnType<typeof vi.fn>;
+  let restoreFetch: (() => void) | undefined;
 
   beforeEach(() => {
     fetchMock = vi.fn();
-    vi.stubGlobal('fetch', fetchMock);
+    restoreFetch = installFetchMock(fetchMock as unknown as typeof fetch);
   });
 
   afterEach(() => {
-    vi.unstubAllGlobals();
+    restoreFetch?.();
+    restoreFetch = undefined;
   });
 
   it('returns forex asset with source="mock" without calling fetch', async () => {
     const result = await fetchCoinDetails('eur-usd', 'forex');
 
     expect(result.source).toBe('mock');
+    expect(result.status).toBe('MOCK');
+    expect(result.error).toContain('демонстрационные');
     expect(result.data).not.toBeNull();
     expect(result.data?.id).toBe('eur-usd');
     expect(fetchMock).not.toHaveBeenCalled();
@@ -186,6 +207,7 @@ describe('fetchCoinDetails', () => {
 
     const result = await fetchCoinDetails('bitcoin');
     expect(result.source).toBe('retry-mock');
+    expect(result.status).toBe('RETRY');
     expect(result.data).not.toBeNull();
     expect(result.data?.id).toBe('bitcoin');
     expect(result.error).toBeDefined();
@@ -201,16 +223,53 @@ describe('fetchCoinDetails', () => {
   });
 });
 
-describe('fetchFavoriteCoins', () => {
+describe('fetchCoinHistory', () => {
   let fetchMock: ReturnType<typeof vi.fn>;
+  let restoreFetch: (() => void) | undefined;
 
   beforeEach(() => {
     fetchMock = vi.fn();
-    vi.stubGlobal('fetch', fetchMock);
+    restoreFetch = installFetchMock(fetchMock as unknown as typeof fetch);
   });
 
   afterEach(() => {
-    vi.unstubAllGlobals();
+    restoreFetch?.();
+    restoreFetch = undefined;
+  });
+
+  it('maps CoinGecko market_chart prices to live candles', async () => {
+    fetchMock.mockResolvedValueOnce(mockJsonResponse({ prices: [[1_700_000_000_000, 100], [1_700_060_000_000, 102], [1_700_120_000_000, 101]] }));
+
+    const result = await fetchCoinHistory('bitcoin', '1H', 101);
+
+    expect(result.status).toBe('LIVE');
+    expect(result.data).toHaveLength(3);
+    expect(result.data[1]).toMatchObject({ open: 100, close: 102, high: 102, low: 100 });
+  });
+
+  it('labels fallback history as unavailable for non-retryable upstream errors', async () => {
+    fetchMock.mockResolvedValueOnce(mockJsonResponse(null, 404));
+
+    const result = await fetchCoinHistory('bitcoin', '1D', 100);
+
+    expect(result.status).toBe('UNAVAILABLE');
+    expect(result.source).toBe('unavailable-mock');
+    expect(result.data.length).toBeGreaterThan(0);
+  });
+});
+
+describe('fetchFavoriteCoins', () => {
+  let fetchMock: ReturnType<typeof vi.fn>;
+  let restoreFetch: (() => void) | undefined;
+
+  beforeEach(() => {
+    fetchMock = vi.fn();
+    restoreFetch = installFetchMock(fetchMock as unknown as typeof fetch);
+  });
+
+  afterEach(() => {
+    restoreFetch?.();
+    restoreFetch = undefined;
   });
 
   it('returns empty data with source="api" for empty id list', async () => {
@@ -229,14 +288,16 @@ describe('fetchFavoriteCoins', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it('merges non-crypto mock favorites with live crypto data', async () => {
+  it('marks favorites as mixed when live crypto data is combined with demo assets', async () => {
     fetchMock.mockResolvedValueOnce(
       mockJsonResponse([makeCoinPayload('bitcoin', { current_price: 50000 })]),
     );
 
     const result = await fetchFavoriteCoins(['bitcoin', 'eur-usd']);
 
-    expect(result.source).toBe('api');
+    expect(result.source).toBe('mixed');
+    expect(result.status).toBe('MIXED');
+    expect(result.error).toContain('LIVE-криптоактивы');
     expect(result.data.length).toBeGreaterThanOrEqual(2);
     const ids = result.data.map((c) => c.id);
     expect(ids).toContain('bitcoin');
@@ -253,14 +314,16 @@ describe('fetchFavoriteCoins', () => {
 
 describe('fetchMarketData (category router)', () => {
   let fetchMock: ReturnType<typeof vi.fn>;
+  let restoreFetch: (() => void) | undefined;
 
   beforeEach(() => {
     fetchMock = vi.fn();
-    vi.stubGlobal('fetch', fetchMock);
+    restoreFetch = installFetchMock(fetchMock as unknown as typeof fetch);
   });
 
   afterEach(() => {
-    vi.unstubAllGlobals();
+    restoreFetch?.();
+    restoreFetch = undefined;
   });
 
   it('delegates to fetchTopCoins for category="crypto"', async () => {
@@ -273,6 +336,8 @@ describe('fetchMarketData (category router)', () => {
   it('returns forex mocks with source="mock"', async () => {
     const result = await fetchMarketData('forex');
     expect(result.source).toBe('mock');
+    expect(result.status).toBe('MOCK');
+    expect(result.error).toContain('демонстрационные');
     expect(result.data.length).toBeGreaterThan(0);
     expect(fetchMock).not.toHaveBeenCalled();
   });
@@ -280,7 +345,57 @@ describe('fetchMarketData (category router)', () => {
   it('returns futures mocks with source="mock"', async () => {
     const result = await fetchMarketData('futures');
     expect(result.source).toBe('mock');
+    expect(result.status).toBe('MOCK');
     expect(result.data.length).toBeGreaterThan(0);
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+});
+
+describe('data trust policy', () => {
+  let restoreFetch: (() => void) | undefined;
+
+  afterEach(() => {
+    restoreFetch?.();
+    restoreFetch = undefined;
+  });
+
+  it('maps every source to one canonical status, including reserved cache', () => {
+    expect(dataStatusForSource('api')).toBe('LIVE');
+    expect(dataStatusForSource('cache')).toBe('CACHED');
+    expect(dataStatusForSource('mock')).toBe('MOCK');
+    expect(dataStatusForSource('retry-mock')).toBe('RETRY');
+    expect(dataStatusForSource('unavailable-mock')).toBe('UNAVAILABLE');
+    expect(dataStatusForSource('mixed')).toBe('MIXED');
+    expect(isTrustedDataStatus('LIVE')).toBe(true);
+    expect(isTrustedDataStatus('CACHED')).toBe(true);
+    expect(isTrustedDataStatus('MOCK')).toBe(false);
+    expect(isTrustedDataStatus('RETRY')).toBe(false);
+    expect(isTrustedDataStatus('UNAVAILABLE')).toBe(false);
+    expect(isTrustedDataStatus('MIXED')).toBe(false);
+  });
+
+  it('fails closed when research or paid mode receives synthetic data', async () => {
+    restoreFetch = installFetchMock(vi.fn().mockRejectedValue(new Error('offline')) as unknown as typeof fetch);
+    const result = await fetchTopCoins();
+
+    expect(() => requireTrustedData(result, 'research')).toThrow(UntrustedDataError);
+    expect(() => requireTrustedData(result, 'paid')).toThrow(/LIVE или CACHED/);
+  });
+
+  it('allows live data through research mode', async () => {
+    restoreFetch = installFetchMock(vi.fn().mockResolvedValue(mockJsonResponse([makeCoinPayload('bitcoin')])) as unknown as typeof fetch);
+    const result = await fetchTopCoins();
+
+    expect(requireTrustedData(result, 'research')).toBe(result);
+  });
+
+  it('rejects a forged status that disagrees with the source', async () => {
+    const result = {
+      data: [],
+      source: 'mock' as const,
+      status: 'LIVE' as const,
+      checkedAt: new Date().toISOString(),
+    };
+    expect(() => requireTrustedData(result, 'research')).toThrow(UntrustedDataError);
   });
 });

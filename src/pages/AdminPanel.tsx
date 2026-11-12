@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Shield, Users, Server, Settings, AlertTriangle, Lock, BarChart2, Play, Pause, Trash2, Edit3, Save, Activity, Terminal } from 'lucide-react';
+import { Shield, Users, Server, Settings, AlertTriangle, Lock, BarChart2, Play, Pause, Trash2, Save, Activity, Terminal } from 'lucide-react';
 import { getAllUsers, getSystemConfig, getSystemStats, updateSystemConfig, getSystemLogs, updateUserStatus } from '../services/adminService';
 import { SystemConfig, UserProfile, SystemLog } from '../types';
 import { Link } from 'react-router-dom';
@@ -9,10 +9,12 @@ import { Link } from 'react-router-dom';
 const LoginScreen: React.FC<{ onLogin: () => void }> = ({ onLogin }) => {
   const [pass, setPass] = useState('');
   const [err, setErr] = useState(false);
+  const configuredPassword = import.meta.env.VITE_LOCAL_ADMIN_PASSWORD as string | undefined;
+  const localAdminEnabled = import.meta.env.DEV && Boolean(configuredPassword);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (pass === 'Zeref1997') {
+    if (localAdminEnabled && pass === configuredPassword) {
       onLogin();
     } else {
       setErr(true);
@@ -27,22 +29,28 @@ const LoginScreen: React.FC<{ onLogin: () => void }> = ({ onLogin }) => {
             <Shield className="w-8 h-8 text-brand-500" />
           </div>
         </div>
-        <h2 className="text-2xl font-bold text-center text-white mb-2">System Access</h2>
-        <p className="text-gray-400 text-center mb-6 text-sm">Restricted Area. Authorization Level 5 required.</p>
+        <h2 className="text-2xl font-bold text-center text-white mb-2">Research Admin</h2>
+        <p className="text-gray-400 text-center mb-6 text-sm">
+          {localAdminEnabled ? 'Локальная панель для разработки.' : 'Серверная авторизация ещё не подключена.'}
+        </p>
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
+            <label htmlFor="research-admin-password" className="sr-only">Пароль Research Admin</label>
             <input 
+              id="research-admin-password"
               type="password" 
-              placeholder="Enter Security Key" 
+              placeholder={localAdminEnabled ? 'Локальный пароль' : 'Панель недоступна'}
+              autoComplete="current-password"
               value={pass}
               onChange={e => setPass(e.target.value)}
+              disabled={!localAdminEnabled}
               className="w-full bg-gray-900 border border-gray-700 text-white px-4 py-3 rounded-lg focus:border-brand-500 focus:outline-none transition-colors duration-200 ease-soft"
             />
           </div>
-          {err && <p className="text-red-400 text-xs text-center">Access Denied: Invalid Key</p>}
-          <button className="w-full bg-brand-600 hover:bg-brand-500 text-white font-bold py-3 rounded-lg transition-colors">
-            Authenticate
+          {err && <p role="alert" className="text-red-400 text-xs text-center">Неверный пароль или серверная авторизация ещё не настроена.</p>}
+          <button disabled={!localAdminEnabled} className="w-full bg-brand-600 hover:bg-brand-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-lg transition-colors">
+            Войти в панель
           </button>
           <Link to="/" className="block text-center text-gray-500 text-xs hover:text-white mt-4">Return to Site</Link>
         </form>
@@ -65,7 +73,7 @@ export const AdminPanel: React.FC = () => {
       setUsers(getAllUsers());
       setLogs(getSystemLogs());
       
-      // Live update simulation
+      // Local status refresh
       const interval = setInterval(() => {
         setStats(getSystemStats());
         setLogs(getSystemLogs()); // Poll logs
@@ -92,7 +100,7 @@ export const AdminPanel: React.FC = () => {
       <div className="w-full md:w-64 border-b md:border-b-0 md:border-r border-gray-800 bg-cyber-black/50 flex flex-col">
         <div className="h-16 flex items-center px-6 border-b border-gray-800">
           <Shield className="w-6 h-6 text-red-500 mr-2" />
-          <span className="font-bold tracking-wider">COMMAND</span>
+          <span className="font-bold tracking-wider">RESEARCH ADMIN</span>
         </div>
         
         <nav className="flex-1 p-2 sm:p-4 flex flex-row md:flex-col gap-1 sm:gap-2 overflow-x-auto md:overflow-visible">
@@ -125,7 +133,7 @@ export const AdminPanel: React.FC = () => {
         <div className="p-4 border-t border-gray-800">
           <div className="flex items-center gap-3">
              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-             <span className="text-xs text-gray-500">System Operational</span>
+             <span className="text-xs text-gray-500">Local admin mode</span>
           </div>
           <Link to="/" className="block mt-4 text-xs text-gray-600 hover:text-white">Exit to Main Site</Link>
         </div>
@@ -135,7 +143,7 @@ export const AdminPanel: React.FC = () => {
       <div className="flex-1 overflow-auto">
         <header className="h-16 border-b border-gray-800 bg-cyber-black/20 flex items-center justify-between px-8">
            <h1 className="font-bold text-xl">{activeTab.charAt(0) + activeTab.slice(1).toLowerCase()}</h1>
-           <div className="text-sm text-gray-400">Admin Session: {new Date().toLocaleTimeString()}</div>
+           <div className="text-sm text-gray-400">Local session: {new Date().toLocaleTimeString()}</div>
         </header>
 
         <div className="p-8">
@@ -145,27 +153,27 @@ export const AdminPanel: React.FC = () => {
             <div className="space-y-8">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                  <div className="bg-dark-card border border-gray-800 p-6 rounded-xl">
-                    <h3 className="text-gray-500 text-xs font-bold uppercase mb-2">Total Volume</h3>
-                    <p className="text-2xl font-bold">${(stats.totalVolume / 1e9).toFixed(2)}B</p>
+                    <h3 className="text-gray-500 text-xs font-bold uppercase mb-2">Paper activity</h3>
+                    <p className="text-2xl font-bold">{users.length}</p>
                  </div>
                  <div className="bg-dark-card border border-gray-800 p-6 rounded-xl">
-                    <h3 className="text-gray-500 text-xs font-bold uppercase mb-2">Active Users</h3>
+                    <h3 className="text-gray-500 text-xs font-bold uppercase mb-2">Local profiles</h3>
                     <p className="text-2xl font-bold">{stats.activeUsers.toLocaleString()}</p>
                  </div>
                  <div className="bg-dark-card border border-gray-800 p-6 rounded-xl">
-                    <h3 className="text-gray-500 text-xs font-bold uppercase mb-2">Server Load</h3>
-                    <p className={`text-2xl font-bold ${stats.serverLoad > 80 ? 'text-red-500' : 'text-green-500'}`}>{stats.serverLoad}%</p>
+                    <h3 className="text-gray-500 text-xs font-bold uppercase mb-2">Client load</h3>
+                    <p className="text-2xl font-bold text-green-400">{logs.length}</p>
                  </div>
                  <div className="bg-dark-card border border-gray-800 p-6 rounded-xl">
-                    <h3 className="text-gray-500 text-xs font-bold uppercase mb-2">Market Status</h3>
-                    <p className="text-2xl font-bold text-brand-400">{config.marketVolatility > 1.5 ? 'VOLATILE' : 'STABLE'}</p>
+                    <h3 className="text-gray-500 text-xs font-bold uppercase mb-2">Research mode</h3>
+                    <p className="text-2xl font-bold text-brand-400">PAPER ONLY</p>
                  </div>
               </div>
 
               <div className="bg-dark-card border border-gray-800 rounded-xl p-6">
-                <h2 className="text-lg font-bold mb-4">Live System Activity</h2>
+                <h2 className="text-lg font-bold mb-4">Local activity preview</h2>
                 <div className="h-64 bg-cyber-black/20 rounded-lg flex items-center justify-center border border-gray-800 border-dashed">
-                   <p className="text-gray-600">Real-time Visualization Placeholder</p>
+                   <p className="text-gray-600">Локальный макет визуализации статусов</p>
                 </div>
               </div>
             </div>
@@ -179,8 +187,8 @@ export const AdminPanel: React.FC = () => {
                   <tr className="text-left text-xs font-bold text-gray-500 uppercase">
                     <th className="px-6 py-4">User</th>
                     <th className="px-6 py-4">Status</th>
-                    <th className="px-6 py-4">Balance / Equity</th>
-                    <th className="px-6 py-4">Positions</th>
+                    <th className="px-6 py-4">Paper balance / equity</th>
+                    <th className="px-6 py-4">Paper positions</th>
                     <th className="px-6 py-4 text-right">Actions</th>
                   </tr>
                 </thead>
@@ -204,13 +212,13 @@ export const AdminPanel: React.FC = () => {
                         <div className="text-xs text-gray-500">Eq: ${user.equity.toLocaleString()}</div>
                       </td>
                       <td className="px-6 py-4 text-gray-400">
-                        {user.positions.length} active
+                        {user.positions.length} saved
                       </td>
                       <td className="px-6 py-4 text-right space-x-2">
                          {user.status !== 'BANNED' && (
                            <button 
                               onClick={() => handleUserAction(user.id!, 'BAN')}
-                              className="text-red-500 hover:bg-red-500/10 p-2 rounded" title="Ban User"
+                               className="text-red-500 hover:bg-red-500/10 p-2 rounded" title="Block local profile" aria-label={`Заблокировать профиль ${user.name}`}
                            >
                              <Lock className="w-4 h-4" />
                            </button>
@@ -218,14 +226,11 @@ export const AdminPanel: React.FC = () => {
                          {user.status === 'BANNED' && (
                             <button 
                               onClick={() => handleUserAction(user.id!, 'ACTIVATE')}
-                              className="text-green-500 hover:bg-green-500/10 p-2 rounded" title="Activate User"
+                               className="text-green-500 hover:bg-green-500/10 p-2 rounded" title="Activate local profile" aria-label={`Активировать профиль ${user.name}`}
                            >
                              <Shield className="w-4 h-4" />
                            </button>
                          )}
-                         <button className="text-blue-500 hover:bg-blue-500/10 p-2 rounded" title="Edit Details">
-                           <Edit3 className="w-4 h-4" />
-                         </button>
                       </td>
                     </tr>
                   ))}
@@ -239,12 +244,12 @@ export const AdminPanel: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
                <div className="bg-dark-card border border-gray-800 rounded-xl p-6 space-y-6">
                   <h2 className="text-lg font-bold flex items-center gap-2">
-                     <BarChart2 className="w-5 h-5 text-brand-500" /> Market Control
+                     <BarChart2 className="w-5 h-5 text-brand-500" /> Demo scenario controls
                   </h2>
                   
                   <div>
                      <div className="flex justify-between mb-2">
-                        <label className="text-sm text-gray-400">Market Volatility (Jitter)</label>
+                        <label className="text-sm text-gray-400">Synthetic variation</label>
                         <span className="font-bold">{config.marketVolatility.toFixed(1)}x</span>
                      </div>
                      <input 
@@ -255,17 +260,18 @@ export const AdminPanel: React.FC = () => {
                      />
                      <div className="flex justify-between text-xs text-gray-600 mt-1">
                         <span>Calm</span>
-                        <span>Extreme Chaos</span>
+                        <span>High variance</span>
                      </div>
                   </div>
 
                   <div>
-                     <label className="block text-sm text-gray-400 mb-2">Market Bias</label>
+                     <label className="block text-sm text-gray-400 mb-2">Demo bias</label>
                      <div className="grid grid-cols-3 gap-2">
                         {['BEARISH', 'NEUTRAL', 'BULLISH'].map((b) => (
                            <button
                              key={b}
                              onClick={() => handleConfigUpdate({ marketBias: b as any })}
+                             aria-pressed={config.marketBias === b}
                              className={`py-2 rounded text-xs font-bold transition-colors ${
                                config.marketBias === b 
                                ? 'bg-brand-600 text-white' 
@@ -286,11 +292,13 @@ export const AdminPanel: React.FC = () => {
 
                   <div className="flex items-center justify-between p-4 bg-gray-900/50 rounded-lg border border-gray-800">
                      <div>
-                        <div className="font-bold">Maintenance Mode</div>
-                        <div className="text-xs text-gray-500">Disables trading and logins</div>
+                        <div className="font-bold">Local demo pause</div>
+                        <div className="text-xs text-gray-500">Stops local demo access</div>
                      </div>
                      <button 
                        onClick={() => handleConfigUpdate({ maintenanceMode: !config.maintenanceMode })}
+                        aria-pressed={config.maintenanceMode}
+                        aria-label="Поставить локальную демо-панель на паузу"
                        className={`w-12 h-6 rounded-full p-1 transition-colors ${config.maintenanceMode ? 'bg-red-500' : 'bg-gray-600'}`}
                      >
                        <div className={`w-4 h-4 bg-white rounded-full transition-transform ${config.maintenanceMode ? 'translate-x-6' : 'translate-x-0'}`}></div>
@@ -299,11 +307,13 @@ export const AdminPanel: React.FC = () => {
 
                   <div className="flex items-center justify-between p-4 bg-gray-900/50 rounded-lg border border-gray-800">
                      <div>
-                        <div className="font-bold">Allow Registrations</div>
-                        <div className="text-xs text-gray-500">New user signups</div>
+                        <div className="font-bold">Allow local profiles</div>
+                        <div className="text-xs text-gray-500">New browser profiles</div>
                      </div>
                      <button 
                        onClick={() => handleConfigUpdate({ allowRegistrations: !config.allowRegistrations })}
+                        aria-pressed={config.allowRegistrations}
+                        aria-label="Разрешить локальные профили"
                        className={`w-12 h-6 rounded-full p-1 transition-colors ${config.allowRegistrations ? 'bg-green-500' : 'bg-gray-600'}`}
                      >
                        <div className={`w-4 h-4 bg-white rounded-full transition-transform ${config.allowRegistrations ? 'translate-x-6' : 'translate-x-0'}`}></div>

@@ -6,21 +6,82 @@ const API_URL = 'https://api.coingecko.com/api/v3';
 
 /**
  * Where the data in a ServiceResponse came from. Allows the UI to show a
- * LIVE/MOCK/RETRY badge and makes test assertions deterministic — no more
+ * LIVE/CACHED/MOCK/RETRY/UNAVAILABLE badge and makes test assertions deterministic — no more
  * "did this come from the real API or not?" guessing.
  */
 export type DataSource =
   /** Real data fetched from upstream API on the current call. */
   | 'api'
+  /** Data restored from a verified local/provider cache (reserved for a future cache layer). */
+  | 'cache'
   /** Mock data: non-crypto assets (forex/futures) which have no real API yet. */
   | 'mock'
   /** Mock data: we tried the real API, it failed transiently, retry exhausted. */
-  | 'retry-mock';
+  | 'retry-mock'
+  /** Mock data: the upstream returned a non-retryable response. */
+  | 'unavailable-mock'
+  /** A response deliberately combining live crypto data with demo assets. */
+  | 'mixed';
+
+/** Canonical status for user-facing data trust badges and paid-mode gates. */
+export type DataStatus = 'LIVE' | 'CACHED' | 'MOCK' | 'RETRY' | 'UNAVAILABLE' | 'MIXED';
+
+export function dataStatusForSource(source: DataSource): DataStatus {
+  if (source === 'api') return 'LIVE';
+  if (source === 'cache') return 'CACHED';
+  if (source === 'mock') return 'MOCK';
+  if (source === 'unavailable-mock') return 'UNAVAILABLE';
+  if (source === 'mixed') return 'MIXED';
+  return 'RETRY';
+}
+
+export type DataUseMode = 'research' | 'paid';
+
+export const isTrustedDataStatus = (status: DataStatus): boolean =>
+  status === 'LIVE' || status === 'CACHED';
+
+export class UntrustedDataError extends Error {
+  readonly code = 'UNTRUSTED_DATA';
+
+  constructor(
+    readonly status: DataStatus,
+    readonly mode: DataUseMode,
+  ) {
+    super(`Источник данных ${status} нельзя использовать в режиме ${mode}. Нужны LIVE или CACHED данные.`);
+    this.name = 'UntrustedDataError';
+  }
+}
 
 export interface ServiceResponse<T> {
   data: T;
   error?: string;
   source: DataSource;
+  /** Canonical status; `source` remains for backwards compatibility. */
+  status: DataStatus;
+  /** Time when this response was assembled, not a claim about mock freshness. */
+  checkedAt: string;
+}
+
+function serviceResponse<T>(data: T, source: DataSource, error?: string): ServiceResponse<T> {
+  return {
+    data,
+    ...(error ? { error } : {}),
+    source,
+    status: dataStatusForSource(source),
+    checkedAt: new Date().toISOString(),
+  };
+}
+
+/**
+ * Fail closed for research and paid workflows. Callers must opt in explicitly;
+ * ordinary browsing can continue to display clearly labelled demo data.
+ */
+export function requireTrustedData<T>(result: ServiceResponse<T>, mode: DataUseMode): ServiceResponse<T> {
+  const canonicalStatus = dataStatusForSource(result.source);
+  if (result.status !== canonicalStatus || !isTrustedDataStatus(canonicalStatus)) {
+    throw new UntrustedDataError(canonicalStatus, mode);
+  }
+  return result;
 }
 
 /**
@@ -74,11 +135,10 @@ const applyLiveJitter = (coins: CoinData[]): CoinData[] => {
   });
 };
 
-// --- OHLC GENERATOR FOR TRADINGVIEW CHARTS ---
-export const fetchCoinHistory = async (coinId: string, timeframe: Timeframe, currentPrice: number): Promise<CandleData[]> => {
-  // Simulate API delay
-  await new Promise(r => setTimeout(r, 400));
+// --- OHLC HISTORY FOR TRADINGVIEW CHARTS ---
+const historyDays: Record<Timeframe, number> = { '1H': 1, '1D': 1, '1W': 7, '1M': 30, '1Y': 365 };
 
+const createSyntheticHistory = (timeframe: Timeframe, currentPrice: number): CandleData[] => {
   const candles: CandleData[] = [];
   const now = Math.floor(Date.now() / 1000); // unix timestamp in seconds
   let pointsCount = 100;
@@ -151,6 +211,40 @@ export const fetchCoinHistory = async (coinId: string, timeframe: Timeframe, cur
   }
 
   return candles;
+};
+
+const mapMarketChartToCandles = (prices: unknown, timeframe: Timeframe): CandleData[] => {
+  if (!Array.isArray(prices)) return [];
+  return prices
+    .filter((point): point is [number, number] => Array.isArray(point) && point.length >= 2 && Number.isFinite(point[0]) && Number.isFinite(point[1]) && point[1] > 0)
+    .map(([timestamp, close], index, points) => {
+      const previous = points[index - 1]?.[1] ?? close;
+      const next = points[index + 1]?.[1] ?? close;
+      const open = previous;
+      const high = Math.max(open, close, next);
+      const low = Math.min(open, close, next);
+      const originalTime = timestamp;
+      const time = timeframe === '1Y'
+        ? new Date(timestamp).toISOString().slice(0, 10)
+        : String(Math.floor(timestamp / 1000));
+      return { originalTime, time, open, high, low, close };
+    });
+};
+
+export const fetchCoinHistory = async (coinId: string, timeframe: Timeframe, currentPrice: number): Promise<ServiceResponse<CandleData[]>> => {
+  const endpoint = `${API_URL}/coins/${encodeURIComponent(coinId)}/market_chart?vs_currency=usd&days=${historyDays[timeframe]}`;
+  try {
+    const response = await fetchWithRetry(endpoint);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const payload = await response.json() as { prices?: unknown };
+    const candles = mapMarketChartToCandles(payload.prices, timeframe);
+    if (candles.length < 2) throw new Error('Исторические данные имеют недостаточную длину');
+    return serviceResponse(candles, 'api');
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Исторические данные недоступны';
+    const source: DataSource = /^HTTP 4\d\d/.test(message) ? 'unavailable-mock' : 'retry-mock';
+    return serviceResponse(createSyntheticHistory(timeframe, currentPrice), source, message);
+  }
 };
 
 
@@ -273,12 +367,12 @@ export const fetchMarketData = async (category: AssetCategory): Promise<ServiceR
     return fetchTopCoins();
   } else if (category === 'forex') {
     await new Promise(r => setTimeout(r, 600));
-    return { data: applyLiveJitter(MOCK_FOREX), source: 'mock' };
+    return serviceResponse(applyLiveJitter(MOCK_FOREX), 'mock', 'Для Forex пока используются демонстрационные данные.');
   } else if (category === 'futures') {
     await new Promise(r => setTimeout(r, 600));
-    return { data: applyLiveJitter(MOCK_FUTURES), source: 'mock' };
+    return serviceResponse(applyLiveJitter(MOCK_FUTURES), 'mock', 'Для фьючерсов пока используются демонстрационные данные.');
   }
-  return { data: [], source: 'mock' };
+  return serviceResponse([], 'mock', 'Источник данных для этой категории не настроен.');
 };
 
 export const fetchTopCoins = async (): Promise<ServiceResponse<CoinData[]>> => {
@@ -289,27 +383,30 @@ export const fetchTopCoins = async (): Promise<ServiceResponse<CoinData[]>> => {
 
     if (!response.ok) {
       console.warn(`CoinGecko API ${response.status}, using mock data.`);
-      return {
-        data: applyLiveJitter(MOCK_COINS),
-        error: 'Рыночные данные временно недоступны. Показаны кешированные данные.',
-        source: 'retry-mock',
-      };
+      const fallbackSource: DataSource = response.status === 429 || response.status >= 500 ? 'retry-mock' : 'unavailable-mock';
+      return serviceResponse(
+        applyLiveJitter(MOCK_COINS),
+        fallbackSource,
+        fallbackSource === 'retry-mock'
+          ? 'Рыночные данные временно недоступны. Показан демонстрационный набор, а не кеш биржи.'
+          : `Провайдер вернул HTTP ${response.status}. Показан демонстрационный набор, а не кеш биржи.`,
+      );
     }
 
     const data = await response.json();
-    return {
-      data: data
+    return serviceResponse(
+      data
         .filter((c: any) => c.current_price != null)
         .map((c: any) => sanitizeCoin({ ...c, category: 'crypto' })),
-      source: 'api',
-    };
+      'api',
+    );
   } catch (error) {
     console.error('Failed to fetch coins:', error);
-    return {
-      data: applyLiveJitter(MOCK_COINS),
-      error: 'Ошибка сети. Показаны кешированные данные.',
-      source: 'retry-mock',
-    };
+    return serviceResponse(
+      applyLiveJitter(MOCK_COINS),
+      'retry-mock',
+      'Ошибка сети. Показан демонстрационный набор, а не кеш биржи.',
+    );
   }
 };
 
@@ -317,44 +414,46 @@ export const fetchCoinDetails = async (id: string, category: AssetCategory = 'cr
   // Handle non-crypto assets using mock data
   if (category === 'forex') {
     const asset = MOCK_FOREX.find(a => a.id === id);
-    return { data: asset ? applyLiveJitter([asset])[0] : null, source: 'mock' };
+    return serviceResponse(asset ? applyLiveJitter([asset])[0] : null, 'mock', 'Для Forex пока используются демонстрационные данные.');
   }
   if (category === 'futures') {
     const asset = MOCK_FUTURES.find(a => a.id === id);
-    return { data: asset ? applyLiveJitter([asset])[0] : null, source: 'mock' };
+    return serviceResponse(asset ? applyLiveJitter([asset])[0] : null, 'mock', 'Для фьючерсов пока используются демонстрационные данные.');
   }
 
   // Existing Crypto logic
   try {
     const response = await fetchWithRetry(
-      `${API_URL}/coins/markets?vs_currency=usd&ids=${id}&sparkline=true&price_change_percentage=24h`,
+      `${API_URL}/coins/markets?vs_currency=usd&ids=${encodeURIComponent(id)}&sparkline=true&price_change_percentage=24h`,
     );
     if (!response.ok) {
       const mock = MOCK_COINS.find(c => c.id === id);
-      return {
-        data: mock ? applyLiveJitter([mock])[0] : null,
-        error: mock ? 'Детали недоступны. Используется кеш.' : 'Не удалось получить детали.',
-        source: 'retry-mock',
-      };
+      const fallbackSource: DataSource = response.status === 429 || response.status >= 500 ? 'retry-mock' : 'unavailable-mock';
+      return serviceResponse(
+        mock ? applyLiveJitter([mock])[0] : null,
+        fallbackSource,
+        mock
+          ? fallbackSource === 'retry-mock'
+            ? 'Детали временно недоступны. Показан демонстрационный набор.'
+            : `Провайдер вернул HTTP ${response.status}. Показан демонстрационный набор.`
+          : 'Не удалось получить детали.',
+      );
     }
     const data = await response.json();
-    return {
-      data: data[0] ? sanitizeCoin({ ...data[0], category: 'crypto' }) : null,
-      source: 'api',
-    };
+    return serviceResponse(data[0] ? sanitizeCoin({ ...data[0], category: 'crypto' }) : null, 'api');
   } catch (error) {
     console.error('Error fetching detail:', error);
     const mock = MOCK_COINS.find(c => c.id === id);
-    return {
-      data: mock ? applyLiveJitter([mock])[0] : null,
-      error: mock ? 'Ошибка сети. Используется кеш.' : 'Не удалось подключиться к провайдеру данных.',
-      source: 'retry-mock',
-    };
+    return serviceResponse(
+      mock ? applyLiveJitter([mock])[0] : null,
+      'retry-mock',
+      mock ? 'Ошибка сети. Показан демонстрационный набор.' : 'Не удалось подключиться к провайдеру данных.',
+    );
   }
 };
 
 export const fetchFavoriteCoins = async (ids: string[]): Promise<ServiceResponse<CoinData[]>> => {
-  if (ids.length === 0) return { data: [], source: 'api' };
+  if (ids.length === 0) return serviceResponse([], 'api');
 
   // Filter mock non-crypto assets first
   const nonCryptoFavorites = [
@@ -366,44 +465,50 @@ export const fetchFavoriteCoins = async (ids: string[]): Promise<ServiceResponse
   const cryptoIds = ids.filter(id => !nonCryptoFavorites.find(nc => nc.id === id));
 
   if (cryptoIds.length === 0) {
-    return { data: applyLiveJitter(nonCryptoFavorites), source: 'mock' };
+    return serviceResponse(applyLiveJitter(nonCryptoFavorites), 'mock', 'В избранном только активы с демонстрационными данными.');
   }
 
   try {
     const response = await fetchWithRetry(
-      `${API_URL}/coins/markets?vs_currency=usd&ids=${cryptoIds.join(',')}&order=market_cap_desc&sparkline=true&price_change_percentage=24h`,
+      `${API_URL}/coins/markets?vs_currency=usd&ids=${encodeURIComponent(cryptoIds.join(','))}&order=market_cap_desc&sparkline=true&price_change_percentage=24h`,
     );
 
     if (!response.ok) {
-      return {
-        data: applyLiveJitter([
+      const fallbackSource: DataSource = response.status === 429 || response.status >= 500 ? 'retry-mock' : 'unavailable-mock';
+      return serviceResponse(
+        applyLiveJitter([
           ...nonCryptoFavorites,
           ...MOCK_COINS.filter(c => cryptoIds.includes(c.id)),
         ]),
-        error: 'Не удалось обновить избранное. Показан кеш.',
-        source: 'retry-mock',
-      };
+        fallbackSource,
+        fallbackSource === 'retry-mock'
+          ? 'Не удалось обновить избранное. Показан демонстрационный набор.'
+          : `Провайдер вернул HTTP ${response.status}. Показан демонстрационный набор.`,
+      );
     }
 
     const data = await response.json();
-    return {
-      data: [
+    return serviceResponse(
+      [
         ...applyLiveJitter(nonCryptoFavorites),
         ...data
           .filter((c: any) => c.current_price != null)
           .map((c: any) => sanitizeCoin({ ...c, category: 'crypto' })),
       ],
-      source: 'api',
-    };
+      nonCryptoFavorites.length > 0 ? 'mixed' : 'api',
+      nonCryptoFavorites.length > 0
+        ? 'Избранное объединяет LIVE-криптоактивы и демонстрационные Forex/Futures.'
+        : undefined,
+    );
   } catch (error) {
     console.error('Failed to fetch favorite coins:', error);
-    return {
-      data: applyLiveJitter([
+    return serviceResponse(
+      applyLiveJitter([
         ...nonCryptoFavorites,
         ...MOCK_COINS.filter(c => cryptoIds.includes(c.id)),
       ]),
-      error: 'Ошибка соединения. Показан кеш.',
-      source: 'retry-mock',
-    };
+      'retry-mock',
+      'Ошибка соединения. Показан демонстрационный набор.',
+    );
   }
 };

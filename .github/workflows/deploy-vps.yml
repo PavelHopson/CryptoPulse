@@ -1,11 +1,12 @@
 name: Deploy to VPS (eclipse-forge.ru)
 
 # Сборка фронта + rsync dist на VPS (Caddy отдаёт /var/www/cryptopulse).
-# Секреты: VPS_SSH_KEY (deploy-ключ), VPS_HOST, VPS_USER, VPS_PATH.
+# Секреты: VPS_SSH_KEY (deploy-ключ), VPS_SSH_KNOWN_HOSTS, VPS_HOST, VPS_USER, VPS_PATH.
 
 on:
-  push:
-    branches: [main]
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
   workflow_dispatch:
 
 permissions:
@@ -69,29 +70,52 @@ jobs:
       cancel-in-progress: true
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          # CI-gated deploys must build exactly the SHA that the completed CI run tested.
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version: 20
           cache: npm
 
       - name: Install dependencies
         run: |
-          if [ -f package-lock.json ]; then npm ci; else npm install; fi
+          if [ ! -f package-lock.json ]; then
+            echo 'package-lock.json is required for deploy' >&2
+            exit 1
+          fi
+          npm ci
 
       - name: Build
         run: npm run build
 
       - name: Setup SSH
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_SSH_KNOWN_HOSTS: ${{ secrets.VPS_SSH_KNOWN_HOSTS }}
         run: |
           mkdir -p ~/.ssh
           printf '%s\n' "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_deploy
           chmod 600 ~/.ssh/id_deploy
-          ssh-keyscan -H "${{ secrets.VPS_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
+          if [ -z "${VPS_HOST:-}" ]; then
+            echo 'VPS_HOST is required' >&2
+            exit 1
+          fi
+          if [ -z "${VPS_SSH_KNOWN_HOSTS:-}" ]; then
+            echo 'VPS_SSH_KNOWN_HOSTS is required' >&2
+            exit 1
+          fi
+          printf '%s\n' "$VPS_SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+          if [ ! -s ~/.ssh/known_hosts ] || ! ssh-keygen -F "$VPS_HOST" -f ~/.ssh/known_hosts >/dev/null 2>&1; then
+            echo 'VPS_SSH_KNOWN_HOSTS has no key for VPS_HOST' >&2
+            exit 1
+          fi
 
       - name: Deploy dist via rsync
         run: |
           rsync -avz --delete \
-            -e "ssh -i ~/.ssh/id_deploy -o StrictHostKeyChecking=no" \
+            -e "ssh -i ~/.ssh/id_deploy -o StrictHostKeyChecking=yes -o UserKnownHostsFile=~/.ssh/known_hosts" \
             dist/ "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${{ secrets.VPS_PATH }}/"

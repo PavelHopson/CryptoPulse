@@ -1,12 +1,12 @@
 # ADR 0001 — Client-only architecture (no backend server)
 
-**Status:** Accepted
+**Status:** Accepted for the default client mode; superseded for server-backed commercial capabilities
 **Date:** 2026-04-16
 **Deciders:** Project lead
 
 ## Context
 
-CryptoPulse 2077 is a crypto / markets analytics product. In one UI it
+CryptoPulse Research Lab is a crypto / markets analytics product. In one UI it
 brings together:
 
 - real-time market data (price tickers, candles, order books)
@@ -77,9 +77,9 @@ ORM, no server SDK.
 
 ### Positive
 
-- **Zero recurring infra cost.** Cloudflare Pages static hosting + one
-  Cloudflare Worker fit comfortably inside free tiers. The product
-  costs $0 / month to keep online.
+- **Low initial infra cost.** Cloudflare Pages static hosting + one
+  Cloudflare Worker keep the first deployment small, but quotas and
+  current provider pricing must be checked before making a cost claim.
 - **Instant deploys.** `vite build` + Pages push in under a minute.
   No BE migrations, no rolling restarts.
 - **Nothing to breach.** We do not hold user data on a server. There is
@@ -161,3 +161,15 @@ rest of the client-only architecture intact.
   framework
 - Hosting: Cloudflare Pages (SPA) + Cloudflare Workers (news)
 - Related: `ARCHITECTURE.md`
+
+## Addendum — Research Lab commercial boundary (2026-11-12)
+
+The original decision remains the default for the public/demo SPA: local
+profiles, paper state and client AI are still available without provisioning a
+backend. It no longer describes the complete commercial target. The separate
+`workers/research-api/` Worker is the planned server boundary for real identity,
+saved research runs, usage accounting and server-side AI. It is intentionally
+not enabled or deployed until its D1, identity session, CSRF, rate-limit and
+upstream gateway smoke checks pass. This keeps the zero-infrastructure demo
+path intact while removing the old assumption that production accounts could
+remain local-only.

@@ -34,6 +34,23 @@ function mockJsonResponse(body: unknown, status = 200): Response {
   } as unknown as Response;
 }
 
+type TestGlobalScope = typeof globalThis & {
+  window?: { location: { origin: string } };
+};
+
+function installBrowserGlobals(fetchMock: typeof fetch): () => void {
+  const scope = globalThis as TestGlobalScope;
+  const previousFetch = scope.fetch;
+  const previousWindow = scope.window;
+  scope.fetch = fetchMock;
+  scope.window = { location: { origin: 'https://cryptopulse.test' } };
+  return () => {
+    scope.fetch = previousFetch;
+    if (previousWindow === undefined) Reflect.deleteProperty(scope, 'window');
+    else scope.window = previousWindow;
+  };
+}
+
 describe('aiService.getActiveProvider', () => {
   beforeEach(() => {
     setProfile(undefined);
@@ -56,17 +73,18 @@ describe('aiService.getActiveProvider', () => {
 
 describe('aiService.generateCoinAnalysis — provider dispatch', () => {
   let fetchMock: ReturnType<typeof vi.fn>;
+  let restoreGlobals: (() => void) | undefined;
 
   beforeEach(() => {
     fetchMock = vi.fn();
-    vi.stubGlobal('fetch', fetchMock);
-    vi.stubGlobal('window', { location: { origin: 'https://cryptopulse.test' } });
+    restoreGlobals = installBrowserGlobals(fetchMock as unknown as typeof fetch);
     generateContentMock.mockReset();
     setProfile(undefined);
   });
 
   afterEach(() => {
-    vi.unstubAllGlobals();
+    restoreGlobals?.();
+    restoreGlobals = undefined;
   });
 
   it('returns "not configured" message when no API key and provider is not ollama', async () => {
@@ -104,7 +122,7 @@ describe('aiService.generateCoinAnalysis — provider dispatch', () => {
     expect(body.messages[0].role).toBe('user');
   });
 
-  it('surfaces the OpenAI error message on non-ok responses', async () => {
+  it('redacts provider error details on non-ok responses', async () => {
     setProfile({ provider: 'openai', apiKey: 'sk-bad', model: 'gpt-4o-mini' });
     fetchMock.mockResolvedValueOnce(
       mockJsonResponse({ error: { message: 'Invalid API key' } }, 401),
@@ -112,7 +130,7 @@ describe('aiService.generateCoinAnalysis — provider dispatch', () => {
 
     const result = await generateCoinAnalysis('Bitcoin', 50000, 2.5);
     expect(result).toContain('Ошибка AI');
-    expect(result).toContain('Invalid API key');
+    expect(result).not.toContain('Invalid API key');
   });
 
   it('routes to Anthropic /v1/messages when provider=anthropic', async () => {
@@ -198,7 +216,7 @@ describe('aiService.generateCoinAnalysis — provider dispatch', () => {
     expect(body.model).toBe('nvidia/llama-3.3-nemotron-super-49b-v1');
   });
 
-  it('surfaces NVIDIA NIM errors via the error.message field', async () => {
+  it('redacts NVIDIA NIM error details', async () => {
     setProfile({
       provider: 'nvidia',
       apiKey: 'nvapi-bad',
@@ -210,10 +228,10 @@ describe('aiService.generateCoinAnalysis — provider dispatch', () => {
 
     const result = await generateCoinAnalysis('Bitcoin', 50000, 2.5);
     expect(result).toContain('Ошибка AI');
-    expect(result).toContain('Quota exceeded');
+    expect(result).not.toContain('Quota exceeded');
   });
 
-  it('falls back to `detail` field when NVIDIA NIM returns it', async () => {
+  it('redacts NVIDIA NIM detail responses', async () => {
     setProfile({
       provider: 'nvidia',
       apiKey: 'nvapi-bad',
@@ -224,47 +242,45 @@ describe('aiService.generateCoinAnalysis — provider dispatch', () => {
     );
 
     const result = await generateCoinAnalysis('Bitcoin', 50000, 2.5);
-    expect(result).toContain('Model offline');
+    expect(result).toContain('Ошибка AI');
+    expect(result).not.toContain('Model offline');
   });
 
-  it('respects a custom NVIDIA NIM baseUrl (self-hosted)', async () => {
+  it('rejects a custom NVIDIA NIM baseUrl before sending the key', async () => {
     setProfile({
       provider: 'nvidia',
       apiKey: 'nvapi-test',
       model: 'nvidia/llama-3.3-nemotron-super-49b-v1',
       baseUrl: 'https://self-hosted-nim.example.com/v1//',
     });
-    fetchMock.mockResolvedValueOnce(
-      mockJsonResponse({ choices: [{ message: { content: 'custom' } }] }),
-    );
-
-    await generateCoinAnalysis('Bitcoin', 50000, 2.5);
-    expect(fetchMock.mock.calls[0][0]).toBe(
-      'https://self-hosted-nim.example.com/v1/chat/completions',
-    );
+    const result = await generateCoinAnalysis('Bitcoin', 50000, 2.5);
+    expect(result).toContain('Ошибка AI');
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });
 
 describe('aiService.generateCoinAnalysis — prompt construction', () => {
   let fetchMock: ReturnType<typeof vi.fn>;
+  let restoreGlobals: (() => void) | undefined;
 
   beforeEach(() => {
     fetchMock = vi.fn().mockResolvedValue(
       mockJsonResponse({ choices: [{ message: { content: 'ok' } }] }),
     );
-    vi.stubGlobal('fetch', fetchMock);
+    restoreGlobals = installBrowserGlobals(fetchMock as unknown as typeof fetch);
     setProfile({ provider: 'openai', apiKey: 'sk-test', model: 'gpt-4o-mini' });
   });
 
   afterEach(() => {
-    vi.unstubAllGlobals();
+    restoreGlobals?.();
+    restoreGlobals = undefined;
   });
 
-  it('includes bullish sentiment for change24h > 1.5', async () => {
+  it('includes a positive movement context for change24h > 1.5', async () => {
     await generateCoinAnalysis('Bitcoin', 50000, 5);
     const body = JSON.parse(fetchMock.mock.calls[0][1].body);
     const prompt: string = body.messages[0].content;
-    expect(prompt).toContain('бычий импульс');
+    expect(prompt).toContain('сильное положительное движение');
   });
 
   it('includes moderate-growth sentiment for 0 < change24h <= 1.5', async () => {
@@ -273,10 +289,10 @@ describe('aiService.generateCoinAnalysis — prompt construction', () => {
     expect(prompt).toContain('умеренный рост');
   });
 
-  it('includes seller-pressure sentiment for change24h < -1.5', async () => {
+  it('includes a negative movement context for change24h < -1.5', async () => {
     await generateCoinAnalysis('Bitcoin', 50000, -3);
     const prompt: string = JSON.parse(fetchMock.mock.calls[0][1].body).messages[0].content;
-    expect(prompt).toContain('давлением продавцов');
+    expect(prompt).toContain('сильным давлением');
   });
 
   it('includes asset name and price in the prompt', async () => {
@@ -287,11 +303,11 @@ describe('aiService.generateCoinAnalysis — prompt construction', () => {
     expect(prompt).toContain('1.2%');
   });
 
-  it('includes the skeptical risk/confidence guardrail (no overconfident calls)', async () => {
+  it('includes the research risk guardrail (no overconfident calls)', async () => {
     await generateCoinAnalysis('Bitcoin', 50000, 2.5);
     const prompt: string = JSON.parse(fetchMock.mock.calls[0][1].body).messages[0].content;
-    expect(prompt).toContain('Уверенность и риск');
-    expect(prompt).toContain('overconfident');
+    expect(prompt).toContain('рынок непредсказуем');
+    expect(prompt).toContain('не индивидуальная инвестиционная рекомендация');
     expect(prompt).toContain('DYOR');
   });
 });

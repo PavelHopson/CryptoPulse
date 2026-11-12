@@ -1,6 +1,7 @@
 
 import { WalletState } from '../types';
 
+// Legacy local-only Web3 state. Not connected to deposits, trading or production auth.
 const STORAGE_KEY_WALLET = 'cryptopulse_wallet_v1';
 
 const INITIAL_STATE: WalletState = {

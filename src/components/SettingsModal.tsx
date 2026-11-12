@@ -141,12 +141,12 @@ export const SettingsModal: React.FC<Props> = ({ isOpen, onClose, onUpdate }) =>
   };
 
   const handleReset = () => {
-    if (confirm("Вы уверены? Это действие удалит всю историю торгов и вернет демо-баланс к $100k. Это нельзя отменить.")) {
+    if (confirm("Вы уверены? Это действие удалит локальные paper-сценарии и вернет учебное состояние аккаунта. Это нельзя отменить.")) {
       resetAccount();
       window.dispatchEvent(new Event('userUpdated'));
       onUpdate();
       onClose();
-      alert("Аккаунт сброшен.");
+      alert("Учебное состояние аккаунта сброшено.");
     }
   };
 

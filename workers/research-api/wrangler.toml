@@ -1,0 +1,29 @@
+name = "cryptopulse-research-api"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+
+# Fill the database_id only after creating the production D1 database.
+[[d1_databases]]
+binding = "DB"
+database_name = "cryptopulse-research"
+database_id = "REPLACE_AFTER_CREATE"
+
+# Rate limiting is deliberately fail-closed for /v1/ai when this binding is absent.
+[[kv_namespaces]]
+binding = "RATE_LIMIT_KV"
+id = "REPLACE_AFTER_CREATE"
+
+[vars]
+CORS_ORIGINS = "https://cryptopulse.example"
+AI_GATEWAY_ORIGINS = "https://ai-gateway.example"
+AI_ALLOWED_PROVIDERS = "gemini,openai,anthropic"
+AI_ALLOWED_MODELS = ""
+
+# For production, create a Cloudflare Rate Limiting binding and set its
+# namespace/configuration here. RATE_LIMIT_KV remains a local/reference
+# fallback and is not atomic under concurrent requests.
+# [[unsafe.bindings]]
+# name = "RATE_LIMITER"
+# type = "ratelimit"
+# namespace_id = "REPLACE_AFTER_CREATE"
+# simple = { limit = 30, period = 60 }

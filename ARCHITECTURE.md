@@ -1,6 +1,10 @@
 # Architecture
 
-CryptoPulse 2077 is a **client-only** fintech SPA. There is no traditional backend — state lives in browser storage, and external services are reached directly or via lightweight Cloudflare Workers.
+CryptoPulse Research Lab is a **client-first** research SPA with an explicit,
+separately deployed server boundary for commercial capabilities. The default
+release still keeps state in browser storage; `workers/research-api/` is a
+fail-closed reference for real accounts, shared research and server AI requests
+and is not enabled by default.
 
 This document describes the three layers that matter for understanding how data flows through the app, and the engineering decisions that shape them.
 
@@ -16,6 +20,7 @@ flowchart LR
 
     Services --> CoinGecko[CoinGecko API]
     Services --> CFW[Cloudflare Worker<br/>cryptopulse-news]
+    Services -. future authenticated mode .-> RAPI[Cloudflare Worker<br/>cryptopulse-research-api]
     Services --> RSS[rss2json → investing.com]
     Services --> AI{AI providers}
 
@@ -28,6 +33,9 @@ flowchart LR
 
     UI <--> LS[(localStorage: non-secret profile and paper state)]
     UI <--> SS[(sessionStorage: tab session and user API key)]
+    RAPI --> D1[(D1: research runs + usage ledger)]
+    RAPI --> IDP[Eclipse identity session]
+    RAPI --> AIG[Private AI gateway]
 ```
 
 ### Layer responsibilities
@@ -58,13 +66,13 @@ sequenceDiagram
     alt 200 OK
         CG-->>FR: JSON payload
         FR-->>CS: Response
-        CS-->>UI: { data, source: 'api' }
+        CS-->>UI: { data, source: 'api', status: 'LIVE', checkedAt }
     else 429 / 5xx
         CG-->>FR: HTTP error
         FR->>CG: retry attempt 2 (backoff)
         FR->>CG: retry attempt 3 (backoff)
         FR-->>CS: RetryError
-        CS-->>UI: { data: applyLiveJitter(MOCK_COINS), error: '...', source: 'retry-mock' }
+        CS-->>UI: { data: MOCK_COINS, error: '...', source: 'retry-mock', status: 'RETRY', checkedAt }
     end
 ```
 
@@ -75,12 +83,15 @@ Every `ServiceResponse<T>` carries a required `source: DataSource` field:
 | source | Meaning | Typical UI badge |
 |---|---|---|
 | `'api'` | Real data from the upstream API on the current call | 🟢 LIVE |
+| `'cache'` | Verified local/provider cache (reserved for the cache layer) | 🔵 CACHED |
 | `'mock'` | Built-in static data (forex/futures have no real API yet) | ⚪ MOCK |
 | `'retry-mock'` | Real API was tried, retry exhausted, fell back to mocks | 🟡 RETRY |
+| `'unavailable-mock'` | Upstream returned a non-retryable error; mock data is shown explicitly | 🔴 UNAVAILABLE |
+| `'mixed'` | Live crypto data is combined with explicit demo rows for another market class | 🟡 MIXED SOURCES |
 
 Why this matters:
 - Previously, callers couldn't distinguish "live BTC price" from "cached mock fallback" — both looked the same. That's a classic silent-fallback antipattern.
-- With `source`, the UI can render a badge, tests can assert deterministically, and telemetry can report real API availability separately from cache hits.
+- With `source`, `status` and `checkedAt`, the UI can render a badge, tests can assert deterministically, and telemetry can report real API availability separately from cache or demo data.
 
 ### Retry strategy
 
@@ -103,9 +114,9 @@ flowchart TD
     Entry[generateCoinAnalysis] --> Config[getAIConfig]
     Config --> Profile{User profile<br/>has AI config?}
     Profile -->|yes| UseProfile[Use profile.preferences.ai]
-    Profile -->|no| EnvFallback[Use env API_KEY + gemini]
+    Profile -->|no| NoKey[No client key; show setup state]
     UseProfile --> Dispatch[PROVIDERS[config.provider]]
-    EnvFallback --> Dispatch
+    NoKey --> Dispatch
     Dispatch --> G[callGemini]
     Dispatch --> O[callOpenAI]
     Dispatch --> A[callAnthropic]
@@ -114,24 +125,30 @@ flowchart TD
     Dispatch --> N[callNvidia]
 ```
 
+Provider keys are session-scoped in client mode. The browser bundle has no
+`GEMINI_API_KEY` fallback. The `aiGateway` boundary keeps client adapters
+separate from the server transport, strips credentials from server payloads,
+uses a credentialed session/CSRF boundary for future server mode, rejects
+untrusted endpoints, and returns redacted errors.
+
 ### Supported providers
 
-| Provider | Endpoint | Auth | Free tier | Notes |
+| Provider | Endpoint | Auth | Availability | Notes |
 |---|---|---|---|---|
-| **Google Gemini** | via `@google/genai` SDK | API key | Yes (AI Studio) | Default fallback; loads SDK dynamically |
+| **Google Gemini** | via `@google/genai` SDK | API key | Depends on account | Default fallback; loads SDK dynamically |
 | **OpenAI** | `api.openai.com/v1/chat/completions` | Bearer | No | Standard Chat Completions |
 | **Anthropic Claude** | `api.anthropic.com/v1/messages` | `x-api-key` | No | Requires `anthropic-dangerous-direct-browser-access` |
 | **OpenRouter** | `openrouter.ai/api/v1/chat/completions` | Bearer | Partial | Routes through 100+ models; requires `HTTP-Referer` |
 | **Ollama (local)** | `localhost:11434/api/generate` | None | Fully local | Appends uncensored-mode preamble for abliterated/huihui models |
-| **NVIDIA NIM** | `integrate.api.nvidia.com/v1/chat/completions` | Bearer | **Yes** (build.nvidia.com) | OpenAI-compatible format; 5 preset models |
+| **NVIDIA NIM** | `integrate.api.nvidia.com/v1/chat/completions` | Bearer | Depends on account | OpenAI-compatible format; 5 preset models |
 
 The `PROVIDERS: Record<AIProvider, ...>` map is an **exhaustive TypeScript record**. Adding a new provider to the `AIProvider` union forces a compile error until you register its handler — this caught the NVIDIA NIM addition automatically.
 
 ### Error propagation
 
-- A provider handler **throws** → caller catches → UI shows `Ошибка AI (${provider}): ${message}`
+- A provider handler **throws** → gateway redacts provider details → UI shows a safe retry/setup message
 - Missing API key (non-ollama) → short-circuit with "AI не настроен" message before any network call
-- NVIDIA NIM reads both `error.message` and `detail` fields (endpoint varies by model)
+- NVIDIA NIM reads both `error.message` and `detail` fields (endpoint varies by model); provider errors are redacted before they reach the UI
 
 ---
 
@@ -150,7 +167,7 @@ flowchart LR
 
 Three-tier fallback: **Worker → RSS proxy → in-memory mocks**. Each tier is tested against its happy path, fall-through, and throw paths.
 
-- **Worker** (primary): custom Cloudflare Worker at `cryptopulse-news.hopsintoxin.workers.dev/crypto` parses CoinTelegraph + CoinDesk + investing.com in real time. Free tier (100k requests/day).
+- **Worker** (primary): custom Cloudflare Worker at `cryptopulse-news.hopsintoxin.workers.dev/crypto` parses CoinTelegraph + CoinDesk + investing.com in real time. Quotas and availability depend on the deployed Cloudflare plan.
 - **RSS proxy** (fallback): `api.rss2json.com` over investing.com RU RSS, with HTML-stripping and relative date formatting (`N мин назад`, `N ч назад`, or localized short date).
 - **Mocks** (last-resort): two hardcoded stories so the UI never shows an empty state.
 
@@ -158,34 +175,42 @@ Three-tier fallback: **Worker → RSS proxy → in-memory mocks**. Each tier is 
 
 ## 5. Storage
 
-All persistence lives in the browser:
+The default client mode persists local research state in the browser:
 
 | Key | Purpose |
 |---|---|
 | `localStorage['cryptopulse_users_v2']` | Local profiles, salted PBKDF2 password credential and non-secret AI provider/model settings. Plaintext passwords and API keys are removed during bootstrap migration |
-| `localStorage['cryptopulse_portfolio']` | Simulated portfolio positions |
+| `localStorage['cryptopulse_portfolio']` | Legacy paper-position compatibility; no live order flow |
 | `localStorage['cryptopulse_favorites']` | Favorite asset IDs |
+| `localStorage['cryptopulse_strategy_history_v1']` | Up to ten locally saved Strategy Lab receipts and results |
 | `localStorage['cryptopulse_system_config']` | Admin overrides for volatility/bias (dev panel only) |
 | `sessionStorage['cryptopulse_session_id']` | Current tab-local profile session; removed when the tab session closes |
 | `sessionStorage['cryptopulse_ai_secrets_v1']` | User-supplied AI key for the current tab only; never written to persistent profile storage |
 
-There is deliberately **no server-side user database**. Account creation is local-only. Passwords are protected with Web Crypto PBKDF2-HMAC-SHA256, a per-user random salt and 600,000 iterations; this prevents plaintext persistence but does **not** turn the demo profile into real server-backed authentication. A bootstrap migration converts legacy plaintext values and moves legacy session/API-key data to `sessionStorage` before React renders.
+There is deliberately **no server-side user database in the default client
+mode**. Account creation is local-only. Passwords are protected with Web
+Crypto PBKDF2-HMAC-SHA256, a per-user random salt and 600,000 iterations; this
+prevents plaintext persistence but does **not** turn the demo profile into real
+server-backed authentication. The separate Research API can own production
+sessions, D1 research runs and usage ledger once its identity and bindings are
+configured. A bootstrap migration converts legacy plaintext values and moves
+legacy session/API-key data to `sessionStorage` before React renders.
 
 ---
 
 ## 6. Testing strategy
 
-Six test files covering the services and security-sensitive local state:
+Focused tests cover the services, Strategy Lab and security-sensitive local state:
 
 | File | Tests | What it locks down |
 |---|---:|---|
-| `src/core/retry.test.ts` | 26 | Exponential backoff math, jitter range, abort semantics, RetryError invariants |
-| `src/services/cryptoService.test.ts` | 19 | Every branch through `source` tagging, retry-on-429/503, non-retryable 404, mock fall-through |
-| `src/services/aiService.test.ts` | 19 | All 6 provider handlers, error paths, prompt construction, Gemini SDK mock via class (not `vi.fn()`) |
-| `src/services/newsService.test.ts` | 12 | Worker primary path, RSS fallback, mock last-resort, date formatting |
-| `src/services/strategyLab.test.ts` | 3 | Paper-only boundary, execution costs, walk-forward and Monte Carlo invariants |
-| `src/services/userService.test.ts` | 5 | Plaintext migration, revoked legacy personal credential, PBKDF2 login/change/reset-password and session-only secrets |
-| **Total** | **85** | |
+| `src/services/cryptoService.test.ts` | — | Source tagging, retry paths, unavailable responses and fail-closed trust checks |
+| `src/services/aiService.test.ts` | — | Provider handlers, prompt construction and redacted error paths |
+| `src/services/aiGateway.test.ts` | — | Client/server boundary, endpoint validation and secret-free payloads |
+| `src/services/strategyLab.test.ts` | — | Paper-only boundary, execution costs, walk-forward and Monte Carlo invariants |
+| `src/services/strategyCsvImport.test.ts` | — | CSV limits, quoting, dates, prices and ordering |
+| `src/services/strategyExport.test.ts` | — | Deterministic Markdown, receipt and UTF-8 CSV exports |
+| `src/services/userService.test.ts` | — | Local credentials, migration and session-only secrets |
 
 **Mocking patterns:**
 - `vi.stubGlobal('fetch', fetchMock)` for HTTP isolation
@@ -193,7 +218,7 @@ Six test files covering the services and security-sensitive local state:
 - `vi.mock('@google/genai', { GoogleGenAI: class { ... } })` — plain class, because `vi.fn()` isn't a real constructor
 - `vi.mock('./adminService', ...)` to pin `applyLiveJitter` determinism
 
-Tests use real timers and real retry delays (~10s total). A future optimization could inject retry options or use fake timers, but for 85 tests at ~10s wall time the CI impact is acceptable.
+Tests use real timers where retry behaviour is under test. CI must run the full Vitest suite once dependencies are installed; the local release worktree currently has no `node_modules`.
 
 ---
 
@@ -202,6 +227,8 @@ Tests use real timers and real retry delays (~10s total). A future optimization 
 - **Hosting:** Cloudflare Pages at `cryptopulse-1d0.pages.dev`
 - **Build:** `npm run build` — Vite production build, outputs to `dist/`
 - **CI:** `.github/workflows/ci.yml` runs `typecheck → test → build` on every PR + push to main
+- **Research API:** `workers/research-api/` is a separate, manual Cloudflare
+  Worker release. It is not deployed by the frontend workflow.
 
 No secrets are injected at build time — API keys are supplied by the user at runtime via the Settings page.
 
@@ -214,6 +241,9 @@ Being honest about trade-offs:
 - **No cross-device sync.** All state is per-browser. A user who installs the PWA on a new device starts fresh.
 - **API keys are client-side and ephemeral.** A user can still inspect their own key in DevTools while the tab is open. Closing the tab session removes it, so the user must enter it again later. This reduces persistence risk but cannot provide server-grade secret custody.
 - **Local login is not identity.** PBKDF2 protects the stored verifier from plaintext disclosure, but there is no trusted server, shared account or authorization boundary. Production accounts require a backend auth project.
-- **No server-side rate limiting.** If a hostile user spams the CoinGecko free tier through the client, only the retry backoff and CoinGecko's own rate-limit will stop them.
+- **No server-side rate limiting in client mode.** If a hostile user spams
+  CoinGecko through the client, only the retry backoff and provider limits will
+  stop them. The separate Research API provides the production boundary for
+  authenticated AI quotas once its Rate Limiting binding is configured.
 
 Each of these is a deliberate choice in service of a zero-backend, zero-cost, privacy-first deployment model. If any becomes a real constraint, the services layer is structured so a Cloudflare Workers backend could intercept and proxy — the `fetchWithRetry` wrapper is the natural place to inject that.

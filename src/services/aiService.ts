@@ -5,6 +5,9 @@
 
 import { AIConfig, AIProvider } from '../types';
 import { getUserProfile } from './userService';
+import { callAIGateway } from './aiGateway';
+
+const SERVER_GATEWAY_ENABLED = import.meta.env.VITE_AI_GATEWAY_MODE === 'server';
 
 // ====== GET USER AI CONFIG ======
 
@@ -12,16 +15,22 @@ function getAIConfig(): AIConfig {
   const profile = getUserProfile();
   const ai = profile.preferences?.ai;
 
+  // In server mode the selected provider/model still come from the user's
+  // profile, but the provider key must stay out of the browser request.
+  if (SERVER_GATEWAY_ENABLED && ai?.provider) {
+    return { ...ai, apiKey: '' };
+  }
+
   // User has configured AI
   if (ai?.apiKey || ai?.provider === 'ollama') {
     return ai;
   }
 
-  // Fallback to env var (Gemini)
-  const envKey = (typeof process !== 'undefined' && process.env?.API_KEY) || '';
+  // Client builds must never receive a provider key from environment variables.
+  // Configure a key explicitly in the local session or use the future server gateway.
   return {
     provider: 'gemini',
-    apiKey: envKey,
+    apiKey: '',
     model: 'gemini-2.5-flash',
   };
 }
@@ -112,15 +121,17 @@ async function callOllama(prompt: string, config: AIConfig): Promise<string> {
       stream: false,
     }),
   });
+  if (!response.ok) throw new Error('Ollama request failed');
   const data = await response.json();
-  return data.response || '';
+  if (!data || typeof data.response !== 'string') throw new Error('Ollama response invalid');
+  return data.response;
 }
 
 /**
  * NVIDIA NIM — OpenAI-compatible Chat Completions API at
- * https://integrate.api.nvidia.com/v1. Free tier available at
- * https://build.nvidia.com/models with models like Nemotron, Qwen,
- * DeepSeek, Mistral NeMo, Gemma.
+ * https://integrate.api.nvidia.com/v1. Availability and limits depend on
+ * the user's provider account; models include Nemotron, Qwen, DeepSeek,
+ * Mistral NeMo and Gemma.
  */
 async function callNvidia(prompt: string, config: AIConfig): Promise<string> {
   const baseUrl = (config.baseUrl || 'https://integrate.api.nvidia.com/v1').replace(/\/+$/, '');
@@ -157,14 +168,46 @@ const PROVIDERS: Record<AIProvider, (prompt: string, config: AIConfig) => Promis
 async function callAI(prompt: string): Promise<string> {
   const config = getAIConfig();
 
-  if (!config.apiKey && config.provider !== 'ollama') {
+  const serverMode = SERVER_GATEWAY_ENABLED;
+  const gatewayEndpoint = typeof import.meta.env.VITE_AI_GATEWAY_URL === 'string'
+    ? import.meta.env.VITE_AI_GATEWAY_URL.trim()
+    : '';
+
+  if (!serverMode && !config.apiKey && config.provider !== 'ollama') {
     return 'AI не настроен. Откройте Настройки → AI и укажите провайдера и API-ключ.';
   }
 
   const handler = PROVIDERS[config.provider];
   if (!handler) return `Провайдер "${config.provider}" не поддерживается.`;
 
-  return handler(prompt, config);
+  const request = serverMode
+    ? {
+        mode: 'server' as const,
+        provider: config.provider,
+        model: config.model,
+        prompt,
+        endpoint: gatewayEndpoint,
+      }
+    : {
+        mode: 'client' as const,
+        provider: config.provider,
+        model: config.model,
+        prompt,
+        apiKey: config.apiKey,
+        ...(config.baseUrl ? { baseUrl: config.baseUrl } : {}),
+      };
+
+  const response = await callAIGateway(
+    request,
+    {
+      clientInvoker: async (input) => handler(input.prompt, {
+        ...config,
+        apiKey: input.apiKey,
+        ...(input.baseUrl ? { baseUrl: input.baseUrl } : {}),
+      }),
+    },
+  );
+  return response.text;
 }
 
 // ====== PUBLIC API ======
@@ -180,34 +223,33 @@ export async function generateCoinAnalysis(assetName: string, price: number, cha
 
   if (change24h > 0) {
     sentimentContext = isSignificant
-      ? 'Актив демонстрирует сильный бычий импульс. Фокус на росте и фиксации прибыли.'
-      : 'Актив показывает умеренный рост. Фокус на уровнях сопротивления.';
+      ? 'Актив демонстрирует сильное положительное движение. Фокус на проверяемых уровнях и рисках сценария.'
+      : 'Актив показывает умеренный рост. Фокус на уровнях сопротивления и качестве данных.';
   } else {
     sentimentContext = isSignificant
-      ? 'Актив под сильным давлением продавцов. Фокус на поддержке и возможной панической распродаже.'
+      ? 'Актив под сильным давлением. Фокус на поддержке, ликвидности и рисках сценария.'
       : 'Актив показывает умеренное снижение. Консолидация.';
   }
 
-  const prompt = `Ты — старший финансовый аналитик ведущей фирмы (как Bloomberg или Goldman Sachs).
+const prompt = `Ты — исследовательский ассистент по рыночным данным. Не выдавай себя за финансового консультанта и не формулируй торговые сигналы.
 Проанализируй текущее состояние актива: ${assetName}.
 Текущая цена: ${price}.
 Изменение за 24ч: ${change24h}%.
 
 Контекст: ${sentimentContext}
 
-Предоставь профессиональный, краткий инсайт (максимум 4-5 предложений) на РУССКОМ языке:
-1. Интерпретация движения цены (Бычий/Медвежий/Нейтральный тренд) относительно класса актива.
+Предоставь краткий исследовательский разбор (максимум 4-5 предложений) на РУССКОМ языке:
+1. Наблюдаемая динамика цены и её контекст относительно класса актива, без прогноза.
 2. Ключевой технический или фундаментальный фактор (RSI, скользящие средние, новости).
-3. Стратегический совет для трейдера (Держать, Покупать на просадке, Шортить, Ждать).
-4. Уверенность и риск: явно укажи уровень уверенности (низкая/средняя/высокая) и главный риск этого сценария.
+3. Наблюдаемая гипотеза для paper-исследования и что проверить дальше. Не давай команд покупать, продавать или открывать позицию.
+4. Качество данных и риск: укажи, чего не хватает для вывода и какой риск у этой гипотезы.
 
 Принцип: не давай overconfident-прогнозов — рынок непредсказуем, прошлые движения не гарантируют будущие. Если данных мало — скажи об этом прямо. Это не индивидуальная инвестиционная рекомендация (DYOR).
 Стиль: Строгий, профессиональный, без воды. Не используй markdown форматирование, только текст.`;
 
   try {
     return await callAI(prompt);
-  } catch (error: any) {
-    console.error('AI Analysis Error:', error);
-    return `Ошибка AI (${getAIConfig().provider}): ${error.message || 'Попробуйте позже.'}`;
+  } catch {
+    return 'Ошибка AI: проверьте настройки провайдера и повторите попытку.';
   }
 }

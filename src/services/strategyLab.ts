@@ -154,7 +154,7 @@ export function runStrategyLab(points: PricePoint[], config: StrategyLabConfig, 
     ? (base.trades.filter((trade) => trade.netReturnPct > 0).length / base.trades.length) * 100
     : 0;
   const overfitWarning = train.returnPct > 0 && test.returnPct < 0
-    ? 'Параметры прибыльны на train, но убыточны на test — возможное переобучение.'
+    ? 'На train результат положительный, но на test отрицательный — возможное переобучение.'
     : null;
   const evidence = buildStrategyEvidence(points, config, {
     netReturnPct: base.returnPct,

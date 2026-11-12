@@ -2,33 +2,33 @@ import { UserProfile, Achievement } from '../types';
 import { updateUserProfile, getUserProfile } from './userService';
 
 export const ALL_ACHIEVEMENTS: Achievement[] = [
-  { id: 'first_trade', title: 'Первый Шаг', description: 'Открыть первую сделку', icon: '🚀' },
-  { id: 'profit_1k', title: 'Акула Рынка', description: 'Заработать $1,000 чистой прибыли', icon: '🦈' },
-  { id: 'loss_survivor', title: 'Железные Нервы', description: 'Пережить просадку, но не закрыться', icon: '🛡️' },
-  { id: 'leverage_master', title: 'Мастер Риска', description: 'Открыть сделку с плечом 20x+', icon: '⚡' },
-  { id: 'diversified', title: 'Инвестор', description: 'Иметь активы в Крипто, Форекс и Фьючерсах одновременно', icon: '🌐' },
-  { id: 'copy_cat', title: 'Зеркало', description: 'Скопировать сделку другого трейдера', icon: '👯' }
+  { id: 'first_paper', title: 'Первый сценарий', description: 'Запустить первый paper-сценарий', icon: '🚀' },
+  { id: 'positive_result', title: 'Проверенная гипотеза', description: 'Получить положительную динамику в симуляции и сохранить ограничения', icon: '🧪' },
+  { id: 'loss_survivor', title: 'Дисциплина риска', description: 'Разобрать просадку и не скрывать её в отчёте', icon: '🛡️' },
+  { id: 'risk_control', title: 'Контроль риска', description: 'Проверить сценарий с ограниченным риском', icon: '⚡' },
+  { id: 'diversified', title: 'Широкий обзор', description: 'Сравнить активы из разных исследовательских наборов', icon: '🌐' },
+  { id: 'method_compare', title: 'Сравнение методов', description: 'Сопоставить два paper-сценария на одном наборе данных', icon: '👯' }
 ];
 
 export const checkAchievements = (user: UserProfile): Achievement[] => {
   const unlocked: Achievement[] = [];
   const existingIds = user.achievements?.map(a => a.id) || [];
 
-  // 1. First Trade
-  if (user.positions.length > 0 && !existingIds.includes('first_trade')) {
-    unlocked.push(ALL_ACHIEVEMENTS.find(a => a.id === 'first_trade')!);
+  // 1. First paper scenario (legacy local profile signal)
+  if (user.positions.length > 0 && !existingIds.includes('first_paper')) {
+    unlocked.push(ALL_ACHIEVEMENTS.find(a => a.id === 'first_paper')!);
   }
 
-  // 2. Profit > 1k
-  const totalProfit = user.equity - 100000; // Assuming 100k start
-  if (totalProfit > 1000 && !existingIds.includes('profit_1k')) {
-    unlocked.push(ALL_ACHIEVEMENTS.find(a => a.id === 'profit_1k')!);
+  // 2. Positive paper outcome (legacy local profile signal)
+  const paperDelta = user.equity - 100000;
+  if (paperDelta > 1000 && !existingIds.includes('positive_result')) {
+    unlocked.push(ALL_ACHIEVEMENTS.find(a => a.id === 'positive_result')!);
   }
 
-  // 3. High Leverage
+  // 3. Risk-control scenario (legacy local profile signal)
   const hasHighLev = user.positions.some(p => p.leverage >= 20);
-  if (hasHighLev && !existingIds.includes('leverage_master')) {
-    unlocked.push(ALL_ACHIEVEMENTS.find(a => a.id === 'leverage_master')!);
+  if (hasHighLev && !existingIds.includes('risk_control')) {
+    unlocked.push(ALL_ACHIEVEMENTS.find(a => a.id === 'risk_control')!);
   }
   
   // If new achievements

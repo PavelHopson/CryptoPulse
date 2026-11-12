@@ -1,30 +1,9 @@
 
 import React, { useState } from 'react';
-import { Check, X, Zap, Shield, Crown, Star } from 'lucide-react';
-import { getUserProfile, updateUserProfile } from '../services/userService';
-import { useNavigate } from 'react-router-dom';
+import { Check, X, Zap, Crown, Star, Info } from 'lucide-react';
 
 export const PricingPage: React.FC = () => {
-  const user = getUserProfile();
-  const navigate = useNavigate();
   const [billing, setBilling] = useState<'MONTHLY' | 'YEARLY'>('MONTHLY');
-  const [loading, setLoading] = useState<string | null>(null);
-
-  const handleUpgrade = async (planId: string) => {
-    setLoading(planId);
-    // Simulate processing
-    await new Promise(r => setTimeout(r, 1500));
-    
-    if (planId === 'FREE') {
-        updateUserProfile({ is_pro: false });
-    } else {
-        updateUserProfile({ is_pro: true });
-    }
-    
-    window.dispatchEvent(new Event('userUpdated'));
-    setLoading(null);
-    navigate('/profile');
-  };
 
   const plans = [
     {
@@ -32,73 +11,89 @@ export const PricingPage: React.FC = () => {
       name: 'Starter',
       price: 0,
       icon: <Star className="w-6 h-6 text-gray-400" />,
-      description: 'Для новичков, изучающих рынок.',
+      description: 'Чтобы спокойно изучать рынок и проверять идеи.',
       features: [
         'Доступ к Топ-20 монетам',
         'Базовые графики (Recharts)',
         'Избранное (до 5 активов)',
         'Новости рынка',
-        'Сообщество трейдеров'
+        'Paper-портфель без реальных денег'
       ],
       limitations: [
         'Наличие рекламы',
-        'Нет AI аналитики',
+        'AI-анализ по собственному ключу',
         'Нет TradingView графиков',
-        'Нет сигналов на покупку'
+        'Нет серверной синхронизации'
       ],
       buttonText: 'Ваш текущий план',
-      isCurrent: !user.is_pro,
-      color: 'gray'
+      isCurrent: true,
+      isPlanned: false,
+      color: 'gray',
+      iconClass: 'bg-gray-500/10',
+      checkClass: 'text-gray-500'
     },
     {
       id: 'PRO',
-      name: 'Pro Trader',
-      price: billing === 'MONTHLY' ? 9.99 : 99.99,
+      name: 'Research Pro',
+      price: billing === 'MONTHLY' ? 9.99 : 95.90,
       icon: <Zap className="w-6 h-6 text-yellow-400" />,
-      description: 'Максимальный набор инструментов.',
+      description: 'Для воспроизводимых исследований и Strategy Lab.',
       features: [
         'Все функции Starter',
-        'Отключение рекламы',
-        'AI Аналитик (Gemini)',
+        'Расширенные лимиты локальных исследований',
+        'AI-анализ через подключённого провайдера',
         'TradingView графики (OHLC)',
         'Неограниченное избранное',
-        'Сигналы (Buy/Sell)',
+        'Сохранение исследований и отчёты',
         'Приоритетная поддержка'
       ],
       limitations: [],
-      buttonText: 'Выбрать Pro',
-      isCurrent: user.is_pro && user.balance < 1000000, // Simplified logic
+      buttonText: 'Планируется',
+      isCurrent: false,
+      isPlanned: true,
       color: 'brand',
+      iconClass: 'bg-brand-500/10',
+      checkClass: 'text-brand-500',
       popular: true
     },
     {
       id: 'WHALE',
-      name: 'Whale Club',
-      price: billing === 'MONTHLY' ? 49.99 : 499.99,
+      name: 'Team / School',
+      price: billing === 'MONTHLY' ? 49.99 : 479.90,
       icon: <Crown className="w-6 h-6 text-purple-400" />,
-      description: 'Для профессионалов с крупным капиталом.',
+      description: 'Для учебных групп и небольших исследовательских команд.',
       features: [
         'Все функции Pro',
-        'Персональный менеджер',
-        'Доступ к закрытому чату',
-        'Кредитное плечо до 100x',
-        'API доступ',
-        'Скрытые гемы (Alpha)'
+        'Планируемые группы и учебные сценарии',
+        'Будущие общие watchlists и стратегии',
+        'Экспорт отчётов для проверки',
+        'Будущие роли преподавателя и участника',
+        'Будущая интеграция с Eclipse Library'
       ],
       limitations: [],
-      buttonText: 'Стать Китом',
-      isCurrent: false, 
-      color: 'purple'
+      buttonText: 'Планируется',
+      isCurrent: false,
+      isPlanned: true,
+      color: 'purple',
+      iconClass: 'bg-purple-500/10',
+      checkClass: 'text-purple-500'
     }
   ];
 
   return (
     <div className="animate-fade-in pb-20">
       <div className="text-center mb-12">
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-4">Выберите свой уровень</h1>
+        <div className="inline-flex items-center gap-2 rounded-full border border-cyber-cyan/30 bg-cyber-cyan/5 px-3 py-1 text-[10px] font-mono uppercase tracking-[0.18em] text-cyber-cyan">
+          <Info className="h-3.5 w-3.5" /> Research Lab
+        </div>
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-4 mt-4">Выберите режим исследования</h1>
         <p className="text-gray-400 max-w-2xl mx-auto">
-          Инвестируйте в лучшие инструменты для анализа рынка. 
-          <span className="text-brand-400"> Отмените в любой момент.</span>
+          CryptoPulse помогает изучать рынок и проверять торговые гипотезы в paper-режиме.
+          <span className="text-brand-400"> Реальные сделки и финансовые рекомендации не входят в продукт.</span>
+        </p>
+        <p className="mx-auto mt-4 max-w-2xl text-xs leading-5 text-gray-500">
+          Сейчас работает локальный режим Starter. Research Pro и Team / School показывают
+          будущую модель тарифов и не открывают доступ без серверных аккаунтов и оплаты.
         </p>
 
         {/* Billing Toggle */}
@@ -106,12 +101,14 @@ export const PricingPage: React.FC = () => {
           <span className={`text-sm font-bold ${billing === 'MONTHLY' ? 'text-white' : 'text-gray-500'}`}>Ежемесячно</span>
           <button 
             onClick={() => setBilling(billing === 'MONTHLY' ? 'YEARLY' : 'MONTHLY')}
+            aria-pressed={billing === 'YEARLY'}
+            aria-label="Переключить период плановой цены"
             className="w-14 h-8 bg-gray-800 rounded-full relative border border-gray-700 transition-colors"
           >
             <div className={`absolute top-1 w-6 h-6 bg-brand-500 rounded-full [transition:left_.2s_var(--ease-spring)] ${billing === 'YEARLY' ? 'left-7' : 'left-1'}`}></div>
           </button>
           <span className={`text-sm font-bold ${billing === 'YEARLY' ? 'text-white' : 'text-gray-500'}`}>
-            Ежегодно <span className="text-green-400 text-xs ml-1">-20%</span>
+            Ежегодно <span className="text-green-400 text-xs ml-1">плановая скидка</span>
           </span>
         </div>
       </div>
@@ -125,7 +122,7 @@ export const PricingPage: React.FC = () => {
             `}
           >
             {plan.popular && (
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-brand-600 to-purple-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg">
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 border border-brand-400/60 bg-dark-card px-4 py-1 text-xs font-bold text-brand-300 shadow-lg">
                 РЕКОМЕНДУЕМ
               </div>
             )}
@@ -133,7 +130,7 @@ export const PricingPage: React.FC = () => {
             <div className="flex justify-between items-start mb-6">
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                   <div className={`p-2 rounded-lg bg-${plan.color === 'gray' ? 'gray' : plan.color}-500/10`}>
+                   <div className={`p-2 rounded-lg ${plan.iconClass}`}>
                      {plan.icon}
                    </div>
                    <h3 className="text-xl font-bold text-white">{plan.name}</h3>
@@ -144,13 +141,17 @@ export const PricingPage: React.FC = () => {
 
             <div className="mb-6">
               <span className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">${plan.price}</span>
-              <span className="text-gray-500 text-sm"> / {billing === 'MONTHLY' ? 'мес' : 'год'}</span>
+              {plan.isPlanned ? (
+                <span className="ml-2 text-xs text-gray-500">плановая цена</span>
+              ) : (
+                <span className="text-gray-500 text-sm"> / {billing === 'MONTHLY' ? 'мес' : 'год'}</span>
+              )}
             </div>
 
             <div className="space-y-4 flex-1 mb-8">
               {plan.features.map((feat, i) => (
                 <div key={i} className="flex items-start gap-3 text-sm text-gray-300">
-                  <Check className={`w-5 h-5 flex-shrink-0 text-${plan.color === 'gray' ? 'gray' : plan.color}-500`} />
+                  <Check className={`w-5 h-5 flex-shrink-0 ${plan.checkClass}`} />
                   <span>{feat}</span>
                 </div>
               ))}
@@ -162,34 +163,58 @@ export const PricingPage: React.FC = () => {
               ))}
             </div>
 
-            <button 
-              onClick={() => handleUpgrade(plan.id)}
-              disabled={plan.isCurrent || loading !== null}
-              className={`w-full py-3 rounded-xl font-bold [transition:background-color_.2s_var(--ease),box-shadow_.2s_var(--ease),transform_.2s_var(--ease-spring)] hover:enabled:-translate-y-0.5 active:enabled:translate-y-0 flex items-center justify-center gap-2
-                ${plan.isCurrent
-                  ? 'bg-gray-800 text-gray-400 cursor-default' 
-                  : plan.popular 
-                    ? 'bg-brand-600 hover:bg-brand-500 text-white shadow-lg shadow-brand-500/30' 
-                    : 'bg-gray-800 hover:bg-gray-700 text-white border border-gray-700'}
-              `}
-            >
-              {loading === plan.id ? 'Обработка...' : plan.isCurrent ? 'Текущий план' : plan.buttonText}
-            </button>
+            {plan.isCurrent ? (
+              <button type="button" disabled aria-disabled="true" className="w-full py-3 rounded-xl font-bold bg-gray-800 text-gray-400 cursor-default">
+                Текущий режим
+              </button>
+            ) : plan.isPlanned ? (
+              <div role="status" className="flex min-h-[48px] items-center justify-center gap-2 rounded-xl border border-gray-700 bg-gray-900/60 px-4 py-3 text-center text-sm font-medium text-gray-400">
+                <Info className="h-4 w-4 flex-shrink-0 text-gray-500" />
+                Серверная подписка ещё не подключена
+              </div>
+            ) : (
+              <button type="button" className={`w-full py-3 rounded-xl font-bold [transition:background-color_.2s_var(--ease),box-shadow_.2s_var(--ease),transform_.2s_var(--ease-spring)] hover:-translate-y-0.5 active:translate-y-0 ${plan.popular ? 'bg-brand-600 hover:bg-brand-500 text-white shadow-lg shadow-brand-500/30' : 'bg-gray-800 hover:bg-gray-700 text-white border border-gray-700'} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400`}>
+                {plan.buttonText}
+              </button>
+            )}
           </div>
         ))}
       </div>
+
+      <section className="mx-auto mt-12 max-w-4xl px-4">
+        <div className="rounded-2xl border border-cyber-cyan/20 bg-cyber-cyan/5 p-5 sm:p-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-cyber-cyan">Обучение</p>
+              <h2 className="mt-2 text-lg font-bold text-white">Материалы Eclipse Library</h2>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-400">
+                Откройте курсы и практические материалы в Library. Прогресс и аккаунт пока не
+                синхронизируются с CryptoPulse — это отдельный будущий контур.
+              </p>
+            </div>
+            <a
+              href="https://library.eclipse-forge.ru/"
+              target="_blank"
+              rel="noreferrer"
+              className="cyber-button inline-flex shrink-0 items-center justify-center px-4 py-2 text-xs"
+            >
+              ОТКРЫТЬ LIBRARY
+            </a>
+          </div>
+        </div>
+      </section>
 
       {/* FAQ Section */}
       <div className="max-w-3xl mx-auto mt-20 px-4">
          <h2 className="text-2xl font-bold text-white mb-8 text-center">Частые вопросы</h2>
          <div className="space-y-4">
             <div className="bg-dark-card border border-gray-800 rounded-xl p-6">
-               <h3 className="font-bold text-white mb-2">Как отключить рекламу?</h3>
-               <p className="text-gray-400 text-sm">Реклама автоматически отключается при переходе на тариф Pro или Whale.</p>
+               <h3 className="font-bold text-white mb-2">Подключена ли оплата?</h3>
+               <p className="text-gray-400 text-sm">Пока нет. Этот экран показывает будущую модель тарифов, но не принимает деньги и не меняет доступ к данным.</p>
             </div>
             <div className="bg-dark-card border border-gray-800 rounded-xl p-6">
-               <h3 className="font-bold text-white mb-2">Могу ли я вернуть деньги?</h3>
-               <p className="text-gray-400 text-sm">Да, мы предоставляем 7-дневный пробный период. Если вам не понравится, мы вернем деньги.</p>
+               <h3 className="font-bold text-white mb-2">Это инвестиционный советник?</h3>
+               <p className="text-gray-400 text-sm">Нет. Все сделки виртуальные, а результаты исследований зависят от данных и выбранных параметров.</p>
             </div>
          </div>
       </div>

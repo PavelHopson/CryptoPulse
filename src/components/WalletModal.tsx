@@ -8,6 +8,7 @@ interface Props {
   onSuccess?: () => void;
 }
 
+/** Legacy Web3 modal kept for reference; intentionally not mounted in the Research Lab UI. */
 export const WalletModal: React.FC<Props> = ({ isOpen, onClose }) => {
   const [connecting, setConnecting] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);

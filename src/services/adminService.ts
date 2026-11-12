@@ -29,7 +29,7 @@ const MOCK_PREFERENCES = {
 // Updated MOCK_USERS to match UserProfile interface fully
 const MOCK_USERS: UserProfile[] = [
   { 
-    name: "Alice Trader", 
+    name: "Alice Researcher",
     email: "alice@crypto.com", 
     balance: 45000, 
     equity: 52000, 

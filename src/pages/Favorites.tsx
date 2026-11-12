@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { fetchFavoriteCoins } from '../services/cryptoService';
+import type { DataStatus } from '../services/cryptoService';
 import { CoinData } from '../types';
 import { ArrowUpRight, ArrowDownRight, Star, ArrowLeft, AlertTriangle } from 'lucide-react';
 import { CryptoIcon } from '../components/CryptoIcon';
@@ -37,6 +38,7 @@ export const Favorites: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [favorites, setFavorites] = useState<string[]>([]);
+  const [dataStatus, setDataStatus] = useState<DataStatus | 'CHECKING'>('CHECKING');
 
   useEffect(() => {
     const load = async () => {
@@ -45,8 +47,9 @@ export const Favorites: React.FC = () => {
       setFavorites(favIds);
 
       if (favIds.length > 0) {
-        const { data, error: apiError } = await fetchFavoriteCoins(favIds);
+        const { data, error: apiError, status } = await fetchFavoriteCoins(favIds);
         setCoins(data);
+        setDataStatus(status);
         if (apiError) setError(apiError);
       } else {
         setCoins([]);
@@ -113,7 +116,7 @@ export const Favorites: React.FC = () => {
           <Star className="w-6 h-6 text-yellow-400 fill-yellow-400" /> Your Watchlist
         </h1>
         <span className="text-xs font-mono uppercase tracking-wider" style={{ color: 'rgb(var(--color-text-muted))' }}>
-          {coins.length} asset{coins.length !== 1 ? 's' : ''}
+          {coins.length} asset{coins.length !== 1 ? 's' : ''} · {dataStatus === 'MIXED' ? 'MIXED SOURCES' : dataStatus}
         </span>
       </div>
 
@@ -183,6 +186,7 @@ export const Favorites: React.FC = () => {
                       className="p-2 rounded-full transition-transform duration-200 ease-spring text-yellow-400 hover:scale-110 active:scale-100"
                       style={{ background: 'rgba(var(--color-warning), 0.1)' }}
                       title="Remove from favorites"
+                      aria-label={`Удалить ${coin.name} из избранного`}
                     >
                       <Star className="w-5 h-5 fill-yellow-400" />
                     </button>

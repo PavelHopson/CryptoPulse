@@ -25,7 +25,7 @@ type StoredUserProfile = UserProfile & {
 
 const INITIAL_STATE: StoredUserProfile = {
   id: 'demo-user',
-  name: "Трейдер (Демо)",
+  name: "Исследователь (Демо)",
   email: "demo@cryptopulse.ai",
   credential: {
     algorithm: PASSWORD_ALGORITHM,
@@ -74,8 +74,9 @@ async function derivePasswordHash(password: string, salt: Uint8Array, iterations
     false,
     ['deriveBits'],
   );
+  const saltBuffer = salt.buffer.slice(salt.byteOffset, salt.byteOffset + salt.byteLength) as ArrayBuffer;
   const bits = await crypto.subtle.deriveBits(
-    { name: 'PBKDF2', hash: 'SHA-256', salt, iterations },
+    { name: 'PBKDF2', hash: 'SHA-256', salt: saltBuffer, iterations },
     key,
     256,
   );
@@ -284,7 +285,8 @@ export const registerUser = async (name: string, email: string, password: string
     credential: await createCredential(password),
     avatar: '',
     member_since: new Date().toISOString(),
-    balance: 10000, // Bonus
+    // Local paper capital for research scenarios; this is not cash, credit or a payout.
+    balance: 10000,
     equity: 10000,
     transactions: [],
     positions: [],
@@ -409,6 +411,7 @@ export const resetAccount = (): UserProfile => {
   return toPublicProfile(resetUser);
 };
 
+/** Legacy local balance helper. It is not wired to the Research Lab UI or a payment provider. */
 export const depositFunds = (amount: number, currency: 'USD' | 'EUR' | 'RUB', method: string) => {
   const profile = getUserProfile();
   if (!profile.id) return profile;
@@ -437,6 +440,7 @@ export const depositFunds = (amount: number, currency: 'USD' | 'EUR' | 'RUB', me
   return updated;
 };
 
+/** Legacy local position helper. It is not a broker integration or a live trading path. */
 export const executeTrade = (
   asset: CoinData, 
   type: 'LONG' | 'SHORT', 
@@ -474,6 +478,7 @@ export const executeTrade = (
   return { success: true, message: `Ордер ${type} исполнен: ${amount} ${asset.symbol}` };
 };
 
+/** Legacy local position helper. Keep disabled until a server-backed paper contract exists. */
 export const closePosition = (positionId: string, currentPrice: number): UserProfile => {
   const profile = getUserProfile();
   const positionIndex = profile.positions.findIndex(p => p.id === positionId);

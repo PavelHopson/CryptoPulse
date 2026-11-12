@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { fetchCoinDetails, fetchCoinHistory } from '../services/cryptoService';
 import { CoinData, AssetCategory, CandleData, Timeframe } from '../types';
+import type { DataStatus } from '../services/cryptoService';
 import { TradingViewChart } from '../components/TradingViewChart';
 import { AIInsight } from '../components/AIInsight';
-import { TradeModal } from '../components/TradeModal';
 import { TechAnalysisModal } from '../components/TechAnalysisModal';
-import { ArrowLeft, Globe, TrendingUp, DollarSign, Activity, AlertTriangle, CheckCircle, RefreshCw, ExternalLink, Terminal, BellRing } from 'lucide-react';
+import { ArrowLeft, Globe, TrendingUp, DollarSign, Activity, AlertTriangle, RefreshCw, ExternalLink, Terminal, BellRing } from 'lucide-react';
 import { CryptoIcon } from '../components/CryptoIcon';
 import { PriceAlertModal } from '../components/PriceAlertModal';
 
@@ -17,71 +17,107 @@ export const CoinDetail: React.FC = () => {
   
   const [coin, setCoin] = useState<CoinData | null>(null);
   const [chartData, setChartData] = useState<CandleData[]>([]);
+  const chartDataRef = useRef<CandleData[]>([]);
   const [timeframe, setTimeframe] = useState<Timeframe>('1D');
   const [loading, setLoading] = useState(true);
+  const [dataStatus, setDataStatus] = useState<DataStatus | 'CHECKING'>('CHECKING');
+  const [historyStatus, setHistoryStatus] = useState<DataStatus | 'CHECKING'>('CHECKING');
+  const [loadError, setLoadError] = useState('');
+  const requestIdRef = useRef(0);
   
-  const [tradeModalOpen, setTradeModalOpen] = useState(false);
-  const [tradeType, setTradeType] = useState<'LONG' | 'SHORT'>('LONG');
-  const [showSuccess, setShowSuccess] = useState(false);
   const [techModalOpen, setTechModalOpen] = useState(false);
   const [alertModalOpen, setAlertModalOpen] = useState(false);
 
   const loadData = async (silent = false) => {
     if (id) {
+      const requestId = ++requestIdRef.current;
       if (!silent) setLoading(true);
-      const { data } = await fetchCoinDetails(id, category);
+      let details;
+      try {
+        details = await fetchCoinDetails(id, category);
+      } catch {
+        if (requestId === requestIdRef.current) setLoadError('Не удалось загрузить актив.');
+        if (!silent && requestId === requestIdRef.current) setLoading(false);
+        return;
+      }
+      if (requestId !== requestIdRef.current) return;
+      const { data, status, error } = details;
+      setDataStatus(status);
       setCoin(data);
-      if (data && (!silent || chartData.length === 0)) {
+      setLoadError(error || '');
+      if (data && (!silent || chartDataRef.current.length === 0)) {
         const history = await fetchCoinHistory(id, timeframe, data.current_price);
-        setChartData(history);
-      } else if (data && silent && chartData.length > 0) {
-        const lastCandle = chartData[chartData.length - 1];
-        const updatedCandle = {
+        if (requestId !== requestIdRef.current) return;
+        setHistoryStatus(history.status);
+        chartDataRef.current = history.data;
+        setChartData(history.data);
+      } else if (data && silent) {
+        if (error) setLoadError(error);
+        setChartData((previous) => {
+          if (previous.length === 0) return previous;
+          const lastCandle = previous[previous.length - 1];
+          const updatedCandle = {
             ...lastCandle,
             close: data.current_price,
             high: Math.max(lastCandle.high, data.current_price),
             low: Math.min(lastCandle.low, data.current_price)
-        };
-        setChartData([...chartData.slice(0, -1), updatedCandle]);
+          };
+          const next = [...previous.slice(0, -1), updatedCandle];
+          chartDataRef.current = next;
+          return next;
+        });
       }
       setLoading(false);
     }
   };
 
-  useEffect(() => { setChartData([]); loadData(); }, [id, category, timeframe]);
   useEffect(() => {
-    const interval = setInterval(() => loadData(true), 2000);
+    chartDataRef.current = [];
+    setChartData([]);
+    setHistoryStatus('CHECKING');
+    loadData();
+  }, [id, category, timeframe]);
+  useEffect(() => {
+    if (dataStatus !== 'LIVE' && dataStatus !== 'CACHED') return;
+    const interval = setInterval(() => loadData(true), 15000);
     return () => clearInterval(interval);
-  }, [id, category, timeframe, chartData]);
-
-  const openTrade = (type: 'LONG' | 'SHORT') => {
-    setTradeType(type);
-    setTradeModalOpen(true);
-  };
-
-  const handleTradeSuccess = () => {
-    setShowSuccess(true);
-    window.dispatchEvent(new Event('balanceChanged'));
-    setTimeout(() => setShowSuccess(false), 3000);
-  };
+  }, [id, category, timeframe, dataStatus]);
 
   if (loading && !coin) return <div className="flex justify-center items-center h-64 text-cyber-cyan font-mono animate-pulse">ЗАГРУЗКА ДАННЫХ...</div>;
   
-  if (!coin) return <div className="flex justify-center py-20 text-red-500 font-mono">АКТИВ НЕ НАЙДЕН</div>;
+  if (!coin) return (
+    <div className="mx-auto flex max-w-lg flex-col items-center gap-4 py-20 text-center font-mono">
+      <p className="text-cyber-pink">{loadError || 'АКТИВ НЕ НАЙДЕН'}</p>
+      <button type="button" onClick={() => loadData()} className="cyber-button inline-flex items-center gap-2 px-4 py-2 text-xs">
+        <RefreshCw className="h-3.5 w-3.5" /> ПОВТОРИТЬ
+      </button>
+    </div>
+  );
 
   const isPositive = coin.price_change_percentage_24h >= 0;
   const neonColor = isPositive ? 'text-cyber-green' : 'text-cyber-pink';
   const glowClass = isPositive ? 'shadow-neon-green' : 'shadow-neon-pink';
+  const statusLabel = dataStatus === 'LIVE'
+    ? 'LIVE'
+    : dataStatus === 'CACHED'
+      ? 'CACHED'
+      : dataStatus === 'MIXED'
+        ? 'MIXED SOURCES'
+        : dataStatus === 'CHECKING'
+          ? 'CHECKING'
+          : `${dataStatus} / DEMO`;
 
   return (
     <div className="space-y-6 animate-fade-in pb-20">
-      <TradeModal coin={coin} type={tradeType} isOpen={tradeModalOpen} onClose={() => setTradeModalOpen(false)} onSuccess={handleTradeSuccess} />
       <TechAnalysisModal coin={coin} isOpen={techModalOpen} onClose={() => setTechModalOpen(false)} />
       <PriceAlertModal isOpen={alertModalOpen} onClose={() => setAlertModalOpen(false)} coinId={coin.id} coinName={coin.name} currentPrice={coin.current_price} />
 
-      {showSuccess && (
-        <div className="fixed top-24 right-4 z-50 bg-cyber-black border border-cyber-green text-cyber-green px-6 py-3 flex items-center gap-3 shadow-neon-green font-mono">
-           <CheckCircle className="w-6 h-6" /> <span>ОРДЕР УСПЕШНО ИСПОЛНЕН</span>
+      {loadError && (
+        <div role="alert" className="flex flex-wrap items-center justify-between gap-3 border border-cyber-yellow/30 bg-cyber-yellow/5 px-4 py-3 text-sm text-cyber-yellow">
+          <span>{loadError} Показаны последние доступные данные.</span>
+          <button type="button" onClick={() => loadData(true)} className="inline-flex items-center gap-2 border border-cyber-yellow/40 px-3 py-1.5 font-mono text-xs hover:bg-cyber-yellow/10">
+            <RefreshCw className="h-3.5 w-3.5" /> ОБНОВИТЬ
+          </button>
         </div>
       )}
 
@@ -104,6 +140,7 @@ export const CoinDetail: React.FC = () => {
              <div className="flex items-center gap-3 mt-2">
                <span className="bg-cyber-cyan/10 text-cyber-cyan border border-cyber-cyan/30 text-xs px-2 py-0.5 font-mono">{coin.symbol.toUpperCase()}</span>
                <span className="bg-gray-900 text-gray-400 text-xs px-2 py-0.5 font-mono border border-gray-800">РАНГ #{coin.market_cap_rank}</span>
+               <span className={`border px-2 py-0.5 text-[10px] font-mono ${dataStatus === 'LIVE' || dataStatus === 'CACHED' ? 'border-cyber-green/40 text-cyber-green' : 'border-cyber-yellow/40 text-cyber-yellow'}`}>{statusLabel}</span>
              </div>
           </div>
         </div>
@@ -117,14 +154,11 @@ export const CoinDetail: React.FC = () => {
               {Math.abs(coin.price_change_percentage_24h).toFixed(2)}%
            </div>
 
-           <div className="flex gap-4 mt-6 w-full md:w-auto">
-             <button onClick={() => openTrade('LONG')} className="cyber-button bg-cyber-green/10 border-cyber-green text-cyber-green px-4 sm:px-8 py-3 hover:shadow-neon-green w-full md:w-auto">
-               LONG (КУПИТЬ)
-             </button>
-             <button onClick={() => openTrade('SHORT')} className="cyber-button bg-cyber-pink/10 border-cyber-pink text-cyber-pink px-4 sm:px-8 py-3 hover:shadow-neon-pink w-full md:w-auto">
-               SHORT (ПРОДАТЬ)
-             </button>
-             <button onClick={() => setAlertModalOpen(true)} className="cyber-button border-cyber-yellow text-cyber-yellow px-3 py-3 hover:bg-cyber-yellow/10" title="Ценовой алерт">
+           <div className="flex flex-wrap gap-3 mt-6 w-full md:w-auto">
+             <Link to={`/strategy-lab?asset=${encodeURIComponent(coin.symbol.toUpperCase())}`} className="cyber-button border-cyber-cyan text-cyber-cyan px-4 sm:px-6 py-3 hover:shadow-neon-cyan w-full sm:w-auto text-center">
+               ИССЛЕДОВАТЬ В STRATEGY LAB
+             </Link>
+             <button onClick={() => setAlertModalOpen(true)} className="cyber-button border-cyber-yellow text-cyber-yellow px-3 py-3 hover:bg-cyber-yellow/10" title="Ценовой алерт" aria-label="Открыть ценовой алерт">
                <BellRing className="w-5 h-5" />
              </button>
            </div>
@@ -139,9 +173,10 @@ export const CoinDetail: React.FC = () => {
                 <h2 className="text-sm font-mono text-cyber-cyan flex items-center gap-2">
                    <Activity className="w-4 h-4" /> ВИЗУАЛИЗАЦИЯ ГРАФИКА
                 </h2>
+                <span className="mr-auto ml-4 text-[10px] font-mono text-gray-600">HISTORY · {historyStatus === 'LIVE' ? 'LIVE OHLC' : historyStatus === 'CACHED' ? 'CACHED OHLC' : `${historyStatus} / DEMO OHLC`}</span>
                 <div className="flex gap-1">
                    {(['1H', '1D', '1W', '1M', '1Y'] as Timeframe[]).map(t => (
-                      <button key={t} onClick={() => setTimeframe(t)} className={`px-3 py-1 text-[10px] font-mono transition-colors duration-200 ease-soft ${timeframe === t ? 'bg-cyber-cyan text-black font-bold' : 'text-gray-500 hover:text-white'}`}>
+                      <button key={t} onClick={() => setTimeframe(t)} aria-pressed={timeframe === t} aria-label={`Показать график за ${t}`} className={`px-3 py-1 text-[10px] font-mono transition-colors duration-200 ease-soft ${timeframe === t ? 'bg-cyber-cyan text-black font-bold' : 'text-gray-500 hover:text-white'}`}>
                         {t}
                       </button>
                    ))}
@@ -182,12 +217,16 @@ export const CoinDetail: React.FC = () => {
            <div className="cyber-card p-6">
               <h3 className="text-lg font-display font-bold mb-4 text-white">ССЫЛКИ</h3>
               <div className="space-y-3">
-                 <a href="#" target="_blank" className="flex items-center justify-between p-3 bg-gray-900 border border-gray-700 hover:border-cyber-cyan hover:text-cyber-cyan transition-colors duration-200 ease-soft group">
-                    <span className="font-mono text-xs flex items-center gap-2"><Globe className="w-3 h-3" /> ОФИЦИАЛЬНЫЙ САЙТ</span>
-                    <ExternalLink className="w-3 h-3 opacity-50 group-hover:opacity-100" />
-                 </a>
+                 {coin.category === 'crypto' ? (
+                   <a href={`https://www.coingecko.com/en/coins/${encodeURIComponent(coin.id)}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-3 bg-gray-900 border border-gray-700 hover:border-cyber-cyan hover:text-cyber-cyan transition-colors duration-200 ease-soft group">
+                      <span className="font-mono text-xs flex items-center gap-2"><Globe className="w-3 h-3" /> ОТКРЫТЬ КАРТОЧКУ COINGECKO</span>
+                      <ExternalLink className="w-3 h-3 opacity-50 group-hover:opacity-100" />
+                   </a>
+                 ) : (
+                   <div className="border border-dashed border-gray-800 p-3 text-xs text-gray-600">Внешняя карточка для этого демонстрационного класса пока не подключена.</div>
+                 )}
                  <button onClick={() => setTechModalOpen(true)} className="w-full p-3 bg-cyber-purple/10 border border-cyber-purple text-cyber-purple font-mono text-xs font-bold hover:bg-cyber-purple/20 transition-colors duration-200 ease-soft flex items-center justify-center gap-2">
-                    <Terminal className="w-3 h-3" /> ЗАПУСТИТЬ ТЕХ. АНАЛИЗ
+                    <Terminal className="w-3 h-3" /> ОТКРЫТЬ ОБЗОР МЕТРИК
                  </button>
               </div>
            </div>

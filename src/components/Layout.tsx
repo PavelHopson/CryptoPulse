@@ -1,13 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { Activity, BarChart2, Search, Bell, User, Star, TrendingUp, DollarSign, Shield, LogIn, Check, X, Info, CheckCircle, AlertTriangle, Trophy, CreditCard, Megaphone, ArrowLeftRight, Wallet, LogOut, Cpu, Globe, Zap, Moon, Sun, Monitor, Calculator, FlaskConical } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Activity, BarChart2, Bell, User, Star, TrendingUp, DollarSign, Shield, LogIn, Check, X, Info, CheckCircle, AlertTriangle, Trophy, CreditCard, Megaphone, ArrowLeftRight, LogOut, Cpu, Globe, Zap, Moon, Sun, Monitor, FlaskConical } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { getUserProfile } from '../services/userService';
-import { UserProfile, WalletState } from '../types';
-import { MockAd } from './MockAd';
+import { UserProfile } from '../types';
 import { getSystemConfig } from '../services/adminService';
-import { WalletModal } from './WalletModal';
-import { PositionCalculator } from './PositionCalculator';
-import { getWalletState, disconnectWallet } from '../services/web3Service';
 import { useTheme, type Theme } from '../context/ThemeContext';
 import { AvatarDefault } from '../assets/icons';
 
@@ -20,13 +16,33 @@ const THEME_META: Record<Theme, { icon: React.ReactNode; label: string }> = {
 const ThemeToggle: React.FC = () => {
   const { theme, setTheme } = useTheme();
   const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const themes: Theme[] = ['cyberpunk', 'midnight', 'light'];
+
+  useEffect(() => {
+    if (!open) return;
+    const firstItem = menuRef.current?.querySelector<HTMLButtonElement>('button');
+    firstItem?.focus();
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setOpen(false);
+        triggerRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [open]);
 
   return (
     <div className="relative">
       <button
+        ref={triggerRef}
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-1.5 px-3 py-1.5 border border-cyber-cyan/30 text-cyber-cyan text-xs font-mono hover:bg-cyber-cyan/10 transition-colors duration-200 ease-soft"
+        aria-expanded={open}
+        aria-haspopup="menu"
+        className="flex items-center gap-1.5 px-3 py-1.5 border border-cyber-cyan/30 text-cyber-cyan text-xs font-mono hover:bg-cyber-cyan/10 transition-colors duration-200 ease-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyber-cyan focus-visible:ring-offset-2 focus-visible:ring-offset-cyber-black"
         title="Switch theme"
       >
         {THEME_META[theme].icon}
@@ -36,12 +52,14 @@ const ThemeToggle: React.FC = () => {
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute top-full right-0 mt-2 w-44 border border-gray-700 bg-dark-card shadow-xl z-50 overflow-hidden rounded-lg">
+          <div ref={menuRef} role="menu" aria-label="Выбор темы" className="absolute top-full right-0 mt-2 w-44 border border-gray-700 bg-dark-card shadow-xl z-50 overflow-hidden rounded-lg">
             {themes.map((t) => (
               <button
                 key={t}
                 onClick={() => { setTheme(t); setOpen(false); }}
-                className={`w-full flex items-center gap-3 px-4 py-2.5 text-xs font-mono transition-colors ${
+                aria-pressed={theme === t}
+                role="menuitemradio"
+                className={`w-full flex items-center gap-3 px-4 py-2.5 text-xs font-mono transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-cyber-cyan ${
                   theme === t
                     ? 'bg-cyber-cyan/15 text-cyber-cyan'
                     : 'text-gray-400 hover:bg-cyber-cyan/5 hover:text-cyber-cyan'
@@ -63,21 +81,19 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   const location = useLocation();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [globalAlert, setGlobalAlert] = useState<string | null>(null);
-  const [wallet, setWallet] = useState<WalletState>(getWalletState());
-  const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
-  const [isCalcOpen, setIsCalcOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [notifications, setNotifications] = useState([
-    { id: 1, title: 'BTC ПРОБИЛ $65,000', time: '02:14', read: false, type: 'alert' },
-    { id: 2, title: 'ДЕПОЗИТ ПОДТВЕРЖДЕН', time: '11:05', read: false, type: 'success' },
+    { id: 1, title: 'ИССЛЕДОВАНИЕ ГОТОВО К ПРОВЕРКЕ', time: '02:14', read: false, type: 'alert' },
+    { id: 2, title: 'ОБНОВЛЁН ИСТОЧНИК ДАННЫХ', time: '11:05', read: false, type: 'success' },
   ]);
+  const notifTriggerRef = useRef<HTMLButtonElement>(null);
+  const notifPanelRef = useRef<HTMLDivElement>(null);
 
   const updateProfile = () => {
     const profile = getUserProfile();
     setUser(profile);
     const config = getSystemConfig();
     setGlobalAlert(config.globalAlert);
-    setWallet(getWalletState());
   };
 
   useEffect(() => {
@@ -85,16 +101,45 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     const interval = setInterval(updateProfile, 5000);
     window.addEventListener('balanceChanged', updateProfile);
     window.addEventListener('userUpdated', updateProfile);
-    window.addEventListener('walletUpdated', updateProfile);
     return () => {
       clearInterval(interval);
       window.removeEventListener('balanceChanged', updateProfile);
       window.removeEventListener('userUpdated', updateProfile);
-      window.removeEventListener('walletUpdated', updateProfile);
     };
   }, []);
 
   useEffect(() => setIsNotifOpen(false), [location]);
+
+  useEffect(() => {
+    if (!isNotifOpen) return;
+    const initialFocus = notifPanelRef.current?.querySelector<HTMLElement>('[data-dialog-initial-focus]');
+    initialFocus?.focus();
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setIsNotifOpen(false);
+        notifTriggerRef.current?.focus();
+        return;
+      }
+      if (event.key === 'Tab' && notifPanelRef.current) {
+        const focusable = Array.from(notifPanelRef.current.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ));
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isNotifOpen]);
 
   const unreadCount = notifications.filter(n => !n.read).length;
   const markAllRead = () => setNotifications(prev => prev.map(n => ({ ...n, read: true })));
@@ -108,16 +153,11 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     ? 'text-cyber-cyan border-b-2 border-cyber-cyan shadow-[0_0_10px_rgba(0,243,255,0.4)] bg-cyber-cyan/10' 
     : 'text-gray-500 hover:text-cyber-cyan hover:bg-cyber-cyan/5';
 
-  const formatAddress = (addr: string) => `${addr.substring(0, 6)}::${addr.substring(addr.length - 4)}`;
-
   return (
     <div className="min-h-screen bg-cyber-black text-gray-200 pb-24 md:pb-0 flex flex-col font-sans overflow-hidden relative">
       
       {/* Background Grid Effect */}
       <div className="fixed inset-0 bg-cyber-grid bg-[length:40px_40px] pointer-events-none z-0" style={{ opacity: 'var(--grid-opacity)' }}></div>
-
-      <WalletModal isOpen={isWalletModalOpen} onClose={() => setIsWalletModalOpen(false)} />
-      <PositionCalculator isOpen={isCalcOpen} onClose={() => setIsCalcOpen(false)} />
 
       {/* GLOBAL ALERT */}
       {globalAlert && (
@@ -130,11 +170,11 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       {/* TOP NAV - CYBER HUD */}
       <nav className="sticky top-0 z-50 border-b border-cyber-cyan/20 bg-cyber-black/80 backdrop-blur-md hidden md:block">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
+          <div className="flex min-h-20 items-center justify-between gap-3">
             
             {/* LOGO */}
-            <div className="flex items-center gap-8">
-              <Link to="/" className="flex items-center gap-3 group">
+            <div className="flex min-w-0 flex-1 items-center gap-4">
+              <Link to="/" className="flex shrink-0 items-center gap-3 group">
                 <div className="relative">
                   <div className="absolute inset-0 bg-cyber-cyan blur-md opacity-50 group-hover:opacity-100 transition-opacity"></div>
                   <div className="bg-cyber-black border border-cyber-cyan p-2 rounded-none relative z-10">
@@ -145,22 +185,22 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                   <span className="text-2xl font-display font-black italic tracking-tighter text-white group-hover:text-cyber-cyan transition-colors">
                     CRYPTO<span className="text-cyber-cyan">PULSE</span>
                   </span>
-                  <span className="text-[10px] font-mono text-cyber-cyan/60 tracking-[0.2em] leading-none">NEURAL FINANCE</span>
+                  <span className="text-[10px] font-mono text-cyber-cyan/60 tracking-[0.2em] leading-none">RESEARCH LAB</span>
                 </div>
               </Link>
               
               {/* DESKTOP MENU */}
-              <div className="hidden md:flex items-center space-x-1 font-display tracking-wider text-sm">
+              <div className="scrollbar-hide hidden min-w-0 flex-1 items-center space-x-1 overflow-x-auto font-display tracking-wider text-sm md:flex">
                 {[
                   { path: '/', label: 'КРИПТО' },
                   { path: '/forex', label: 'ФОРЕКС' },
                   { path: '/futures', label: 'ФЬЮЧЕРСЫ' },
-                  { path: '/community', label: 'ТОП ТРЕЙДЕРЫ' },
+                  { path: '/community', label: 'СООБЩЕСТВО' },
                   { path: '/compare', label: 'СРАВНЕНИЕ' },
                   { path: '/strategy-lab', label: 'STRATEGY LAB' },
                   { path: '/favorites', label: 'ИЗБРАННОЕ' }
                 ].map(link => (
-                  <Link key={link.path} to={link.path} className={`px-4 py-2 transition-[color,background-color,border-color,box-shadow] duration-300 ease-soft ${isActive(link.path)}`}>
+                  <Link key={link.path} to={link.path} className={`shrink-0 px-3 py-2 transition-[color,background-color,border-color,box-shadow] duration-300 ease-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyber-cyan focus-visible:ring-inset ${isActive(link.path)}`}>
                     {link.label}
                   </Link>
                 ))}
@@ -168,67 +208,57 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
             </div>
 
             {/* RIGHT ACTIONS */}
-            <div className="flex items-center gap-4">
+            <div className="flex shrink-0 items-center gap-2">
               <Link to="/pricing" className="hidden lg:flex items-center gap-2 px-3 py-1 border border-cyber-yellow/30 text-cyber-yellow text-xs font-mono hover:bg-cyber-yellow/10 transition-colors duration-200 ease-soft">
-                  <Zap className="w-3 h-3" /> UPGRADE
+                  <Zap className="w-3 h-3" /> ПЛАНЫ
               </Link>
 
-              <div className="relative hidden lg:block group">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-cyber-cyan/50" />
-                <input 
-                  type="text" 
-                  placeholder="ПОИСК АКТИВА..." 
-                  className="bg-cyber-black border border-gray-800 text-sm w-48 pl-9 pr-4 py-1.5 text-cyber-cyan focus:border-cyber-cyan focus:outline-none font-mono placeholder-gray-700 transition-[width,border-color,box-shadow] duration-300 ease-soft focus:w-64 focus:shadow-[0_0_10px_rgba(0,243,255,0.2)]"
-                />
-              </div>
-
-              {/* CALCULATOR */}
-              <button
-                onClick={() => setIsCalcOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 border border-cyber-cyan/30 text-cyber-cyan text-xs font-mono hover:bg-cyber-cyan/10 transition-colors duration-200 ease-soft"
-                title="Position Calculator"
+              <a
+                href="https://library.eclipse-forge.ru/"
+                target="_blank"
+                rel="noreferrer"
+                className="hidden xl:flex items-center gap-2 px-3 py-1 border border-cyber-cyan/20 text-cyber-cyan/80 text-xs font-mono hover:bg-cyber-cyan/10 hover:text-cyber-cyan transition-colors duration-200 ease-soft"
+                title="Открыть учебные материалы Eclipse Library"
               >
-                <Calculator className="w-4 h-4" />
-                <span className="hidden xl:inline">КАЛЬКУЛЯТОР</span>
-              </button>
+                <Globe className="w-3 h-3" /> LIBRARY
+              </a>
+
+              <Link
+                to="/strategy-lab"
+                className="flex items-center gap-1.5 px-3 py-1.5 border border-cyber-cyan/30 text-cyber-cyan text-xs font-mono hover:bg-cyber-cyan/10 transition-colors duration-200 ease-soft"
+                title="Открыть Strategy Lab"
+              >
+                <FlaskConical className="w-4 h-4" />
+                <span className="hidden xl:inline">LAB</span>
+              </Link>
 
               {/* THEME TOGGLE */}
               <ThemeToggle />
 
-              {/* WALLET */}
-              {wallet.isConnected && wallet.address ? (
-                 <button onClick={disconnectWallet} className="flex items-center gap-2 bg-cyber-black border border-cyber-green/50 hover:border-cyber-green text-cyber-green px-3 py-1.5 text-xs font-mono transition-colors duration-200 ease-soft group relative overflow-hidden">
-                    <div className="w-1.5 h-1.5 bg-cyber-green animate-pulse"></div>
-                    {formatAddress(wallet.address)}
-                    <div className="absolute inset-0 bg-cyber-green/10 translate-y-full group-hover:translate-y-0 transition-transform"></div>
-                 </button>
-              ) : (
-                 <button onClick={() => setIsWalletModalOpen(true)} className="cyber-button px-4 py-1.5 text-xs font-bold flex items-center gap-2">
-                    <Wallet className="w-3 h-3" /> ПОДКЛЮЧИТЬ
-                 </button>
-              )}
-              
               {/* NOTIFICATIONS */}
               <div className="relative">
-                <button onClick={() => setIsNotifOpen(!isNotifOpen)} className={`p-2 transition-colors relative ${isNotifOpen ? 'text-cyber-cyan' : 'text-gray-500 hover:text-cyber-cyan'}`}>
+                <button ref={notifTriggerRef} onClick={() => setIsNotifOpen(!isNotifOpen)} aria-expanded={isNotifOpen} aria-haspopup="dialog" aria-label={unreadCount > 0 ? `Уведомления, непрочитанных: ${unreadCount}` : 'Открыть уведомления'} className={`relative p-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyber-cyan ${isNotifOpen ? 'text-cyber-cyan' : 'text-gray-500 hover:text-cyber-cyan'}`}>
                   <Bell className="w-5 h-5" />
                   {unreadCount > 0 && <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-cyber-pink animate-ping"></span>}
                   {unreadCount > 0 && <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-cyber-pink"></span>}
                 </button>
 
                 {isNotifOpen && (
-                   <div className="absolute top-full right-0 mt-4 w-72 sm:w-80 max-w-[90vw] bg-cyber-black border border-cyber-cyan/30 shadow-[0_0_20px_rgba(0,243,255,0.1)] z-50 origin-top-right animate-scale-in">
+                   <div ref={notifPanelRef} role="dialog" aria-modal="false" aria-labelledby="desktop-notifications-title" className="absolute top-full right-0 mt-4 w-72 sm:w-80 max-w-[90vw] bg-cyber-black border border-cyber-cyan/30 shadow-[0_0_20px_rgba(0,243,255,0.1)] z-50 origin-top-right animate-scale-in">
                       {/* Notif Content - styled appropriately */}
                       <div className="p-3 border-b border-cyber-cyan/20 flex justify-between items-center bg-cyber-cyan/5">
-                          <h3 className="font-display text-cyber-cyan text-xs tracking-widest">СИСТЕМНЫЙ ЛОГ</h3>
-                          <button onClick={markAllRead} className="text-[10px] text-gray-400 hover:text-white">ПРОЧИТАТЬ ВСЕ</button>
+                          <h3 id="desktop-notifications-title" className="font-display text-cyber-cyan text-xs tracking-widest">СИСТЕМНЫЙ ЛОГ</h3>
+                          <button data-dialog-initial-focus type="button" onClick={markAllRead} className="text-[10px] text-gray-400 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyber-cyan">ПРОЧИТАТЬ ВСЕ</button>
                       </div>
                       <div className="max-h-64 overflow-y-auto">
+                          {notifications.length === 0 && <p className="p-4 text-xs text-gray-500">Новых уведомлений нет.</p>}
                           {notifications.map(n => (
                               <div key={n.id} className={`p-3 border-b border-gray-800 hover:bg-cyber-cyan/5 transition-colors group ${!n.read ? 'border-l-2 border-l-cyber-pink pl-2.5' : ''}`}>
                                   <div className="flex justify-between items-start">
                                       <span className={`font-mono text-xs ${n.type === 'alert' ? 'text-cyber-yellow' : 'text-cyber-green'}`}>{n.title}</span>
-                                      <X onClick={(e) => deleteNotification(e, n.id)} className="w-3 h-3 text-gray-600 hover:text-red-500 cursor-pointer opacity-0 group-hover:opacity-100" />
+                                      <button type="button" onClick={(e) => deleteNotification(e, n.id)} aria-label={`Удалить уведомление: ${n.title}`} className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyber-cyan">
+                                        <X className="w-3 h-3 text-gray-600 hover:text-red-500" />
+                                      </button>
                                   </div>
                                   <div className="text-[10px] text-gray-500 font-mono mt-1">{n.time}</div>
                               </div>
@@ -249,7 +279,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                          <AvatarDefault size={36} />
                        </div>
                      ) : user.avatar ? (
-                       <img src={user.avatar} className="w-9 h-9 object-cover border border-gray-600 group-hover:border-cyber-cyan transition-colors" style={{ clipPath: 'polygon(20% 0, 100% 0, 100% 80%, 80% 100%, 0 100%, 0 20%)' }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                       <img src={user.avatar} alt={`Аватар ${user.name}`} className="w-9 h-9 object-cover border border-gray-600 group-hover:border-cyber-cyan transition-colors" style={{ clipPath: 'polygon(20% 0, 100% 0, 100% 80%, 80% 100%, 0 100%, 0 20%)' }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                      ) : (
                        <div className="w-9 h-9 bg-cyber-cyan/20 flex items-center justify-center text-cyber-cyan font-display border border-cyber-cyan" style={{ clipPath: 'polygon(20% 0, 100% 0, 100% 80%, 80% 100%, 0 100%, 0 20%)' }}>{user.name.charAt(0)}</div>
                      )}
@@ -259,7 +289,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                   </div>
                   <div className="text-right hidden xl:block">
                      <div className="font-display text-sm text-white group-hover:text-cyber-cyan transition-colors">{user.name}</div>
-                     <div className="font-mono text-xs text-cyber-green tracking-wide">${user.balance.toLocaleString(undefined, {maximumFractionDigits: 0})}</div>
+                     <div className="font-mono text-xs text-cyber-green tracking-wide">PAPER MODE</div>
                   </div>
                 </Link>
               ) : (
@@ -280,20 +310,22 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
          </div>
          <div className="flex items-center gap-3">
              <ThemeToggle />
-             <button onClick={() => setIsNotifOpen(!isNotifOpen)} className="text-gray-400"><Bell className="w-5 h-5" /></button>
-             <Link to="/profile" className="w-8 h-8 bg-cyber-cyan/20 border border-cyber-cyan flex items-center justify-center text-cyber-cyan font-bold">{user ? user.name.charAt(0) : '?'}</Link>
+             <button ref={notifTriggerRef} onClick={() => setIsNotifOpen(!isNotifOpen)} aria-expanded={isNotifOpen} aria-haspopup="dialog" aria-label={unreadCount > 0 ? `Уведомления, непрочитанных: ${unreadCount}` : 'Открыть уведомления'} className="text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyber-cyan"><Bell className="w-5 h-5" /></button>
+              <Link to={user ? '/profile' : '/login'} aria-label={user ? `Профиль ${user.name}` : 'Войти'} className="w-8 h-8 bg-cyber-cyan/20 border border-cyber-cyan flex items-center justify-center text-cyber-cyan font-bold">{user ? user.name.charAt(0) : '?'}</Link>
          </div>
          {/* Mobile notification sheet */}
          {isNotifOpen && (
-             <div className="fixed inset-0 z-50 bg-cyber-black/95 flex flex-col animate-fade-in">
+             <div ref={notifPanelRef} role="dialog" aria-modal="true" aria-labelledby="mobile-notifications-title" data-mobile-notifications className="fixed inset-0 z-50 bg-cyber-black/95 flex flex-col animate-fade-in">
                  <div className="p-4 border-b border-gray-800 flex justify-between">
-                     <span className="font-mono text-cyber-cyan">УВЕДОМЛЕНИЯ</span>
-                     <X onClick={() => setIsNotifOpen(false)} className="text-white" />
+                     <h2 id="mobile-notifications-title" className="font-mono text-cyber-cyan">УВЕДОМЛЕНИЯ</h2>
+                     <button data-dialog-initial-focus type="button" onClick={() => { setIsNotifOpen(false); notifTriggerRef.current?.focus(); }} aria-label="Закрыть уведомления" className="text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyber-cyan"><X /></button>
                  </div>
                  <div className="p-4 space-y-4">
+                    {notifications.length === 0 && <p className="text-sm text-gray-500">Новых уведомлений нет.</p>}
                     {notifications.map(n => (
                         <div key={n.id} className="bg-gray-900 border border-gray-800 p-3">
                             <div className="font-bold text-white">{n.title}</div>
+                            <div className="mt-1 text-xs text-gray-500">{n.time}</div>
                         </div>
                     ))}
                  </div>
@@ -307,7 +339,6 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
         </div>
       </main>
 
-      {user && !user.is_pro && <MockAd />}
       
       {/* MOBILE BOTTOM NAV */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-cyber-black/95 backdrop-blur-md border-t border-cyber-cyan/20 z-50 pb-safe">
@@ -316,7 +347,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
              <BarChart2 className="w-5 h-5" /> КРИПТО
           </Link>
           <Link to="/community" className={`flex flex-col items-center gap-1 w-16 ${isActive('/community') ? 'text-cyber-cyan' : 'text-gray-500'}`}>
-             <Trophy className="w-5 h-5" /> ТОП
+             <Trophy className="w-5 h-5" /> СЦЕН.
           </Link>
           
            <Link to={user && user.id !== 'demo-user' ? "/profile" : "/login"} className="relative -top-6">

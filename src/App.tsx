@@ -30,7 +30,7 @@ const App: React.FC = () => {
                 <MarketPage
                   category="crypto"
                   title="КРИПТО РЫНОК"
-                  subtitle="Котировки цифровых активов в реальном времени"
+                  subtitle="Рыночные данные с явным статусом источника"
                 />
               } />
               <Route path="/forex" element={

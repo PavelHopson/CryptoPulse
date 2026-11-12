@@ -18,25 +18,18 @@ export const LoginPage: React.FC = () => {
     setError(null);
     setLoading(true);
 
-    // Simulate network
-    await new Promise(r => setTimeout(r, 1000));
-
-    if (isLogin) {
-      const res = await loginUser(email.trim(), password);
+    try {
+      const res = isLogin
+        ? await loginUser(email.trim(), password)
+        : await registerUser(name.trim(), email.trim(), password);
       if (res.success) {
         navigate('/');
       } else {
         setError(res.message);
       }
-    } else {
-      const res = await registerUser(name.trim(), email.trim(), password);
-      if (res.success) {
-        navigate('/');
-      } else {
-        setError(res.message);
-      }
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
@@ -52,14 +45,14 @@ export const LoginPage: React.FC = () => {
           </div>
           <h1 className="text-2xl font-bold text-white mb-2">CryptoPulse</h1>
           <p className="text-gray-400 text-sm">
-            {isLogin ? 'Добро пожаловать' : 'Создайте аккаунт трейдера'}
+            {isLogin ? 'Добро пожаловать' : 'Создайте аккаунт исследователя'}
           </p>
         </div>
 
         {/* Form */}
         <div className="p-4 sm:p-6 md:p-8 space-y-6">
           {error && (
-             <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-3 rounded-lg text-sm flex items-center gap-2">
+             <div role="alert" aria-live="assertive" className="bg-red-500/10 border border-red-500/20 text-red-400 p-3 rounded-lg text-sm flex items-center gap-2">
                 <AlertCircle className="w-4 h-4" /> {error}
              </div>
           )}
@@ -67,15 +60,17 @@ export const LoginPage: React.FC = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             {!isLogin && (
               <div className="space-y-1">
-                <label className="text-xs font-bold text-gray-500 uppercase ml-1">Имя</label>
+                <label htmlFor="login-name" className="text-xs font-bold text-gray-500 uppercase ml-1">Имя</label>
                 <div className="relative">
                    <User className="w-4 h-4 text-gray-500 absolute left-3 top-3.5" />
                    <input 
+                     id="login-name"
                      type="text" 
                      placeholder="Ваше имя"
+                     autoComplete="name"
                      value={name}
                      onChange={e => setName(e.target.value)}
-                     className="w-full bg-gray-900 border border-gray-700 rounded-xl py-3 pl-10 pr-4 text-white focus:border-brand-500 focus:outline-none transition-colors"
+                     className="w-full bg-gray-900 border border-gray-700 rounded-xl py-3 pl-10 pr-4 text-white focus:border-brand-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/70 transition-colors"
                      required
                    />
                 </div>
@@ -83,32 +78,36 @@ export const LoginPage: React.FC = () => {
             )}
 
             <div className="space-y-1">
-              <label className="text-xs font-bold text-gray-500 uppercase ml-1">Email</label>
+              <label htmlFor="login-email" className="text-xs font-bold text-gray-500 uppercase ml-1">Email</label>
               <div className="relative">
                  <Mail className="w-4 h-4 text-gray-500 absolute left-3 top-3.5" />
                  <input 
+                   id="login-email"
                    type="email" 
                    placeholder="name@example.com"
+                   autoComplete="email"
                    value={email}
                    onChange={e => setEmail(e.target.value)}
-                   className="w-full bg-gray-900 border border-gray-700 rounded-xl py-3 pl-10 pr-4 text-white focus:border-brand-500 focus:outline-none transition-colors"
+                   className="w-full bg-gray-900 border border-gray-700 rounded-xl py-3 pl-10 pr-4 text-white focus:border-brand-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/70 transition-colors"
                    required
                  />
               </div>
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-bold text-gray-500 uppercase ml-1">Пароль</label>
+              <label htmlFor="login-password" className="text-xs font-bold text-gray-500 uppercase ml-1">Пароль</label>
               <div className="relative">
                  <Lock className="w-4 h-4 text-gray-500 absolute left-3 top-3.5" />
                  <input 
+                   id="login-password"
                    type="password" 
                    placeholder="••••••••"
+                   autoComplete={isLogin ? 'current-password' : 'new-password'}
                    value={password}
                    onChange={e => setPassword(e.target.value)}
                    minLength={isLogin ? undefined : 8}
                    maxLength={128}
-                   className="w-full bg-gray-900 border border-gray-700 rounded-xl py-3 pl-10 pr-4 text-white focus:border-brand-500 focus:outline-none transition-colors"
+                   className="w-full bg-gray-900 border border-gray-700 rounded-xl py-3 pl-10 pr-4 text-white focus:border-brand-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/70 transition-colors"
                    required
                  />
               </div>
@@ -117,7 +116,8 @@ export const LoginPage: React.FC = () => {
             <button 
               type="submit" 
               disabled={loading}
-              className="w-full bg-brand-600 hover:bg-brand-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-brand-500/20 [transition:background-color_.2s_var(--ease),box-shadow_.2s_var(--ease),transform_.2s_var(--ease-spring)] hover:enabled:-translate-y-0.5 active:enabled:translate-y-0 flex items-center justify-center gap-2 disabled:opacity-50"
+              aria-busy={loading}
+              className="w-full bg-brand-600 hover:bg-brand-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-brand-500/20 [transition:background-color_.2s_var(--ease),box-shadow_.2s_var(--ease),transform_.2s_var(--ease-spring)] hover:enabled:-translate-y-0.5 active:enabled:translate-y-0 flex items-center justify-center gap-2 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
             >
               {loading ? 'Обработка...' : (isLogin ? 'Войти' : 'Зарегистрироваться')} <ArrowRight className="w-4 h-4" />
             </button>
@@ -126,8 +126,9 @@ export const LoginPage: React.FC = () => {
           <div className="text-center text-sm text-gray-500">
             {isLogin ? 'Нет аккаунта?' : 'Уже есть аккаунт?'}{' '}
             <button 
+              type="button"
               onClick={() => { setIsLogin(!isLogin); setError(null); }}
-              className="text-brand-400 hover:text-brand-300 font-medium transition-colors"
+              className="text-brand-400 hover:text-brand-300 font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
             >
               {isLogin ? 'Регистрация' : 'Войти'}
             </button>

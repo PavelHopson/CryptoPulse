@@ -76,9 +76,8 @@ the floor.
 
 ### Positive
 
-- **Free tier is generous.** Cloudflare Workers gives 100,000 requests
-  per day on the free plan. At realistic traffic this is effectively
-  infinite headroom.
+- **Initial quotas may be sufficient.** Worker limits and provider pricing
+  change, so they must be checked against observed traffic before launch.
 - **~0ms cold start.** Workers run on V8 isolates, not containers.
   User opens the Dashboard → news feed appears without a "warming
   up" delay.
@@ -114,10 +113,9 @@ the floor.
   their feed URL or schema, we break silently until someone notices.
   Mitigated partially by `Promise.allSettled` — one bad feed does not
   kill the others — but discovery of a broken feed is manual.
-- **Rate limits at scale.** If CryptoPulse ever gets viral traffic,
-  100k req/day is finite. Since we cache 5 minutes, the practical
-  ceiling is 288 hits/day/POP × edge POPs, which is much larger than
-  100k, but we should keep it in mind.
+- **Rate limits at scale.** Provider and Worker quotas are finite. Since we
+  cache 5 minutes, traffic still needs monitoring and an explicit upgrade
+  path before launch.
 - **No observability by default.** Cloudflare Worker logs via
   `wrangler tail` only during active debugging. We do not persist
   logs. For a news feed this is fine; for anything more important it

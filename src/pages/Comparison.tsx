@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { fetchTopCoins, fetchCoinHistory } from '../services/cryptoService';
+import type { DataStatus } from '../services/cryptoService';
 import { CoinData, Timeframe } from '../types';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { ArrowLeftRight, TrendingUp, AlertCircle, Search } from 'lucide-react';
@@ -11,34 +12,54 @@ export const ComparisonPage: React.FC = () => {
   const [timeframe, setTimeframe] = useState<Timeframe>('1M');
   const [chartData, setChartData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
+  const [dataStatus, setDataStatus] = useState<DataStatus | 'CHECKING'>('CHECKING');
+  const [historyStatus, setHistoryStatus] = useState<DataStatus | 'CHECKING' | 'MIXED'>('CHECKING');
 
   useEffect(() => {
+    let active = true;
     const init = async () => {
-      const { data } = await fetchTopCoins();
-      setAvailableCoins(data);
-      setLoading(false);
+      setLoading(true);
+      setError(null);
+      try {
+        const { data, status } = await fetchTopCoins();
+        if (!active) return;
+        setAvailableCoins(data);
+        setDataStatus(status);
+        if (!data.length) setError('Список активов временно недоступен.');
+      } catch {
+        if (active) setError('Не удалось загрузить список активов.');
+      } finally {
+        if (active) setLoading(false);
+      }
     };
     init();
-  }, []);
+    return () => { active = false; };
+  }, [reloadKey]);
 
   useEffect(() => {
+    let active = true;
     const fetchData = async () => {
       if (!coinA || !coinB) return;
       setLoading(true);
-      
+
       const assetA = availableCoins.find(c => c.id === coinA);
       const assetB = availableCoins.find(c => c.id === coinB);
-      
+
       if (assetA && assetB) {
+        try {
           const historyA = await fetchCoinHistory(coinA, timeframe, assetA.current_price);
           const historyB = await fetchCoinHistory(coinB, timeframe, assetB.current_price);
-          
-          const merged = historyA.map((candleA, index) => {
-             const candleB = historyB[index];
-             
-             const startA = historyA[0].close;
-             const startB = historyB[0].close;
-             
+          if (!active) return;
+          setHistoryStatus(historyA.status === historyB.status ? historyA.status : 'MIXED');
+
+          const merged = historyA.data.map((candleA, index) => {
+             const candleB = historyB.data[index];
+
+             const startA = historyA.data[0].close;
+             const startB = historyB.data[0].close;
+
              return {
                  time: candleA.time,
                  valueA: ((candleA.close - startA) / startA) * 100,
@@ -47,15 +68,27 @@ export const ComparisonPage: React.FC = () => {
                  priceB: candleB?.close
              };
           });
-          
+
+          if (!active) return;
           setChartData(merged);
+          setError(null);
+        } catch {
+          if (!active) return;
+          setChartData([]);
+          setError('Не удалось загрузить историю выбранных активов.');
+        }
+      } else if (availableCoins.length > 0) {
+        if (!active) return;
+        setChartData([]);
+        setError('Выбранные активы пока недоступны.');
       }
-      setLoading(false);
+      if (active) setLoading(false);
     };
 
     if (availableCoins.length > 0) {
         fetchData();
     }
+    return () => { active = false; };
   }, [coinA, coinB, timeframe, availableCoins]);
 
   const getName = (id: string) => availableCoins.find(c => c.id === id)?.name || id;
@@ -73,16 +106,18 @@ export const ComparisonPage: React.FC = () => {
            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-2 flex items-center gap-3">
              <ArrowLeftRight className="w-8 h-8 text-brand-500" /> СРАВНЕНИЕ АКТИВОВ
            </h1>
-           <p className="text-gray-400">Анализ корреляции и относительной доходности (%)</p>
+           <p className="text-gray-400">Сравнение paper-рядов. История: <span className="font-mono text-cyber-cyan">{historyStatus}</span>; источник списка: <span className="font-mono text-cyber-cyan">{dataStatus}</span>.</p>
         </div>
-        
+
         {/* Timeframe Selector */}
         <div className="flex bg-gray-900 rounded-lg p-1">
             {(['1W', '1M', '1Y'] as Timeframe[]).map(t => (
-            <button 
-                key={t} 
+            <button
+                key={t}
                 onClick={() => setTimeframe(t)}
-                className={`px-4 py-2 text-sm font-medium rounded transition-colors duration-200 ease-soft ${timeframe === t ? 'bg-brand-600 text-white shadow' : 'text-gray-500 hover:text-gray-300'}`}
+                aria-pressed={timeframe === t}
+                aria-label={`Сравнить активы за ${t}`}
+                className={`px-4 py-2 text-sm font-medium rounded transition-colors duration-200 ease-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 ${timeframe === t ? 'bg-brand-600 text-white shadow' : 'text-gray-500 hover:text-gray-300'}`}
             >
                 {t}
             </button>
@@ -93,26 +128,28 @@ export const ComparisonPage: React.FC = () => {
       {/* Controls */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-dark-card border border-gray-800 p-6 rounded-2xl">
           <div className="space-y-2">
-              <label className="text-xs font-bold text-brand-400 uppercase">Актив А (Базовый)</label>
+              <label htmlFor="comparison-asset-a" className="text-xs font-bold text-brand-400 uppercase">Актив А (Базовый)</label>
               <div className="relative">
-                  <select 
-                    value={coinA} 
+                  <select
+                    id="comparison-asset-a"
+                    value={coinA}
                     onChange={e => setCoinA(e.target.value)}
-                    className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white appearance-none focus:border-brand-500 focus:outline-none"
+                    className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white appearance-none focus:border-brand-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/70"
                   >
                       {availableCoins.map(c => <option key={c.id} value={c.id}>{c.name} ({c.symbol.toUpperCase()})</option>)}
                   </select>
                   <div className="absolute right-4 top-3.5 pointer-events-none text-gray-500 text-xs">▼</div>
               </div>
           </div>
-          
+
           <div className="space-y-2">
-              <label className="text-xs font-bold text-purple-400 uppercase">Актив Б (Сравнение)</label>
+              <label htmlFor="comparison-asset-b" className="text-xs font-bold text-purple-400 uppercase">Актив Б (Сравнение)</label>
               <div className="relative">
-                  <select 
-                    value={coinB} 
+                  <select
+                    id="comparison-asset-b"
+                    value={coinB}
                     onChange={e => setCoinB(e.target.value)}
-                    className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white appearance-none focus:border-purple-500 focus:outline-none"
+                    className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white appearance-none focus:border-purple-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
                   >
                       {availableCoins.map(c => <option key={c.id} value={c.id}>{c.name} ({c.symbol.toUpperCase()})</option>)}
                   </select>
@@ -120,6 +157,13 @@ export const ComparisonPage: React.FC = () => {
               </div>
           </div>
       </div>
+
+      {historyStatus === 'MIXED' && (
+        <div role="status" className="flex items-start gap-3 border border-cyber-yellow/30 bg-cyber-yellow/5 p-4 text-sm text-cyber-yellow">
+          <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
+          <p>История собрана из разных источников. График оставлен для визуального сравнения, но его нельзя использовать как единый подтверждённый набор для вывода или платного исследования.</p>
+        </div>
+      )}
 
       {/* Chart Area */}
       <div className="bg-dark-card border border-gray-800 rounded-2xl p-6 min-h-[300px] sm:min-h-[400px] relative">
@@ -130,6 +174,12 @@ export const ComparisonPage: React.FC = () => {
                      <span className="text-gray-400 text-sm">Анализ данных...</span>
                  </div>
              </div>
+         ) : error ? (
+            <div role="alert" className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-dark-card/95 p-6 text-center">
+              <AlertCircle className="w-8 h-8 text-amber-400" />
+              <p className="text-gray-300">{error}</p>
+              <button type="button" onClick={() => setReloadKey(value => value + 1)} className="rounded-lg border border-brand-500/50 px-4 py-2 text-sm font-bold text-brand-300 hover:bg-brand-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400">Повторить</button>
+            </div>
          ) : (
             <>
                 <div className="mb-6 flex items-center gap-4 text-sm">
@@ -164,41 +214,41 @@ export const ComparisonPage: React.FC = () => {
                                 </linearGradient>
                             </defs>
                             <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} opacity={0.3} />
-                            <XAxis 
-                                dataKey="time" 
-                                stroke="#64748b" 
-                                tick={{ fontSize: 10 }} 
-                                tickLine={false} 
-                                axisLine={false} 
+                            <XAxis
+                                dataKey="time"
+                                stroke="#64748b"
+                                tick={{ fontSize: 10 }}
+                                tickLine={false}
+                                axisLine={false}
                                 minTickGap={50}
                             />
-                            <YAxis 
-                                stroke="#64748b" 
-                                tick={{ fontSize: 10 }} 
+                            <YAxis
+                                stroke="#64748b"
+                                tick={{ fontSize: 10 }}
                                 tickFormatter={(val) => `${val.toFixed(0)}%`}
                                 tickLine={false}
                                 axisLine={false}
                             />
-                            <Tooltip 
+                            <Tooltip
                                 contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px' }}
                                 labelStyle={{ color: '#94a3b8' }}
                                 itemStyle={{ color: '#f8fafc' }}
                                 formatter={(value, name) => formatPercentValue(value, name === 'valueA' ? getName(coinA) : getName(coinB))}
                             />
-                            <Area 
-                                type="monotone" 
-                                dataKey="valueA" 
-                                stroke="#0ea5e9" 
+                            <Area
+                                type="monotone"
+                                dataKey="valueA"
+                                stroke="#0ea5e9"
                                 strokeWidth={2}
-                                fill="url(#colorA)" 
+                                fill="url(#colorA)"
                                 name="valueA"
                             />
-                            <Area 
-                                type="monotone" 
-                                dataKey="valueB" 
-                                stroke="#a855f7" 
+                            <Area
+                                type="monotone"
+                                dataKey="valueB"
+                                stroke="#a855f7"
                                 strokeWidth={2}
-                                fill="url(#colorB)" 
+                                fill="url(#colorB)"
                                 name="valueB"
                             />
                         </AreaChart>
@@ -207,13 +257,13 @@ export const ComparisonPage: React.FC = () => {
             </>
          )}
       </div>
-      
+
       <div className="bg-gray-900/30 border border-gray-800 p-4 rounded-xl flex items-start gap-3">
           <AlertCircle className="w-5 h-5 text-gray-500 mt-0.5" />
           <div className="text-sm text-gray-400">
-              <span className="font-bold text-gray-300">Как читать этот график:</span> Графики нормализованы. 
-              Обе линии начинаются с 0% в левой части. Это показывает 
-              <span className="text-white font-medium"> относительную эффективность (ROI) </span> 
+              <span className="font-bold text-gray-300">Как читать этот график:</span> Графики нормализованы.
+              Обе линии начинаются с 0% в левой части. Это показывает
+              <span className="text-white font-medium"> относительную динамику за выбранный период </span>
               активов за выбранный период, игнорируя разницу в абсолютной цене.
           </div>
       </div>
