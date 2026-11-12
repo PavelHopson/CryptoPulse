@@ -5,8 +5,13 @@ test.describe('Dashboard', () => {
     await page.goto('/');
     await expect(page.locator('body')).toBeVisible();
 
-    // CryptoPulse logo — rendered as "CRYPTO" + "PULSE" split spans, so check partial
-    await expect(page.getByText('CRYPTO', { exact: false }).first()).toBeVisible();
+    // The compact mobile header exposes the market entry point; the desktop
+    // header exposes the wordmark. Use the control that is visible per layout.
+    if (testInfo.project.name === 'mobile-chromium') {
+      await expect(page.getByRole('button', { name: 'Открыть разделы рынка' })).toBeVisible();
+    } else {
+      await expect(page.getByText('CRYPTO', { exact: false }).first()).toBeVisible();
+    }
 
     // Crypto is available in both the desktop and mobile navigation.
     await expect(page.getByRole('link', { name: 'КРИПТО' }).first()).toBeVisible();
@@ -64,7 +69,7 @@ test.describe('Dashboard', () => {
     await page.getByTitle('Switch theme').first().click();
 
     // Pick Midnight
-    await page.getByRole('button', { name: /midnight/i }).click();
+    await page.getByRole('menuitemradio', { name: /midnight/i }).click();
 
     // data-theme should have switched
     await expect(html).toHaveAttribute('data-theme', 'midnight');

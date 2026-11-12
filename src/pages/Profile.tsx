@@ -4,10 +4,12 @@ import { Link } from 'react-router-dom';
 import { getUserProfile, logoutUser } from '../services/userService';
 import { AvatarDefault } from '../assets/icons';
 import type { UserProfile } from '../types';
+import { SettingsModal } from '../components/SettingsModal';
 
 /** Research-first profile: paper research only, without deposits or live positions. */
 export const Profile: React.FC = () => {
   const [user, setUser] = useState<UserProfile | null>(null);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   useEffect(() => {
     setUser(getUserProfile());
@@ -23,6 +25,11 @@ export const Profile: React.FC = () => {
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 animate-fade-in pb-20">
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        onUpdate={() => setUser(getUserProfile())}
+      />
       <header className="cyber-card relative overflow-hidden p-6 sm:p-8">
         <div className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-cyber-cyan/5 blur-3xl" />
         <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
@@ -38,7 +45,10 @@ export const Profile: React.FC = () => {
               <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.16em] text-cyber-cyan/70">Исследователь с {memberYear} · уровень {user.level}</p>
             </div>
           </div>
-          <button type="button" onClick={logoutUser} className="cyber-button flex items-center justify-center gap-2 px-4 py-2 text-xs sm:self-start"><LogOut className="h-4 w-4" /> ВЫЙТИ</button>
+          <div className="flex flex-wrap gap-2 sm:self-start">
+            <button type="button" onClick={() => setIsSettingsOpen(true)} className="cyber-button flex items-center justify-center gap-2 px-4 py-2 text-xs"><Settings className="h-4 w-4" /> НАСТРОЙКИ</button>
+            <button type="button" onClick={logoutUser} className="cyber-button flex items-center justify-center gap-2 px-4 py-2 text-xs"><LogOut className="h-4 w-4" /> ВЫЙТИ</button>
+          </div>
         </div>
         <div className="relative mt-6 max-w-xl">
           <div className="mb-1 flex justify-between font-mono text-[10px] text-gray-500"><span>ПРОГРЕСС ИССЛЕДОВАТЕЛЯ</span><span>{progress}%</span></div>
