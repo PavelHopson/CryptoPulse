@@ -37,7 +37,10 @@ jobs:
 
   e2e:
     needs: web-checks
-    runs-on: ubuntu-latest
+    # Playwright 1.59 does not yet provide browser dependencies for Ubuntu 26.
+    # Keep browser checks on the supported hosted image until the dependency
+    # matrix catches up.
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout
