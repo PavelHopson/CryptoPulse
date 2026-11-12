@@ -66,7 +66,7 @@ test.describe('Dashboard', () => {
     await expect(html).toHaveAttribute('data-theme', 'cyberpunk');
 
     // Open theme picker — button with title="Switch theme"
-    await page.getByTitle('Switch theme').first().click();
+    await page.locator('[title="Switch theme"]:visible').first().click();
 
     // Pick Midnight
     await page.getByRole('menuitemradio', { name: /midnight/i }).click();
