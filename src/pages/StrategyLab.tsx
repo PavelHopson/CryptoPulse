@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AlertTriangle, BarChart3, CheckCircle2, Download, FlaskConical, Play, ShieldCheck, XCircle } from 'lucide-react';
 import { createDemoPriceHistory, runStrategyLab, StrategyLabConfig, StrategyLabResult } from '../services/strategyLab';
 import { strategyResultToMarkdown, strategyTradesToCsv } from '../services/strategyExport';
@@ -64,7 +64,22 @@ export const StrategyLab: React.FC = () => {
     }
   });
   const [syncState, setSyncState] = useState<'local' | 'syncing' | 'synced' | 'auth-required' | 'error'>('local');
+  const [pendingSave, setPendingSave] = useState<StrategyLabResult | null>(null);
   const importSequence = useRef(0);
+  const navigate = useNavigate();
+
+  const syncResearchRun = (nextResult: StrategyLabResult) => {
+    setPendingSave(nextResult);
+    setSyncState('syncing');
+    void saveResearchRun(`Strategy Lab · ${nextResult.receipt.experimentId}`, nextResult)
+      .then((response) => {
+        setPendingSave(null);
+        setSyncState(response.configured ? 'synced' : 'local');
+      })
+      .catch((caught) => {
+        setSyncState(caught instanceof ResearchApiError && caught.code === 'UNAUTHORIZED' ? 'auth-required' : 'error');
+      });
+  };
 
   useEffect(() => {
     let active = true;
@@ -148,13 +163,7 @@ export const StrategyLab: React.FC = () => {
         try { localStorage.setItem(STRATEGY_HISTORY_KEY, JSON.stringify(nextHistory)); } catch { /* local history is optional */ }
         return nextHistory;
       });
-      void saveResearchRun(`Strategy Lab · ${nextResult.receipt.experimentId}`, nextResult)
-        .then((response) => {
-          if (response.configured) setSyncState('synced');
-        })
-        .catch((caught) => {
-          setSyncState(caught instanceof ResearchApiError && caught.code === 'UNAUTHORIZED' ? 'auth-required' : 'error');
-        });
+      syncResearchRun(nextResult);
       setResultStale(false);
     }
     catch (caught) { setResult(null); setResultStale(false); setError(caught instanceof Error ? caught.message : 'Не удалось выполнить backtest'); }
@@ -166,6 +175,9 @@ export const StrategyLab: React.FC = () => {
     'auth-required': 'Серверная история требует входа. Локальная копия продолжает работать.',
     error: 'Серверная история временно недоступна. Локальная копия продолжает работать.',
   }[syncState];
+  const retryResearchSync = () => {
+    if (pendingSave) syncResearchRun(pendingSave);
+  };
   const clearSavedRuns = () => {
     setSavedRuns([]);
     try { localStorage.removeItem(STRATEGY_HISTORY_KEY); } catch { /* local history is optional */ }
@@ -210,7 +222,11 @@ export const StrategyLab: React.FC = () => {
 
       {(savedRuns.length > 0 || syncState !== 'local') && (
         <div className="flex flex-col gap-3 border border-gray-800 bg-cyber-black/50 p-3 text-xs text-gray-500 sm:flex-row sm:items-center sm:justify-between">
-          <span role="status" aria-live="polite">{syncCopy}</span>
+          <div className="flex flex-wrap items-center gap-3">
+            <span role="status" aria-live="polite">{syncCopy}</span>
+            {syncState === 'auth-required' && <button type="button" onClick={() => navigate('/login')} className="border border-cyber-cyan/40 px-3 py-2 font-mono text-[10px] text-cyber-cyan hover:border-cyber-cyan focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyber-cyan">ВОЙТИ</button>}
+            {syncState === 'error' && pendingSave && <button type="button" onClick={retryResearchSync} className="border border-cyber-yellow/40 px-3 py-2 font-mono text-[10px] text-cyber-yellow hover:border-cyber-yellow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyber-yellow">ПОВТОРИТЬ</button>}
+          </div>
           {savedRuns.length > 0 && <button type="button" onClick={clearSavedRuns} className="w-fit border border-gray-800 px-3 py-2 font-mono text-[10px] text-gray-500 hover:border-cyber-pink/40 hover:text-cyber-pink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyber-cyan">ОЧИСТИТЬ ИСТОРИЮ</button>}
         </div>
       )}

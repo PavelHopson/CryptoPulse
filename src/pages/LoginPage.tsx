@@ -47,6 +47,7 @@ export const LoginPage: React.FC = () => {
           <p className="text-gray-400 text-sm">
             {isLogin ? 'Добро пожаловать' : 'Создайте аккаунт исследователя'}
           </p>
+          <p className="mt-3 text-xs leading-5 text-gray-500">Это локальный профиль для paper-исследований. Серверная синхронизация и платный доступ пока не подключены.</p>
         </div>
 
         {/* Form */}

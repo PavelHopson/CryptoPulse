@@ -42,6 +42,15 @@ export const Profile: React.FC = () => {
                 <h1 className="font-display text-2xl font-black tracking-wide text-white sm:text-3xl">{user.name}</h1>
               </div>
               <p className="mt-1 text-sm text-gray-500">{user.email}</p>
+              {user.id === 'demo-user' ? (
+                <div className="mt-3 inline-flex items-center gap-2 border border-cyber-yellow/30 bg-cyber-yellow/5 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.12em] text-cyber-yellow">
+                  ЛОКАЛЬНЫЙ ДЕМО-ПРОФИЛЬ · СИНХРОНИЗАЦИЯ ВЫКЛЮЧЕНА
+                </div>
+              ) : (
+                <div className="mt-3 inline-flex items-center gap-2 border border-cyber-green/30 bg-cyber-green/5 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.12em] text-cyber-green">
+                  ЛОКАЛЬНЫЙ ПРОФИЛЬ · СЕРВЕРНАЯ ИДЕНТИЧНОСТЬ НЕ ПОДКЛЮЧЕНА
+                </div>
+              )}
               <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.16em] text-cyber-cyan/70">Исследователь с {memberYear} · уровень {user.level}</p>
             </div>
           </div>

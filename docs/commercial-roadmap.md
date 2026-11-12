@@ -89,17 +89,19 @@
 Локально собраны и проверены: paper-only позиционирование, статусы рыночных и новостных
 источников, Strategy Lab с CSV, экспортом и отключённым по умолчанию Research API-клиентом, client/server AI boundary с лимитами и
 usage-валидацией, локальный тарифный контур, Research Admin и базовые responsive/a11y
-правки. Изменения опубликованы в `PavelHopson/CryptoPulse:main` коммитом
-`53120e4`; production deploy выполнен на `https://cryptopulse.eclipse-forge.ru`.
+правки. Последний опубликованный пакет в `PavelHopson/CryptoPulse:main` — коммит
+`940040e`; production deploy выполнен на `https://cryptopulse.eclipse-forge.ru`.
 
 Подтверждены статические `bun build` для изменённых TypeScript-файлов, worker build и
 worker boundary smoke. Фокусный набор браузерных сервисов (`aiService`, `aiGateway`,
 `cryptoService`, `newsService`, `researchApi`, `strategyLab`, CSV import/export и
 evidence) прошёл: 100 тестов, 293 проверки; вместе с Worker boundary smoke полный
 локальный набор составил 110 тестов и 319 проверок. Worker boundary smoke прошёл: 10 тестов,
-26 проверок. GitHub CI run `43280937951` подтвердил typecheck, полный Vitest и Vite build;
-production deploy run `43281656138` завершился успешно, smoke по домену вернул HTTP 200.
-Playwright E2E и browser-level desktop/mobile QA пока не запускались.
+26 проверок. GitHub CI run `43300199573` подтвердил Research API typecheck, общий typecheck,
+полный Vitest, Vite build и Playwright desktop/mobile E2E. Production deploy run
+`43300535296` завершился успешно; его production smoke подтвердил доступность HTML и JS
+ассета на домене. Локальная проверка домена из Windows-среды ограничена DNS-политикой,
+поэтому авторитетным источником для production smoke остаётся GitHub runner.
 
 До коммерческого релиза остаются подключение реального identity provider и D1/KV/Rate
 Limiting binding, настройка upstream AI gateway, синхронизация Library/Chat, оплата
@@ -121,6 +123,12 @@ Origin/CSRF, allowlist моделей, лимиты, идемпотентнос�
 по-прежнему не утверждается до внешних binding и runtime smoke-проверок.
 Синтетическая таблица сообщества теперь явно помечена как `SYNTHETIC DATA · PAPER ONLY`;
 она не выдаётся за реальные аккаунты или историческую доходность.
+
+В последнем UX-проходе тарифы помечены как плановые без подключённой оплаты, добавлен
+локальный CTA «Оставить интерес», в профиле и на входе показан статус локальной
+идентичности, а Strategy Lab получил явные действия «Войти» и «Повторить» при проблемах
+с серверной синхронизацией. Это честный pre-billing контур: он не выдаёт локальный
+профиль за серверный аккаунт и не открывает платные возможности.
 
 В текущем локальном проходе дополнительно укреплены desktop/mobile-навигация,
 уведомления и theme-menu (keyboard focus, Escape, возврат фокуса, empty state),

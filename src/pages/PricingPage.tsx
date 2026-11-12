@@ -4,6 +4,19 @@ import { Check, X, Zap, Crown, Star, Info } from 'lucide-react';
 
 export const PricingPage: React.FC = () => {
   const [billing, setBilling] = useState<'MONTHLY' | 'YEARLY'>('MONTHLY');
+  const [interestState, setInterestState] = useState<'idle' | 'success' | 'error'>('idle');
+
+  const handleInterest = () => {
+    try {
+      localStorage.setItem('cryptopulse_pricing_interest_v1', JSON.stringify({
+        billing,
+        createdAt: new Date().toISOString(),
+      }));
+      setInterestState('success');
+    } catch {
+      setInterestState('error');
+    }
+  };
 
   const plans = [
     {
@@ -111,6 +124,7 @@ export const PricingPage: React.FC = () => {
             Ежегодно <span className="text-green-400 text-xs ml-1">плановая скидка</span>
           </span>
         </div>
+        <p className="mt-3 text-[11px] font-mono uppercase tracking-[0.14em] text-gray-600">ПЛАНОВЫЙ РАСЧЁТ · ОПЛАТА НЕ ПОДКЛЮЧЕНА</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto px-4">
@@ -180,6 +194,25 @@ export const PricingPage: React.FC = () => {
           </div>
         ))}
       </div>
+
+      <section className="mx-auto mt-10 max-w-3xl px-4">
+        <div className="border border-brand-500/30 bg-brand-500/5 p-5 sm:p-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-brand-300">Следующий доступ</p>
+              <h2 className="mt-2 text-lg font-bold text-white">Оставить интерес к Research Pro</h2>
+              <p className="mt-2 max-w-xl text-sm leading-6 text-gray-400">Сигнал сохранится на этом устройстве. Это не заявка на оплату и не включает платный доступ.</p>
+            </div>
+            <button type="button" onClick={handleInterest} className="cyber-button shrink-0 px-4 py-2 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400">
+              ОСТАВИТЬ ИНТЕРЕС
+            </button>
+          </div>
+          <div className="mt-3 min-h-5 text-xs" aria-live="polite">
+            {interestState === 'success' && <span className="text-cyber-green">Интерес сохранён локально. Когда серверный доступ появится, вернёмся к этому режиму.</span>}
+            {interestState === 'error' && <span className="text-cyber-pink">Не удалось сохранить сигнал. Проверьте настройки хранения браузера и повторите.</span>}
+          </div>
+        </div>
+      </section>
 
       <section className="mx-auto mt-12 max-w-4xl px-4">
         <div className="rounded-2xl border border-cyber-cyan/20 bg-cyber-cyan/5 p-5 sm:p-6">
