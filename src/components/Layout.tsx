@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Activity, BarChart2, Bell, User, Star, TrendingUp, DollarSign, Shield, LogIn, Check, X, Info, CheckCircle, AlertTriangle, Trophy, CreditCard, Megaphone, ArrowLeftRight, LogOut, Cpu, Globe, Zap, Moon, Sun, Monitor, FlaskConical } from 'lucide-react';
+import { Activity, BarChart2, Bell, User, Star, TrendingUp, DollarSign, Shield, LogIn, Check, X, Info, CheckCircle, AlertTriangle, Trophy, CreditCard, Megaphone, ArrowLeftRight, LogOut, Cpu, Globe, Zap, Moon, Sun, Monitor, FlaskConical, Menu, ChevronRight } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { getUserProfile } from '../services/userService';
 import { UserProfile } from '../types';
@@ -82,12 +82,15 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   const [user, setUser] = useState<UserProfile | null>(null);
   const [globalAlert, setGlobalAlert] = useState<string | null>(null);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [notifications, setNotifications] = useState([
     { id: 1, title: 'ИССЛЕДОВАНИЕ ГОТОВО К ПРОВЕРКЕ', time: '02:14', read: false, type: 'alert' },
     { id: 2, title: 'ОБНОВЛЁН ИСТОЧНИК ДАННЫХ', time: '11:05', read: false, type: 'success' },
   ]);
-  const notifTriggerRef = useRef<HTMLButtonElement>(null);
+  const lastNotifTriggerRef = useRef<HTMLButtonElement | null>(null);
   const notifPanelRef = useRef<HTMLDivElement>(null);
+  const mobileMenuTriggerRef = useRef<HTMLButtonElement>(null);
+  const mobileMenuPanelRef = useRef<HTMLDivElement>(null);
 
   const updateProfile = () => {
     const profile = getUserProfile();
@@ -108,7 +111,10 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     };
   }, []);
 
-  useEffect(() => setIsNotifOpen(false), [location]);
+  useEffect(() => {
+    setIsNotifOpen(false);
+    setIsMobileMenuOpen(false);
+  }, [location]);
 
   useEffect(() => {
     if (!isNotifOpen) return;
@@ -118,7 +124,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       if (event.key === 'Escape') {
         event.preventDefault();
         setIsNotifOpen(false);
-        notifTriggerRef.current?.focus();
+        lastNotifTriggerRef.current?.focus();
         return;
       }
       if (event.key === 'Tab' && notifPanelRef.current) {
@@ -140,6 +146,21 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isNotifOpen]);
+
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+    const firstItem = mobileMenuPanelRef.current?.querySelector<HTMLElement>('a[href]');
+    firstItem?.focus();
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setIsMobileMenuOpen(false);
+        mobileMenuTriggerRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isMobileMenuOpen]);
 
   const unreadCount = notifications.filter(n => !n.read).length;
   const markAllRead = () => setNotifications(prev => prev.map(n => ({ ...n, read: true })));
@@ -237,7 +258,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
               {/* NOTIFICATIONS */}
               <div className="relative">
-                <button ref={notifTriggerRef} onClick={() => setIsNotifOpen(!isNotifOpen)} aria-expanded={isNotifOpen} aria-haspopup="dialog" aria-label={unreadCount > 0 ? `Уведомления, непрочитанных: ${unreadCount}` : 'Открыть уведомления'} className={`relative p-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyber-cyan ${isNotifOpen ? 'text-cyber-cyan' : 'text-gray-500 hover:text-cyber-cyan'}`}>
+                <button onClick={(event) => { lastNotifTriggerRef.current = event.currentTarget; setIsNotifOpen(!isNotifOpen); }} aria-expanded={isNotifOpen} aria-haspopup="dialog" aria-label={unreadCount > 0 ? `Уведомления, непрочитанных: ${unreadCount}` : 'Открыть уведомления'} className={`relative p-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyber-cyan ${isNotifOpen ? 'text-cyber-cyan' : 'text-gray-500 hover:text-cyber-cyan'}`}>
                   <Bell className="w-5 h-5" />
                   {unreadCount > 0 && <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-cyber-pink animate-ping"></span>}
                   {unreadCount > 0 && <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-cyber-pink"></span>}
@@ -308,9 +329,10 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
             <Cpu className="w-6 h-6 text-cyber-cyan" />
             <span className="font-display font-bold text-lg tracking-wider text-white">CRYPTO<span className="text-cyber-cyan">PULSE</span></span>
          </div>
-         <div className="flex items-center gap-3">
+         <div className="flex items-center gap-2">
+             <button ref={mobileMenuTriggerRef} type="button" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} aria-expanded={isMobileMenuOpen} aria-haspopup="dialog" aria-label="Открыть разделы рынка" className="flex items-center gap-1.5 border border-cyber-cyan/30 px-2.5 py-1.5 text-[10px] font-mono text-cyber-cyan focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyber-cyan"><Menu className="w-4 h-4" /> РЫНКИ</button>
              <ThemeToggle />
-             <button ref={notifTriggerRef} onClick={() => setIsNotifOpen(!isNotifOpen)} aria-expanded={isNotifOpen} aria-haspopup="dialog" aria-label={unreadCount > 0 ? `Уведомления, непрочитанных: ${unreadCount}` : 'Открыть уведомления'} className="text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyber-cyan"><Bell className="w-5 h-5" /></button>
+             <button onClick={(event) => { lastNotifTriggerRef.current = event.currentTarget; setIsNotifOpen(!isNotifOpen); }} aria-expanded={isNotifOpen} aria-haspopup="dialog" aria-label={unreadCount > 0 ? `Уведомления, непрочитанных: ${unreadCount}` : 'Открыть уведомления'} className="text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyber-cyan"><Bell className="w-5 h-5" /></button>
               <Link to={user ? '/profile' : '/login'} aria-label={user ? `Профиль ${user.name}` : 'Войти'} className="w-8 h-8 bg-cyber-cyan/20 border border-cyber-cyan flex items-center justify-center text-cyber-cyan font-bold">{user ? user.name.charAt(0) : '?'}</Link>
          </div>
          {/* Mobile notification sheet */}
@@ -318,7 +340,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
              <div ref={notifPanelRef} role="dialog" aria-modal="true" aria-labelledby="mobile-notifications-title" data-mobile-notifications className="fixed inset-0 z-50 bg-cyber-black/95 flex flex-col animate-fade-in">
                  <div className="p-4 border-b border-gray-800 flex justify-between">
                      <h2 id="mobile-notifications-title" className="font-mono text-cyber-cyan">УВЕДОМЛЕНИЯ</h2>
-                     <button data-dialog-initial-focus type="button" onClick={() => { setIsNotifOpen(false); notifTriggerRef.current?.focus(); }} aria-label="Закрыть уведомления" className="text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyber-cyan"><X /></button>
+                     <button data-dialog-initial-focus type="button" onClick={() => { setIsNotifOpen(false); lastNotifTriggerRef.current?.focus(); }} aria-label="Закрыть уведомления" className="text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyber-cyan"><X /></button>
                  </div>
                  <div className="p-4 space-y-4">
                     {notifications.length === 0 && <p className="text-sm text-gray-500">Новых уведомлений нет.</p>}
@@ -332,6 +354,30 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
              </div>
          )}
       </div>
+
+      {isMobileMenuOpen && (
+        <div ref={mobileMenuPanelRef} role="dialog" aria-modal="true" aria-labelledby="mobile-market-menu-title" className="md:hidden fixed inset-x-0 top-16 bottom-16 z-40 overflow-y-auto border-y border-cyber-cyan/20 bg-cyber-black/98 p-4 shadow-[0_0_30px_rgba(0,243,255,0.12)]">
+          <div className="mb-3 flex items-center justify-between border-b border-gray-800 pb-3">
+            <h2 id="mobile-market-menu-title" className="font-mono text-xs tracking-[0.18em] text-cyber-cyan">РАЗДЕЛЫ РЫНКА</h2>
+            <button type="button" onClick={() => { setIsMobileMenuOpen(false); mobileMenuTriggerRef.current?.focus(); }} aria-label="Закрыть разделы" className="p-1 text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyber-cyan"><X className="w-4 h-4" /></button>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {[
+              { path: '/', label: 'КРИПТО', hint: 'Цифровые активы' },
+              { path: '/forex', label: 'ФОРЕКС', hint: 'Валютные пары' },
+              { path: '/futures', label: 'ФЬЮЧЕРСЫ', hint: 'Контракты и индексы' },
+              { path: '/compare', label: 'СРАВНЕНИЕ', hint: 'Сопоставить рынки' },
+              { path: '/strategy-lab', label: 'STRATEGY LAB', hint: 'Бумажное исследование' },
+              { path: '/favorites', label: 'ИЗБРАННОЕ', hint: 'Сохранённые активы' },
+            ].map((link) => (
+              <Link key={link.path} to={link.path} onClick={() => setIsMobileMenuOpen(false)} className={`flex items-center justify-between border border-gray-800 px-4 py-3 font-mono text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyber-cyan ${isActive(link.path)}`}>
+                <span><span className="block tracking-wider">{link.label}</span><span className="mt-1 block text-[10px] text-gray-500">{link.hint}</span></span>
+                <ChevronRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full relative z-10">
         <div key={location.key} className="view-enter">
