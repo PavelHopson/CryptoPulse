@@ -66,7 +66,7 @@ export const fetchMarketNewsWithStatus = async (): Promise<NewsServiceResponse> 
               type: 'MARKET' as const,
             };
           })
-          .filter((article): article is NewsArticle => article !== null);
+          .filter((article: NewsArticle | null): article is NewsArticle => article !== null);
         if (articles.length > 0) return newsResponse(articles, 'worker', 'LIVE');
       }
     } catch (err) {
@@ -107,7 +107,7 @@ async function fetchViaRss2Json(workerUnavailable: boolean): Promise<NewsService
             type: 'MARKET' as const,
           };
         })
-        .filter((article): article is NewsArticle => article !== null);
+        .filter((article: NewsArticle | null): article is NewsArticle => article !== null);
       if (articles.length > 0) return newsResponse(articles, 'rss', workerUnavailable ? 'RETRY' : 'LIVE');
     }
     return newsResponse(getMockNews(), 'mock', 'UNAVAILABLE', 'Провайдеры новостей вернули пустой ответ. Показан демонстрационный набор.');

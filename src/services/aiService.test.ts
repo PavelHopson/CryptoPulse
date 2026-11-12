@@ -34,7 +34,7 @@ function mockJsonResponse(body: unknown, status = 200): Response {
   } as unknown as Response;
 }
 
-type TestGlobalScope = typeof globalThis & {
+type TestGlobalScope = Omit<typeof globalThis, 'window'> & {
   window?: { location: { origin: string } };
 };
 
