@@ -89,20 +89,21 @@
 Локально собраны и проверены: paper-only позиционирование, статусы рыночных и новостных
 источников, Strategy Lab с CSV, экспортом и отключённым по умолчанию Research API-клиентом, client/server AI boundary с лимитами и
 usage-валидацией, локальный тарифный контур, Research Admin и базовые responsive/a11y
-правки. Изменения находятся в интеграционном worktree `G:/cryptopulse-root` на
-detached HEAD `2935408`; публикация и deploy не выполнялись.
+правки. Изменения опубликованы в `PavelHopson/CryptoPulse:main` коммитом
+`53120e4`; production deploy выполнен на `https://cryptopulse.eclipse-forge.ru`.
 
 Подтверждены статические `bun build` для изменённых TypeScript-файлов, worker build и
 worker boundary smoke. Фокусный набор браузерных сервисов (`aiService`, `aiGateway`,
 `cryptoService`, `newsService`, `researchApi`, `strategyLab`, CSV import/export и
 evidence) прошёл: 100 тестов, 293 проверки; вместе с Worker boundary smoke полный
 локальный набор составил 110 тестов и 319 проверок. Worker boundary smoke прошёл: 10 тестов,
-26 проверок. Полные typecheck, Vite build и E2E пока
-не подтверждены: зависимости отсутствуют, а npm registry недоступен.
+26 проверок. GitHub CI run `43280937951` подтвердил typecheck, полный Vitest и Vite build;
+production deploy run `43281656138` завершился успешно, smoke по домену вернул HTTP 200.
+Playwright E2E и browser-level desktop/mobile QA пока не запускались.
 
 До коммерческого релиза остаются подключение реального identity provider и D1/KV/Rate
 Limiting binding, настройка upstream AI gateway, синхронизация Library/Chat, оплата
-тарифов, production smoke и полный desktop/mobile E2E. Reference Worker уже добавлен
+тарифов и полный desktop/mobile E2E. Frontend production smoke пройден. Reference Worker уже добавлен
 в `workers/research-api/`, но не считается production-ready до этих внешних проверок.
 У Worker пока нет lock-файла и отдельного runtime CI job: локальная установка
 инструментов зависит от доступности npm registry. Его production source теперь
@@ -116,8 +117,8 @@ endpoint не является границей безопасности, поэ
 Origin/CSRF, allowlist моделей, лимиты, идемпотентность и фактическое usage.
 Подробный request/response и операционный контракт зафиксирован в
 `docs/ai-gateway-contract.md`. Для Research API локально проходят десять Bun smoke
-тестов worker и восемь тестов браузерного клиента; production readiness по-прежнему
-не утверждается до внешних binding и smoke-проверок.
+тестов worker и восемь тестов браузерного клиента; Research API production readiness
+по-прежнему не утверждается до внешних binding и runtime smoke-проверок.
 Синтетическая таблица сообщества теперь явно помечена как `SYNTHETIC DATA · PAPER ONLY`;
 она не выдаётся за реальные аккаунты или историческую доходность.
 
