@@ -74,7 +74,10 @@ async function derivePasswordHash(password: string, salt: Uint8Array, iterations
     false,
     ['deriveBits'],
   );
-  const saltBuffer = salt.buffer.slice(salt.byteOffset, salt.byteOffset + salt.byteLength) as ArrayBuffer;
+  // Pass a concrete TypedArray to Web Crypto. `salt.buffer.slice(...)` can be
+  // represented as SharedArrayBuffer in newer Node runtimes and is rejected by
+  // subtleCrypto even though browsers accept the same view.
+  const saltBuffer = new Uint8Array(salt);
   const bits = await crypto.subtle.deriveBits(
     { name: 'PBKDF2', hash: 'SHA-256', salt: saltBuffer, iterations },
     key,
