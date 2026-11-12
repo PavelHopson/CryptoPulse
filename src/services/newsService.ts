@@ -14,6 +14,17 @@ export interface NewsServiceResponse {
 // Cloudflare Worker — live news parser
 const NEWS_API = import.meta.env.VITE_NEWS_API || 'https://cryptopulse-news.hopsintoxin.workers.dev';
 const FALLBACK_IMAGE_URL = 'https://images.unsplash.com/photo-1611974765270-ca1258634369?auto=format&fit=crop&q=80&w=200';
+const NEWS_REQUEST_TIMEOUT_MS = 5_000;
+
+async function fetchNewsWithTimeout(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), NEWS_REQUEST_TIMEOUT_MS);
+  try {
+    return await fetch(input, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
 
 function safeHttpUrl(value: unknown): string | null {
   if (typeof value !== 'string' || !value.trim()) return null;
@@ -47,7 +58,7 @@ export const fetchMarketNewsWithStatus = async (): Promise<NewsServiceResponse> 
   // Try our Cloudflare Worker first
   if (NEWS_API) {
     try {
-      const response = await fetch(`${NEWS_API}/crypto`);
+      const response = await fetchNewsWithTimeout(`${NEWS_API}/crypto`);
       const data = await response.json();
       if (data.ok && Array.isArray(data.articles) && data.articles.length > 0) {
         const articles = data.articles
@@ -88,7 +99,7 @@ const INVESTING_RU_RSS = 'https://ru.investing.com/rss/news.rss';
 
 async function fetchViaRss2Json(workerUnavailable: boolean): Promise<NewsServiceResponse> {
   try {
-    const response = await fetch(`${RSS_TO_JSON_API}?rss_url=${encodeURIComponent(INVESTING_RU_RSS)}`);
+    const response = await fetchNewsWithTimeout(`${RSS_TO_JSON_API}?rss_url=${encodeURIComponent(INVESTING_RU_RSS)}`);
     const data = await response.json();
 
     if (data.status === 'ok' && Array.isArray(data.items)) {

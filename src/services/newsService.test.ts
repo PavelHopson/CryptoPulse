@@ -249,6 +249,27 @@ describe('newsService.fetchMarketNews — full-fallback to mock data', () => {
     const result = await fetchMarketNews();
     expect(result.length).toBeGreaterThanOrEqual(2);
   });
+
+  it('returns an unavailable mock when Worker and RSS requests time out', async () => {
+    vi.useFakeTimers();
+    try {
+      fetchMock.mockImplementation((_input: RequestInfo | URL, init?: RequestInit) => (
+        new Promise<Response>((_resolve, reject) => {
+          init?.signal?.addEventListener('abort', () => reject(new Error('request timeout')), { once: true });
+        })
+      ));
+
+      const resultPromise = fetchMarketNewsWithStatus();
+      await vi.advanceTimersByTimeAsync(12_000);
+      const result = await resultPromise;
+
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      expect(result.source).toBe('mock');
+      expect(result.status).toBe('UNAVAILABLE');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });
 
 describe('newsService.fetchMarketNews — RSS date formatting', () => {

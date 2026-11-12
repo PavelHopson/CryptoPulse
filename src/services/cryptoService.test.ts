@@ -155,6 +155,27 @@ describe('fetchTopCoins', () => {
     expect(result.error).toContain('Ошибка сети');
     expect(result.data.length).toBeGreaterThan(0);
   });
+
+  it('aborts a hanging provider request and falls back to retry-mock', async () => {
+    vi.useFakeTimers();
+    try {
+      fetchMock.mockImplementation((_input: RequestInfo | URL, init?: RequestInit) => (
+        new Promise<Response>((_resolve, reject) => {
+          init?.signal?.addEventListener('abort', () => reject(new Error('request timeout')), { once: true });
+        })
+      ));
+
+      const resultPromise = fetchTopCoins();
+      await vi.advanceTimersByTimeAsync(20_000);
+      const result = await resultPromise;
+
+      expect(fetchMock).toHaveBeenCalledTimes(3);
+      expect(result.source).toBe('retry-mock');
+      expect(result.status).toBe('RETRY');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });
 
 describe('fetchCoinDetails', () => {

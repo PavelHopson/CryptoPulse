@@ -3,6 +3,7 @@ import { getSystemConfig } from './adminService';
 import { retry, isRetryableHttpStatus } from '../core/retry';
 
 const API_URL = 'https://api.coingecko.com/api/v3';
+const DATA_REQUEST_TIMEOUT_MS = 5_000;
 
 /**
  * Where the data in a ServiceResponse came from. Allows the UI to show a
@@ -92,11 +93,17 @@ export function requireTrustedData<T>(result: ServiceResponse<T>, mode: DataUseM
 async function fetchWithRetry(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
   return retry(
     async () => {
-      const res = await fetch(input, init);
-      if (!res.ok && isRetryableHttpStatus(res.status)) {
-        throw new Error(`HTTP ${res.status}`);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), DATA_REQUEST_TIMEOUT_MS);
+      try {
+        const res = await fetch(input, { ...init, signal: controller.signal });
+        if (!res.ok && isRetryableHttpStatus(res.status)) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+        return res;
+      } finally {
+        clearTimeout(timeoutId);
       }
-      return res;
     },
     { maxAttempts: 3, initialDelayMs: 500, maxDelayMs: 4000, jitter: true },
   );
