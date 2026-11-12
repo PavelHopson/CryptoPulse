@@ -119,3 +119,28 @@ jobs:
           rsync -avz --delete \
             -e "ssh -i ~/.ssh/id_deploy -o StrictHostKeyChecking=yes -o UserKnownHostsFile=~/.ssh/known_hosts" \
             dist/ "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${{ secrets.VPS_PATH }}/"
+
+      - name: Production smoke
+        env:
+          SITE_URL: https://cryptopulse.eclipse-forge.ru
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 12); do
+            html="$(curl --fail --silent --show-error --location --max-time 15 "$SITE_URL/")" || true
+            asset="$(printf '%s' "$html" | grep -oE 'src="[^"]+\.js"' | head -n 1 | cut -d'"' -f2 || true)"
+            if [ -n "$asset" ]; then
+              case "$asset" in
+                http://*|https://*) asset_url="$asset" ;;
+                /*) asset_url="${SITE_URL}${asset}" ;;
+                *) asset_url="${SITE_URL}/${asset}" ;;
+              esac
+              if curl --fail --silent --show-error --location --max-time 15 "$asset_url" >/dev/null; then
+                echo "Production smoke passed: HTML and JS asset are reachable."
+                exit 0
+              fi
+            fi
+            echo "Production smoke attempt ${attempt}/12 did not pass yet."
+            sleep 5
+          done
+          echo 'Production smoke failed: deployed HTML or JS asset is not reachable.' >&2
+          exit 1
