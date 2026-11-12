@@ -107,10 +107,8 @@ evidence) прошёл: 100 тестов, 293 проверки; вместе с 
 Limiting binding, настройка upstream AI gateway, синхронизация Library/Chat, оплата
 тарифов и полный desktop/mobile E2E. Frontend production smoke пройден. Reference Worker уже добавлен
 в `workers/research-api/`, но не считается production-ready до этих внешних проверок.
-У Worker пока нет lock-файла и отдельного runtime CI job: локальная установка
-инструментов зависит от доступности npm registry. Его production source теперь
-входит в корневой TypeScript-контур, но Worker runtime smoke всё ещё остаётся
-отдельным release gate.
+Worker test/build теперь запускаются отдельным CI job на pinned Bun; production runtime
+smoke и создание внешних Cloudflare binding всё ещё остаются отдельным release gate.
 
 После этого среза добавлены доступные состояния для сравнения, входа и Research Admin,
 повторная загрузка при ошибке, таймаут server AI transport и запрет незакреплённого

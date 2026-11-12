@@ -38,6 +38,24 @@ jobs:
       - name: Build app
         run: npm run build
 
+  worker-checks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.3.12
+
+      - name: Test Research API worker
+        run: npm run test:worker
+
+      - name: Build Research API worker
+        run: npm run build:worker
+
   e2e:
     needs: web-checks
     # Playwright 1.59 does not yet provide browser dependencies for Ubuntu 26.
